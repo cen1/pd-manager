@@ -28,6 +28,9 @@
 /build/
 /build_debug/
 /build_release/
+build_vcpkg/
+build_conan/
+depends/
 cmake-build-debug/
 cmake-build-release/
 cmake-build-*/

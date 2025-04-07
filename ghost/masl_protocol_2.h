@@ -3,6 +3,7 @@
 #define MASL_PROTOCOL_2_H
 
 #include "util.h"
+#include <algorithm>
 
 namespace MASL_PROTOCOL
 {
@@ -155,7 +156,7 @@ namespace MASL_PROTOCOL
 }
 
 inline bool MASL_PROTOCOL :: IsDotAEmMode( string mode ) {
-	transform( mode.begin( ), mode.end( ), mode.begin( ), (int(*)(int))tolower );
+	std::transform( mode.begin( ), mode.end( ), mode.begin( ), (int(*)(int))tolower );
 	uint32_t NumModes = mode.size( ) / 2;
 
 	for( unsigned int i = 0; i < NumModes; ++i )

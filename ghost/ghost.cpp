@@ -188,8 +188,8 @@ int main( int argc, char **argv )
 	}
 #endif
 
-	boost::asio::io_service IOService;
-	boost::asio::io_service::work Work( IOService );
+	boost::asio::io_context IOService;
+	boost::asio::io_context::work Work( IOService );
 
 	// initialize ghost
 
@@ -200,7 +200,7 @@ int main( int argc, char **argv )
 		// block for 50ms on all sockets - if you intend to perform any timed actions more frequently you should change this
 		// that said it's likely we'll loop more often than this due to there being data waiting on one of the sockets but there aren't any guarantees
 
-		if( gGHost->Update( 50000, io_service ) )
+		if( gGHost->Update( 50000, io_context ) )
 			break;
 	}*/
 
@@ -329,7 +329,7 @@ string GetServerAddress( uint32_t serverID )
 // CGHost
 //
 
-CGHost :: CGHost( CConfig *CFG, boost::asio::io_service &nIOService, boost::asio::io_service::work &nWork ) : m_IOService( nIOService ), m_Work( nWork ), m_UpdateTimer( nIOService )
+CGHost :: CGHost( CConfig *CFG, boost::asio::io_context &nIOService, boost::asio::io_context::work &nWork ) : m_IOService( nIOService ), m_Work( nWork ), m_UpdateTimer( nIOService )
 {
 	CONSOLE_Print( "[GHOST] opening MySQL database" );
 	//m_DB = new CGHostDBMySQL( CFG );
@@ -1200,7 +1200,7 @@ void CGHost :: Update( const boost::system::error_code& error )
 			++i;
 	}
 
-	//io_service.poll( );
+	//io_context.poll( );
 
 	m_UpdateTimer.expires_from_now( boost::posix_time::milliseconds( 50 ) );
 	m_UpdateTimer.async_wait( boost::bind( &CGHost::Update, this, boost::asio::placeholders::error ) );

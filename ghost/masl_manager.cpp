@@ -67,7 +67,7 @@ void CPlayers :: AddPlayer( string name, CDBPlayer *player )
 // CSlave
 //
 
-CSlave :: CSlave( CGHost *nGHost, CManager *nManager, uint32_t nSlaveID, boost::asio::io_service& io_service ) : socket_( io_service )
+CSlave :: CSlave( CGHost *nGHost, CManager *nManager, uint32_t nSlaveID, boost::asio::io_context& io_context ) : socket_( io_context )
 {
 	m_GHost = nGHost;
 	m_Manager = nManager;
@@ -1675,7 +1675,6 @@ void CSlave :: Send( uint16_t flag, string msg )
 // CManager
 //
 
-//CManager :: CManager( CConfig *CFG, CGHost *nGHost, boost::asio::io_service& io_service, short nPort ) : io_service_( io_service ), acceptor_( io_service_, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4( ), nPort ) )
 CManager :: CManager( CGHost *nGHost, string nBindAddress, uint16_t nPort, string nGameListFile, uint32_t nGameListRefreshInterval ) : m_GHost( nGHost ), m_BindAddress( nBindAddress ), m_Port( nPort ), m_GameListFile( nGameListFile ), m_GameListRefreshInterval( nGameListRefreshInterval )
 {
 	CONSOLE_Print( "[MASL] starting manager" );

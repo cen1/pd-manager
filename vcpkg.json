@@ -2,19 +2,19 @@
 	"version": "1.5",
 	"name": "pd-manager",
 	"dependencies": [
-		"stormlib",
 		"boost-system",
 		"boost-filesystem",
 		"boost-chrono",
 		"boost-thread",
 		"boost-date-time",
 		"boost-regex",
-		"mysql-connector-cpp"
+		"boost-asio",
+		"libmysql"
 	],
 	"vcpkg-configuration": {
 		"default-registry": {
 			"kind": "git",
-			"baseline": "2c401863dd54a640aeb26ed736c55489c079323b",
+			"baseline": "d5ec528843d29e3a52d745a64b469f810b2cedbf",
 			"repository": "https://github.com/microsoft/vcpkg"
 		},
 		"registries": [

@@ -6,8 +6,8 @@ class Quazip(ConanFile):
 	generators = "CMakeDeps"
 
 	requires = (
-		"mysql-connector-cpp/9.2.0",
-		"boost/1.83.0"
+		"libmysqlclient/8.1.0",
+		"boost/1.86.0"
 	)
 
 	def configure(self):
@@ -18,12 +18,12 @@ class Quazip(ConanFile):
 		self.options["boost"].without_thread = False
 		self.options["boost"].without_date_time = False
 		self.options["boost"].without_regex = False
-		self.options["boost"].without_atomic = True
-		self.options["boost"].without_container = True
-		self.options["boost"].without_context = True
+		self.options["boost"].without_atomic = False
+		self.options["boost"].without_container = False
+		self.options["boost"].without_context = False
 		self.options["boost"].without_contract = True
 		self.options["boost"].without_coroutine = True
-		self.options["boost"].without_exception = True
+		self.options["boost"].without_exception = False
 		self.options["boost"].without_graph = True
 		self.options["boost"].without_iostreams = True
 		self.options["boost"].without_json = True

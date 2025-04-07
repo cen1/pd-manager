@@ -37,17 +37,19 @@ ctest --verbose -C Release
 
 ## Build on Windows
 
+Use Visual Studio CMD.
+
 Using vcpkg
 ```
 cmake --preset vcpkg
-cmake --build build --config Release
+cmake --build build_vcpkg --config Release
 ```
 
 Using conan v2
 ```
-conan install . -of build -s build_type=Release -o *:shared=False --build=missing
+conan install . -of build_conan -s build_type=Release -o *:shared=False --build=missing
 cmake --preset conan
-cmake --build build --config Release
+cmake --build build_conan --config Release
 ```
 
 ## Run

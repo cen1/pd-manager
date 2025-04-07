@@ -303,6 +303,24 @@ string UTIL_ToString( long i )
 	return result;
 }
 
+string UTIL_ToString( long long i )
+{
+    string result;
+    stringstream SS;
+    SS << i;
+    SS >> result;
+    return result;
+}
+
+string UTIL_ToString( unsigned long long i )
+{
+    string result;
+    stringstream SS;
+    SS << i;
+    SS >> result;
+    return result;
+}
+
 string UTIL_ToString( short i )
 {
 	string result;

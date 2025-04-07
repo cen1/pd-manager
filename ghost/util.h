@@ -54,6 +54,8 @@ string UTIL_ToString( unsigned long i );
 string UTIL_ToString( unsigned short i );
 string UTIL_ToString( unsigned int i );
 string UTIL_ToString( long i );
+string UTIL_ToString( long long i );
+string UTIL_ToString( unsigned long long i );
 string UTIL_ToString( short i );
 string UTIL_ToString( int i );
 string UTIL_ToString( float f, int digits );

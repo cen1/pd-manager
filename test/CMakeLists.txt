@@ -1,6 +1,8 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+set(gtest_force_shared_crt on)
+
 include(FetchContent)
 FetchContent_Declare(
         googletest

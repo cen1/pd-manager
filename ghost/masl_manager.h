@@ -81,7 +81,7 @@ public:
 	char data_[max_length];
 
 public:
-	CSlave( CGHost *nGHost, CManager *nManager, uint32_t nSlaveID, boost::asio::io_service& io_service );
+	CSlave( CGHost *nGHost, CManager *nManager, uint32_t nSlaveID, boost::asio::io_context& io_context );
 	~CSlave( );
 
 	boost::asio::ip::tcp::socket& socket( ) { return socket_; }

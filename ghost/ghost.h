@@ -118,8 +118,8 @@ class CCallableGameID;
 class CGHost
 {
 public:
-	boost::asio::io_service &m_IOService;
-	boost::asio::io_service::work &m_Work;
+	boost::asio::io_context &m_IOService;
+	boost::asio::io_context::work &m_Work;
 
 	boost::asio::deadline_timer m_UpdateTimer;
 
@@ -180,7 +180,7 @@ public:
 	bool m_RPGMode;
 	bool m_UseNewPSRFormula;
 
-	CGHost( CConfig *CFG, boost::asio::io_service &nIOService, boost::asio::io_service::work &nWork );
+	CGHost( CConfig *CFG, boost::asio::io_context &nIOService, boost::asio::io_context::work &nWork );
 	~CGHost( );
 
 	// processing functions
