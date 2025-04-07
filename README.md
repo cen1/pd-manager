@@ -1,8 +1,9 @@
 # pd-manager
 Manager bot by myubernick, cen
+
 Based on ghost++.
 
-This bot sits in a bnet channel and accepts player's commands. It delegates game hosting to "slave" bots. It tracks games in lobby, games in play and collects the game results.
+This bot sits in a bnet channel and accepts player's commands. It delegates game hosting to "slave" hostbots. It tracks games in lobby, games in play and collects the game results.
 
 Copyright [2008] [Trevor Hogan]
 Copyright [2010-2025] [myubernick, cen]
@@ -64,35 +65,28 @@ You should prepare `pd-manager-docker.cfg` which will be volume mounted into the
 You need to configure at a minimum these options from the example cfg:
 
 | Option    | Description                                                                                                                                                |
-
 |-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-
 | bot_war3path    | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
-
 | bnet_server | Bnet server                                                                                                                                              |
-
 | bnet_serveralias | Bnet server                                                                                                                                         |
-
 | bnet_username | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account.   |
-
 | bnet_password | Bnet bot username password. Use lowercase only.                                                                                                        |
-
 | bnet_rootadmin | Bnet player account that will have root privileges for all commands.                                                                                  |
-
 | bnet_custom_war3version | Set to minor W3 version, `26` or `28`.                                                                                                       |
-
 | bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                      |
-
-| db_mysql_* | Connection options to your MySQL database.
+| db_mysql_* | Connection options to your MySQL database.																												 |
 
 Default config expect the game files in `./war3_126a` and all you need to provide is essentially the username and password to get started.
 
 Run with `docker compose up -d`.
 
+### Systemd
+See `pd-manager.service` for a sample service file.
+
 ## Debugging production problems
 ```
-cmake -G "Unix Makefiles" -B./build -H./ -DCMAKE_BUILD_TYPE=RelWithDebInfo
-gdb --args pd_manager playdota.eu.cfg
+cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+gdb --args pd_manager-1.0.0 default.cfg
 r
 ```
 
