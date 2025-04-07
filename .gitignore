@@ -1,0 +1,44 @@
+# no .a files and .exe files
+*.a
+*.exe
+*.obj
+*.opensdf
+*.sdf
+*.suo
+*.tlog
+*.pdb
+*.cache
+*.manifest
+*.unsuccessfulbuild
+*.log
+*.opendb
+*.db
+*.vcproj
+.idea/
+*.csv
+
+# ignore all files in the build/ directory
+/ghost/Release
+/ipch/
+/Release/
+/Debug/
+/Release\ MySQL/
+/ghost/Release\ MySQL/
+/ghost/Debug\ MySQL/
+/build/
+/build_debug/
+/build_release/
+cmake-build-debug/
+cmake-build-release/
+cmake-build-*/
+googletest/
+test/googletest/
+war3_126a/
+wc3_1285/
+war3/
+replays/
+logs/
+tmpreplays/
+gamelogs/
+lobbylogs/
+mnt/

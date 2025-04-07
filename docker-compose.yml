@@ -1,0 +1,62 @@
+services:
+    pdm:
+        build: .
+        container_name: pdm
+        depends_on:
+            - mysql
+        ports:
+            - "15002:15002/tcp"
+        volumes:
+            - ./pd-manager-docker.cfg:/app/pd-manager-docker.cfg
+            - ./ipblacklist.txt:/app/ipblacklist.txt
+            - ./war3_126a:/app/war3_126a
+            - ./maps:/app/maps
+            - ./mapcfgs:/app/mapcfgs
+            - ./replays:/app/replays
+            - ./tmpreplays:/app/tmpreplays
+            - ./logs:/app/logs
+            - ./lobbylogs:/app/lobbylogs
+            - ./gamelogs:/app/gamelogs
+            - ./public:/app/public
+        environment:
+            - DB_HOST=mysql
+            - DB_USER=pdm
+            - DB_PASS=changeme
+            - DB_NAME=pdm
+        restart: unless-stopped
+
+    mysql:
+        image: mysql:9
+        container_name: pdm-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpass
+            MYSQL_DATABASE: pdm
+            MYSQL_USER: pdm
+            MYSQL_PASSWORD: changeme
+        ports:
+            - "3306:3306"
+        volumes:
+            - pdm_db_data:/var/lib/mysql
+            - ./database_schema.sql:/docker-entrypoint-initdb.d/database_schema.sql
+            - ./my.cnf:/etc/mysql/my.cnf
+        healthcheck:
+            test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+            timeout: 20s
+            retries: 3
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: pdm-phpmyadmin
+        depends_on:
+            - mysql
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: pdm
+            PMA_PASSWORD: changeme
+        ports:
+            - "8080:80"
+        restart: unless-stopped
+
+volumes:
+    pdm_db_data:
