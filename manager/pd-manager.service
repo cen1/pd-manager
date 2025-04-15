@@ -1,0 +1,15 @@
+[Unit]
+Description=1.26 pd-manager
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/manager
+ExecStart=/path/to/manager/pd-manager-1.0.0 default.cfg
+Restart=on-failure
+User=ubuntu
+Group=ubuntu
+Nice=-4
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,1 @@
+GL_players={};GL_games={}

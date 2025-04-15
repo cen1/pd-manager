@@ -1,0 +1,129 @@
+networks:
+    pdmnet:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.40.0.0/16
+
+services:
+    # docker build -t pd-manager -f Dockerfile.manager --progress=plain .
+    # docker build -t pd-slave -f Dockerfile.slave --progress=plain .
+    pdm:
+        build:
+            context: .
+            dockerfile: Dockerfile.manager
+        container_name: pdm
+        depends_on:
+            - mysql
+        #ports:
+        #    - "127.0.0.1:15002:15002/tcp"
+        volumes:
+            - ./pd-manager-docker.cfg:/app/pd-manager-docker.cfg
+            - ./manager/ipblacklist.txt:/app/ipblacklist.txt
+            - ./war3_126a:/app/war3_126a
+            - ./data:/app/data
+        environment:
+            - DB_HOST=mysql
+            - DB_USER=pdm
+            - DB_PASS=changeme
+            - DB_NAME=pdm
+        restart: unless-stopped
+        networks:
+            pdmnet:
+                ipv4_address: 172.40.0.5
+        expose:
+            - "15002"
+
+    host1:
+        build:
+            context: .
+            dockerfile: Dockerfile.slave
+        container_name: host1
+        ports:
+            - "6101:6101/tcp"
+            - "6201:6201/tcp"
+        volumes:
+            - ./slave_cfgs/s01.cfg:/app/s00.cfg
+            - ./pd-slave-docker.cfg:/app/default.cfg
+            - ./ghost/didyouknow.txt:/app/didyouknow.txt
+            - ./ghost/gameloaded.txt:/app/gameloaded.txt
+            - ./ghost/gameover.txt:/app/gameover.txt
+            - ./ghost/ipblacklist.txt:/app/ipblacklist.txt
+            - ./ghost/language.cfg:/app/language.cfg
+            - ./ghost/motd.txt:/app/motd.txt
+            - ./war3_126a:/app/war3_126a
+            - ./data:/app/data
+        depends_on:
+            - mysql
+            - pdm
+        restart: unless-stopped
+        networks:
+            pdmnet:
+                ipv4_address: 172.40.0.6
+
+    host2:
+        build:
+            context: .
+            dockerfile: Dockerfile.slave
+        container_name: host2
+        ports:
+            - "6102:6102/tcp"
+            - "6202:6202/tcp"
+        volumes:
+            - ./slave_cfgs/s02.cfg:/app/s00.cfg
+            - ./pd-slave-docker.cfg:/app/default.cfg
+            - ./ghost/didyouknow.txt:/app/didyouknow.txt
+            - ./ghost/gameloaded.txt:/app/gameloaded.txt
+            - ./ghost/gameover.txt:/app/gameover.txt
+            - ./ghost/ipblacklist.txt:/app/ipblacklist.txt
+            - ./ghost/language.cfg:/app/language.cfg
+            - ./ghost/motd.txt:/app/motd.txt
+            - ./war3_126a:/app/war3_126a
+            - ./data:/app/data
+        depends_on:
+            - mysql
+            - pdm
+        restart: unless-stopped
+        networks:
+            pdmnet:
+                ipv4_address: 172.40.0.7
+
+    mysql:
+        image: mysql:9
+        container_name: pdm-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpass
+            MYSQL_DATABASE: pdm
+            MYSQL_USER: pdm
+            MYSQL_PASSWORD: changeme
+        ports:
+            - "3306:3306"
+        volumes:
+            - pdm_db_data:/var/lib/mysql
+            - ./database_schema.sql:/docker-entrypoint-initdb.d/database_schema.sql
+            - ./my.cnf:/etc/mysql/my.cnf
+        healthcheck:
+            test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+            timeout: 20s
+            retries: 3
+        networks:
+            pdmnet:
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: pdm-phpmyadmin
+        depends_on:
+            - mysql
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: pdm
+            PMA_PASSWORD: changeme
+        ports:
+            - "8080:80"
+        restart: unless-stopped
+        networks:
+            pdmnet:
+
+volumes:
+    pdm_db_data:

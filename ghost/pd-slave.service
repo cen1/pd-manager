@@ -1,0 +1,15 @@
+[Unit]
+Description=1.26 pd-slave for instance %i
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/slave
+ExecStart=/path/to/slave/pd-slave-1.0.0 cfgs/s%i.cfg
+Restart=on-failure
+User=ubuntu
+Group=ubuntu
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target
