@@ -11,7 +11,7 @@ This repository consists of:
 Copyright [2008] [Trevor Hogan]
 Copyright [2010-2025] [myubernick, cen]
 
-## Convenience Debian repo for bncsutil
+## Convenience Debian repo for bncsutil and stormlib
 
 ```
 curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo tee /etc/apt/keyrings/debian-bookworm-xpam.asc
@@ -24,7 +24,7 @@ Signed-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" |
 sudo tee /etc/apt/sources.list.d/xpam.sources > /dev/null
 ```
 
-Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) from source.
+Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) and [stormlib](https://github.com/ladislav-zezula/StormLib) from source.
 
 ## Build on Linux
 ```
