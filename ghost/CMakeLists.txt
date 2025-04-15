@@ -1,4 +1,7 @@
 #cmake_policy(SET CMP0074 OLD)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+    cmake_policy(SET CMP0167 NEW)
+endif()
 cmake_minimum_required(VERSION 3.14)
 
 project(pd-slave VERSION 1.0.0)
@@ -86,7 +89,7 @@ set_target_properties(pd-slave PROPERTIES SOVERSION 1)
 target_compile_features(pd-slave PRIVATE cxx_nullptr cxx_generic_lambdas)
 
 if (WIN32)
-	target_compile_options(pd-slave PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+	target_compile_options(pd-slave PRIVATE -D_CRT_SECURE_NO_WARNINGS -D_HAS_STD_BYTE=0)
 	target_link_libraries(pd-slave PRIVATE wsock32 ws2_32)
 
 	set_target_properties(pd-slave PROPERTIES VS_DEBUGGER_COMMAND_ARGUMENTS "s01.cfg")
@@ -112,6 +115,7 @@ install(TARGETS pd-slave RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE
 #Set inheritance vars for subprojects
 get_target_property(PARENT_LINK_LIBRARIES pd-slave LINK_LIBRARIES)
 get_target_property(PARENT_INCLUDE_DIRECTORIES pd-slave INCLUDE_DIRECTORIES)
+get_target_property(PARENT_COMPILE_OPTIONS pd-slave COMPILE_OPTIONS)
 
 #Expand $PATH with library paths to avoid missing dll on program startup
 if (MSVC)
@@ -139,7 +143,8 @@ if(ENABLE_TESTS)
     list(REMOVE_ITEM SOURCE_LIB "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_library(pd-slave-lib STATIC ${SOURCES_LIB})
     target_include_directories(pd-slave-lib PRIVATE ${PARENT_INCLUDE_DIRECTORIES})
-    target_link_libraries (pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})
+    target_link_libraries(pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})
+    target_compile_options(pd-slave-lib PRIVATE ${PARENT_COMPILE_OPTIONS})
 
     enable_testing()
     add_subdirectory(test)

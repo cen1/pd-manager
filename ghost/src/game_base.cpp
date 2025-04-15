@@ -5859,6 +5859,7 @@ void CBaseGame :: ShuffleSlots( )
 	// so we start by copying the player slots to a temporary vector
 
 	vector<CGameSlot> PlayerSlots;
+	static std::mt19937 rng( std::random_device{}() );
 
 	for( vector<CGameSlot> :: iterator i = m_Slots.begin( ); i != m_Slots.end( ); ++i )
 	{
@@ -5880,7 +5881,7 @@ void CBaseGame :: ShuffleSlots( )
 		for( unsigned char i = 0; i < PlayerSlots.size( ); ++i )
 			SIDs.push_back( i );
 
-		random_shuffle( SIDs.begin( ), SIDs.end( ) );
+		std::shuffle(SIDs.begin( ), SIDs.end( ), rng);
 
 		// now put the PlayerSlots vector in the same order as the SIDs vector
 
@@ -5898,7 +5899,7 @@ void CBaseGame :: ShuffleSlots( )
 		// regular game
 		// it's easy when we're allowed to swap the team/colour/race!
 
-		random_shuffle( PlayerSlots.begin( ), PlayerSlots.end( ) );
+		std::shuffle(PlayerSlots.begin( ), PlayerSlots.end( ), rng);
 	}
 
 	// now we put m_Slots back together again

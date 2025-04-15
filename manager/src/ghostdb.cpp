@@ -178,7 +178,7 @@ void CGHostDB :: WorkerThread( )
 		return;
 	}
 
-	my_bool Reconnect = true;
+	bool Reconnect = true;
 	mysql_options( Connection, MYSQL_OPT_RECONNECT, &Reconnect );
 
 	if( !( mysql_real_connect( Connection, m_Server.c_str( ), m_User.c_str( ), m_Password.c_str( ), m_Database.c_str( ), m_Port, NULL, 0 ) ) )
