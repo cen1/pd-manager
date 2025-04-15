@@ -5,11 +5,11 @@ Warcraft III hosting system based on original ghost++ project.
 Created by myubernick and maintained by cen. This system hosted thousands of DotA and custom games on former playdota.eu/lagabuse.com since 2008, now known as dota.eurobattle.net.
 
 This repository consists of:
-- `pd-manager`: typically a bot sitting in bnet channel accepting player commands to host games, check lobbies and collect game stats.
-- `pd-slave`: host that accepts a game host request and hosts the game lobby. Multiple slave bots can be attached to a single manager.
+- `pd-manager`: bot sitting in bnet channel accepting player commands to host games, check lobbies and collect game stats.
+- `pd-slave`: accepts a command from manager and hosts the game lobby. Multiple slave bots can be attached to a single manager.
 
 Copyright [2008] [Trevor Hogan]
-Copyright [2010-2025] [myubernick, cen]
+Copyright [2010-2025] [myubernick, cen, luke]
 
 ## Convenience Debian repo for bncsutil and stormlib
 
