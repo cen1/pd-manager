@@ -47,6 +47,7 @@ Using vcpkg
 cmake --preset vcpkg
 cmake --build build_vcpkg --config Release
 ```
+Vcpkg builds everything from source so it can take a while.
 
 Using conan v2
 ```
@@ -54,6 +55,10 @@ conan install . -of build_conan -s build_type=Release -o *:shared=False --build=
 cmake --preset conan
 cmake --build build_conan --config Release
 ```
+Conan does not currently package Stormlib so the binaries are fetched by CMake.
+Bncsutil binaries are also fetched by CMake since it is not packaged in either repository.
+
+To develop in Visual Studio, you can add `-G "Visual Studio 17 2022"` to the preset commands, then open `.sln` from the build folder.
 
 ## Run
 

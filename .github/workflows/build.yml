@@ -1,0 +1,40 @@
+name: build
+
+on: [push, pull_request]
+
+env:
+    BUILD_TYPE: Release
+
+jobs:
+    debian-bookworm:
+        if: true
+        runs-on: ubuntu-latest
+        container:
+            image: debian:bookworm
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Add xpam repo
+              run: |
+                  apt-get update && apt-get install -y curl gnupg
+                  curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | tee /etc/apt/keyrings/debian-bookworm-xpam.asc
+                  echo "Types: deb
+                  URIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/
+                  Suites: bookworm
+                  Components: main
+                  Signed-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" | tee /etc/apt/sources.list.d/xpam.sources > /dev/null
+
+            - name: Install dependencies
+              run: |
+                apt-get update && apt-get install -y \
+                  cmake build-essential libmysqlcppconn-dev libmariadb-dev-compat \
+                  libboost-filesystem-dev libboost-system-dev libboost-chrono-dev \
+                  libboost-thread-dev libboost-date-time-dev libboost-regex-dev \
+                  bncsutil stormlib
+
+            - name: Cmake
+              run: cmake -B ./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+            - name: Build
+              run: cmake --build ./build --config Release
