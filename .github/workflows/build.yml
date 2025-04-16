@@ -17,7 +17,7 @@ jobs:
 
             - name: Add xpam repo
               run: |
-                  apt-get update && apt-get install -y curl gnupg
+                  apt-get update && apt-get install -y curl gnupg git
                   curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | tee /etc/apt/keyrings/debian-bookworm-xpam.asc
                   echo "Types: deb
                   URIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/
