@@ -1,5 +1,7 @@
 # pd-manager
 
+[![CI](https://github.com/cen1/pd-manager/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/cen1/pd-manager/actions/workflows/build.yml)
+
 Warcraft III hosting system based on original ghost++ project.
 
 Created by myubernick and maintained by cen. This system hosted thousands of DotA and custom games on former playdota.eu/lagabuse.com since 2008, now known as dota.eurobattle.net.
