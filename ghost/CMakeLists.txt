@@ -144,7 +144,10 @@ if(ENABLE_TESTS)
     add_library(pd-slave-lib STATIC ${SOURCES_LIB})
     target_include_directories(pd-slave-lib PRIVATE ${PARENT_INCLUDE_DIRECTORIES})
     target_link_libraries(pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})
-    target_compile_options(pd-slave-lib PRIVATE ${PARENT_COMPILE_OPTIONS})
+
+    if (DEFINED PARENT_COMPILE_OPTIONS)
+        target_compile_options(pd-slave-lib PRIVATE ${PARENT_COMPILE_OPTIONS})
+    endif()
 
     enable_testing()
     add_subdirectory(test)
