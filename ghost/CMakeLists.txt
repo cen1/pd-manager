@@ -145,7 +145,7 @@ if(ENABLE_TESTS)
     target_include_directories(pd-slave-lib PRIVATE ${PARENT_INCLUDE_DIRECTORIES})
     target_link_libraries(pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})
 
-    if (DEFINED PARENT_COMPILE_OPTIONS)
+    if (DEFINED PARENT_COMPILE_OPTIONS AND NOT "${PARENT_COMPILE_OPTIONS}" STREQUAL "PARENT_COMPILE_OPTIONS-NOTFOUND")
         target_compile_options(pd-slave-lib PRIVATE ${PARENT_COMPILE_OPTIONS})
     endif()
 
