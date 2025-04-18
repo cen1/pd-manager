@@ -53,7 +53,7 @@ Vcpkg builds everything from source so it can take a while.
 
 Using conan v2
 ```
-conan install . -of build_conan -s build_type=Release -o *:shared=False --build=missing
+conan install . -of build_conan -s build_type=Release -o *:shared=True --build=missing
 cmake --preset conan
 cmake --build build_conan --config Release
 ```
