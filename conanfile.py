@@ -7,7 +7,8 @@ class Quazip(ConanFile):
 
 	requires = (
 		"libmysqlclient/8.1.0",
-		"boost/1.86.0"
+		"boost/1.86.0",
+		"zlib/1.3.1",
 	)
 
 	def configure(self):

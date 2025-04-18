@@ -80,7 +80,7 @@ target_sources(pd-slave PRIVATE ${SOURCES})
 
 OPTION(ENABLE_TESTS "Enable unit tests" ON)
 
-target_compile_definitions(pd-slave PRIVATE -DBOOST_ALL_DYN_LINK -DBOOST_BIND_GLOBAL_PLACEHOLDERS -DGHOST_MYSQL )
+target_compile_definitions(pd-slave PRIVATE -DBOOST_ALL_DYN_LINK -DBOOST_BIND_GLOBAL_PLACEHOLDERS -DGHOST_MYSQL)
 
 set_target_properties(pd-slave PROPERTIES OUTPUT_NAME pd-slave)
 

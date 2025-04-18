@@ -83,6 +83,27 @@ if (ENABLE_LIFETIME)
 	target_compile_options(pd-manager PRIVATE -Wlifetime -Wno-lifetime-pointer-arithmetic -Wno-lifetime-null)
 endif()
 
+find_package(MYSQL QUIET) # System package (may not define targets)
+if(MYSQL_FOUND)
+    message(STATUS "Found system MySQL package")
+else()
+    find_package(libmysqlclient QUIET) # Conan package
+
+    if(TARGET libmysqlclient::libmysqlclient)
+        set(MYSQL_LIBRARIES libmysqlclient::libmysqlclient)
+        target_compile_definitions(pd-manager PRIVATE -DUSE_MYSQL_FLAT_INCLUDE=1)
+        message(STATUS "Found MySQL from conan")
+    else()
+        find_package(unofficial-libmysql REQUIRED) # vcpkg package
+        if(TARGET unofficial::libmysql::libmysql)
+            set(MYSQL_LIBRARIES unofficial::libmysql::libmysql)
+            message(STATUS "Found MySQL from vcpkg")
+        else()
+            message(FATAL_ERROR "Could not find MYSQL package from any package manager.")
+        endif()
+    endif()
+endif()
+
 target_include_directories(pd-manager PRIVATE ${BNCSUTIL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_link_libraries(pd-manager PRIVATE ${BNCSUTIL_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 

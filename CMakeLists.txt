@@ -33,25 +33,6 @@ endif()
 find_package(BNCSUTIL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Boost COMPONENTS filesystem system thread chrono regex date_time REQUIRED)
-find_package(MYSQL QUIET) # System package (may not define targets)
-if(MYSQL_FOUND)
-    message(STATUS "Found system MySQL package")
-else()
-    find_package(libmysqlclient QUIET) # Conan package
-
-    if(TARGET libmysqlclient::libmysqlclient)
-        set(MYSQL_LIBRARIES libmysqlclient::libmysqlclient)
-        message(STATUS "Found MySQL from conan")
-    else()
-        find_package(unofficial-libmysql REQUIRED) # vcpkg package
-        if(TARGET unofficial::libmysql::libmysql)
-            set(MYSQL_LIBRARIES unofficial::libmysql::libmysql)
-            message(STATUS "Found MySQL from vcpkg")
-        else()
-            message(FATAL_ERROR "Could not find MYSQL package from any package manager.")
-        endif()
-    endif()
-endif()
 
 # Add subdirectories
 # Just a little hack for faster docker builds so we can omit whole source copy

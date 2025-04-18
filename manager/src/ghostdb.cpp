@@ -30,7 +30,13 @@
  #include <winsock.h>
 #endif
 
-#include <mysql/mysql.h>
+#if __has_include(<mysql/mysql.h>)
+#  include <mysql/mysql.h>
+#elif __has_include(<mysql.h>)
+#  include <mysql.h>
+#else
+#  error "MySQL headers not found"
+#endif
 #include <time.h>
 #include <queue>
 
@@ -53,7 +59,7 @@ void DB_Log( string message )
 			string Time = asctime( localtime( &Now ) );
 
 			// erase the newline
-			
+
 			Time.erase( Time.size( ) - 1 );
 			Log << "[" << Time << "] " << message << endl;
 			Log.close( );
@@ -222,7 +228,7 @@ void CGHostDB :: WorkerThread( )
 
 void CGHostDB :: QueueCallable( CBaseCallable *callable )
 {
-	// try to get access to the queue, 
+	// try to get access to the queue,
 	// we don't want to wait for mutex here so if we don't get access just put
 	// the job in a temporary queue and put it in the real queue later when we get access to real queue
 
@@ -473,7 +479,7 @@ void CCallableGameCustomAdd :: ThreadedJob2( void *conn )
 			}
 		}
 	}
-	
+
 	// save game players
 
 	string InsertGamePlayersQueryValues;
@@ -675,7 +681,7 @@ void CCallableGameCustomDotAAdd :: ThreadedJob2( void *conn )
 			}
 		}
 	}
-	
+
 	// save game players
 
 	string InsertGamePlayersQueryValues;
@@ -925,7 +931,7 @@ void CCallableGameDiv1DotAAdd :: ThreadedJob2( void *conn )
 			}
 		}
 	}
-	
+
 	// save game players
 
 	string InsertGamePlayersQueryValues;
@@ -996,7 +1002,7 @@ void CCallableGameDiv1DotAAdd :: ThreadedJob2( void *conn )
 					InsertDotAPlayersQueryValues = "( " + UTIL_ToString( (*j)->GetRating( ), 0 ) + ", " + UTIL_ToString( (*j)->GetNewRating( ), 0 ) + ", " + UTIL_ToString( m_DBGameID ) + ", " + UTIL_ToString( (*i)->GetColour( ) ) + ", " + UTIL_ToString( (*i)->GetLevel( ) ) + ", " + UTIL_ToString( (*i)->GetKills( ) ) + ", " + UTIL_ToString( (*i)->GetDeaths( ) ) + ", " + UTIL_ToString( (*i)->GetCreepKills( ) ) + ", " + UTIL_ToString( (*i)->GetCreepDenies( ) ) + ", " + UTIL_ToString( (*i)->GetAssists( ) ) + ", " + UTIL_ToString( (*i)->GetGold( ) ) + ", " + UTIL_ToString( (*i)->GetNeutralKills( ) ) + ", '" + (*i)->GetItem( 0 ) + "', '" + (*i)->GetItem( 1 ) + "', '" + (*i)->GetItem( 2 ) + "', '" + (*i)->GetItem( 3 ) + "', '" + (*i)->GetItem( 4 ) + "', '" + (*i)->GetItem( 5 ) + "', '" + (*i)->GetHero( ) + "', " + UTIL_ToString( (*i)->GetNewColour( ) ) + ", " + UTIL_ToString( (*i)->GetTowerKills( ) ) + ", " + UTIL_ToString( (*i)->GetRaxKills( ) ) + ", " + UTIL_ToString( (*i)->GetCourierKills( ) ) + " )";
 				else
 					InsertDotAPlayersQueryValues += ", ( " + UTIL_ToString( (*j)->GetRating( ), 0 ) + ", " + UTIL_ToString( (*j)->GetNewRating( ), 0 ) + ", " + UTIL_ToString( m_DBGameID ) + ", " + UTIL_ToString( (*i)->GetColour( ) ) + ", " + UTIL_ToString( (*i)->GetLevel( ) ) + ", " + UTIL_ToString( (*i)->GetKills( ) ) + ", " + UTIL_ToString( (*i)->GetDeaths( ) ) + ", " + UTIL_ToString( (*i)->GetCreepKills( ) ) + ", " + UTIL_ToString( (*i)->GetCreepDenies( ) ) + ", " + UTIL_ToString( (*i)->GetAssists( ) ) + ", " + UTIL_ToString( (*i)->GetGold( ) ) + ", " + UTIL_ToString( (*i)->GetNeutralKills( ) ) + ", '" + (*i)->GetItem( 0 ) + "', '" + (*i)->GetItem( 1 ) + "', '" + (*i)->GetItem( 2 ) + "', '" + (*i)->GetItem( 3 ) + "', '" + (*i)->GetItem( 4 ) + "', '" + (*i)->GetItem( 5 ) + "', '" + (*i)->GetHero( ) + "', " + UTIL_ToString( (*i)->GetNewColour( ) ) + ", " + UTIL_ToString( (*i)->GetTowerKills( ) ) + ", " + UTIL_ToString( (*i)->GetRaxKills( ) ) + ", " + UTIL_ToString( (*i)->GetCourierKills( ) ) + " )";
-				
+
 				break;
 			}
 		}
@@ -1043,7 +1049,7 @@ void CCallableGameDiv1DotAAdd :: ThreadedJob2( void *conn )
 			continue;
 
 		CDBDotAPlayerSummary *DotAPlayerSummary = NULL;
-		
+
 		if( (*i)->GetColour( ) > 11 )
 		{
 			// this player is an observer, we only need to increase his games_observed count
@@ -2205,7 +2211,7 @@ CDBCache *CacheList( void *conn, set<uint32_t> server )
 					continue;
 				}
 
-				DPSList.push_back( new CDBDotAPlayerSummary( 
+				DPSList.push_back( new CDBDotAPlayerSummary(
 					UTIL_ToDouble( Row[1] ),							// Rating
 					UTIL_ToDouble( Row[2] ),							// Highest Rating
 					UTIL_ToUInt32( Row[3] ),							// Games
@@ -2353,7 +2359,7 @@ CDBDotAPlayerSummary *CDBPlayer :: GetDotAPlayerSummary( )
 {
 	if( gGHost->m_DotAPlayerSummary.size( ) > m_StatsDotAID )
 		return gGHost->m_DotAPlayerSummary[m_StatsDotAID];
-	
+
 	return NULL;
 }
 
@@ -2380,10 +2386,10 @@ bool CDBPlayer :: GetIsBanned( )
 		CONSOLE_Print("BanGroup->GetDuration( ) = " + UTIL_ToString( BanGroup->GetDuration( ) ));
 		CONSOLE_Print("BanGroup->GetBanPoints( ) = " + UTIL_ToString( BanGroup->GetBanPoints( ) ));
 		CONSOLE_Print("BanGroup->GetWarnPoints( ) = " + UTIL_ToString( BanGroup->GetWarnPoints( ) ));*/
-		
+
 		return BanGroup->GetIsBanned( );
 	}
-	
+
 	return false;
 }
 
