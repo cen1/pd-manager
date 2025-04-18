@@ -47,8 +47,6 @@ set(SOURCES
 
 target_sources(pd-manager PRIVATE ${SOURCES})
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
-
 OPTION(ENABLE_TESTS "Enable unit tests" ON)
 
 OPTION(PD_DEBUG "Debug logging" OFF)
