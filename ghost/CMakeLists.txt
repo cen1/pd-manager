@@ -105,8 +105,6 @@ if (ENABLE_LIFETIME)
 	target_compile_options(pd-slave PRIVATE -Wlifetime -Wno-lifetime-pointer-arithmetic -Wno-lifetime-null)
 endif()
 
-find_package(STORMLIB REQUIRED)
-
 # Conan does not package stormlib yet so we fetch binaries from github
 if(USING_CONAN_PRESET)
     message(STATUS "Fetching stormlib")
@@ -130,6 +128,8 @@ if(USING_CONAN_PRESET)
             DESTINATION ${STORMLIB_DIR}
     )
 endif()
+
+find_package(STORMLIB REQUIRED)
 
 target_include_directories(pd-slave PRIVATE ${BNCSUTIL_INCLUDE_DIRS} ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_link_libraries(pd-slave PRIVATE ${BNCSUTIL_LIBRARIES} ${STORMLIB_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
