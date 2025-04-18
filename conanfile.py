@@ -12,6 +12,7 @@ class Quazip(ConanFile):
 	)
 
 	def configure(self):
+		self.options["boost"].shared = True
 		self.options["boost"].header_only = False
 		self.options["boost"].without_system = False
 		self.options["boost"].without_filesystem = False
