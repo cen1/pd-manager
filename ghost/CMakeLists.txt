@@ -161,6 +161,16 @@ if (MSVC)
 	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "pd-slave")
 endif()
 
+if (WIN32 AND BUILD_SHARED_LIBS)
+    message(STATUS "Copying .dlls")
+
+    add_custom_command(
+            TARGET pd-slave POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:pd-slave> $<TARGET_FILE_DIR:pd-slave>
+            COMMAND_EXPAND_LISTS
+    )
+endif()
+
 #Tests
 if(ENABLE_TESTS)
     set(SOURCES_LIB ${SOURCES})

@@ -107,6 +107,16 @@ target_link_libraries(pd-manager PRIVATE ${BNCSUTIL_LIBRARIES} ${ZLIB_LIBRARIES}
 
 install(TARGETS pd-manager RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
+if (WIN32 AND BUILD_SHARED_LIBS)
+    message(STATUS "Copying .dlls")
+
+    add_custom_command(
+            TARGET pd-manager POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:pd-manager> $<TARGET_FILE_DIR:pd-manager>
+            COMMAND_EXPAND_LISTS
+    )
+endif()
+
 #Tests
 if(ENABLE_TESTS)
     enable_testing()
