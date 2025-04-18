@@ -39,6 +39,16 @@ jobs:
             - name: Build
               run: cmake --build ./build --config Release
 
+    docker-build:
+        if: true
+        runs-on: ubuntu-latest
+        steps:
+            - name: Build manager image
+              run: docker build --platform linux/amd64 --tag pd-manager --file ./Dockerfile.manager .
+
+            - name: Build slave image
+              run: docker build --platform linux/amd64 --tag pd-slave --file ./Dockerfile.slave .
+
     windows-latest:
         if: true
         runs-on: windows-latest
