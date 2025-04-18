@@ -107,6 +107,30 @@ endif()
 
 find_package(STORMLIB REQUIRED)
 
+# Conan does not package stormlib yet so we fetch binaries from github
+if(USING_CONAN_PRESET)
+    message(STATUS "Fetching stormlib")
+    include(FetchContent)
+
+    set(STORMLIB_URL "https://github.com/cen1/StormLib/releases/download/v9.36/stormlib_v9.37_amd64_dll.zip")
+    set(STORMLIB_HASH "7cb617daa765cf2f2ed9dae3f176c6b47e9581ab66826a2273a71b7a152a6142")
+    set(STORMLIB_DIR "${CMAKE_SOURCE_DIR}/depends/stormlib")
+
+    FetchContent_Declare(
+            stormlib
+            URL ${STORMLIB_URL}
+            URL_HASH SHA256=${STORMLIB_HASH}
+            DOWNLOAD_NO_EXTRACT true
+    )
+
+    FetchContent_MakeAvailable(stormlib)
+
+    file(ARCHIVE_EXTRACT
+            INPUT ${stormlib_SOURCE_DIR}/stormlib_v9.37_amd64_dll.zip
+            DESTINATION ${STORMLIB_DIR}
+    )
+endif()
+
 target_include_directories(pd-slave PRIVATE ${BNCSUTIL_INCLUDE_DIRS} ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_link_libraries(pd-slave PRIVATE ${BNCSUTIL_LIBRARIES} ${STORMLIB_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
