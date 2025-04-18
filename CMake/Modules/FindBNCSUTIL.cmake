@@ -5,7 +5,7 @@
 #  BNCSUTIL_LIBRARY - The library needed to use Bncsutil
 
 find_path(BNCSUTIL_INCLUDE_DIR NAMES bncsutil/bncsutil.h PATHS ${CMAKE_SOURCE_DIR}/depends/bncsutil/include)
-find_library(BNCSUTIL_LIBRARIES NAMES bncsutil libbncsutil PATHS ${CMAKE_SOURCE_DIR}/depends/bncsutil )
+find_library(BNCSUTIL_LIBRARIES NAMES bncsutil libbncsutil PATHS ${CMAKE_SOURCE_DIR}/depends/bncsutil)
 
 MESSAGE(STATUS "BNCSUTIL lib: " ${BNCSUTIL_LIBRARIES})
 include(FindPackageHandleStandardArgs)

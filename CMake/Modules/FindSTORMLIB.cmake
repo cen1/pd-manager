@@ -4,8 +4,8 @@
 #  STORMLIB_INCLUDE_DIR - The STORMLIB include directory
 #  STORMLIB_LIBRARY - The library needed to use STORMLIB
 
-find_path(STORMLIB_INCLUDE_DIR NAMES StormLib.h StormPort.h)
-find_library(STORMLIB_LIBRARIES NAMES stormlib StormLib libstorm storm)
+find_path(STORMLIB_INCLUDE_DIR NAMES StormLib.h StormPort.h PATHS ${CMAKE_SOURCE_DIR}/depends/stormlib/include)
+find_library(STORMLIB_LIBRARIES NAMES stormlib StormLib libstorm storm PATHS ${CMAKE_SOURCE_DIR}/depends/stormlib )
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(STORMLIB DEFAULT_MSG STORMLIB_INCLUDE_DIR STORMLIB_LIBRARIES)
