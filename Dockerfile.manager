@@ -38,6 +38,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 COPY --from=build /app/build/manager/pd-manager-1.0.0 .
 
-COPY manager/ip-to-country.csv manager/gameloaded.txt manager/gameover.txt manager/language.cfg manager/ipblacklist.txt .
+COPY manager/language.cfg manager/ipblacklist.txt .
 
 CMD ["/app/pd-manager-1.0.0", "pd-manager-docker.cfg"]
