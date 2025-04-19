@@ -12,8 +12,8 @@ if(WIN32)
     message(STATUS "Fetching bncsutil")
     include(FetchContent)
 
-    set(BNCSUTIL_URL "https://github.com/BNETDocs/bncsutil/releases/download/v1.4.2/bncsutil_v1.4.2_amd64_dll.zip")
-    set(BNCSUTIL_HASH "1546321325db6a45957b3c5b6f2d7a48bc2c221a57109903c550cb9e66db511b")
+    set(BNCSUTIL_URL "https://github.com/BNETDocs/bncsutil/releases/download/v1.4.2/bncsutil_v1.4.3_amd64_dll.zip")
+    set(BNCSUTIL_HASH "fcc64c1b89485938c0120ec22a866b1d36e928b2f3a5d9325bc36d8cd0b805ef")
     set(BNCSUTIL_DIR "${CMAKE_SOURCE_DIR}/depends/bncsutil")
 
     FetchContent_Declare(
@@ -26,12 +26,12 @@ if(WIN32)
     FetchContent_MakeAvailable(bncsutil)
 
     file(ARCHIVE_EXTRACT
-            INPUT ${bncsutil_SOURCE_DIR}/bncsutil_v1.4.2_amd64_dll.zip
+            INPUT ${bncsutil_SOURCE_DIR}/bncsutil_v1.4.3_amd64_dll.zip
             DESTINATION ${BNCSUTIL_DIR}
     )
 endif()
 
-find_package(BNCSUTIL REQUIRED)
+find_package(bncsutil REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Boost COMPONENTS filesystem system thread chrono regex date_time REQUIRED)
 

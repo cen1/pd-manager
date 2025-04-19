@@ -102,8 +102,8 @@ else()
     endif()
 endif()
 
-target_include_directories(pd-manager PRIVATE ${BNCSUTIL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
-target_link_libraries(pd-manager PRIVATE ${BNCSUTIL_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
+target_include_directories(pd-manager PRIVATE ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_link_libraries(pd-manager PRIVATE ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-manager RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
