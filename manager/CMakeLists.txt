@@ -107,14 +107,28 @@ target_link_libraries(pd-manager PRIVATE ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bn
 
 install(TARGETS pd-manager RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
-if (WIN32 AND BUILD_SHARED_LIBS)
-    message(STATUS "Copying .dlls")
-
+if(WIN32 AND BUILD_SHARED_LIBS)
+    # Copy conan dlls
     add_custom_command(
-            TARGET pd-manager POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:pd-manager> $<TARGET_FILE_DIR:pd-manager>
-            COMMAND_EXPAND_LISTS
+        TARGET pd-manager POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_BINARY_DIR}/bin" "$<TARGET_FILE_DIR:pd-manager>"
     )
+
+    # This does not take care of transitive dependencies but we leave it anyway..
+    add_custom_command(
+        TARGET pd-manager POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:pd-manager> $<TARGET_FILE_DIR:pd-manager>
+        COMMAND_EXPAND_LISTS
+    )
+
+    # Bncsutil workaround since we don't have cmake targets set up..
+    if(BNCSUTIL_INSTALL_VIA_FETCH)
+        add_custom_command(
+            TARGET pd-manager POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/depends/bncsutil/bncsutil.dll" "$<TARGET_FILE_DIR:pd-manager>"
+            COMMAND_EXPAND_LISTS
+        )
+    endif()
 endif()
 
 #Tests

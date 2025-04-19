@@ -127,6 +127,7 @@ if(USING_CONAN_PRESET)
             INPUT ${stormlib_SOURCE_DIR}/stormlib_v9.42_amd64_dll.zip
             DESTINATION ${STORMLIB_DIR}
     )
+    set(STORMLIB_INSTALL_VIA_FETCH ON)
 endif()
 
 find_package(STORMLIB REQUIRED)
@@ -162,19 +163,41 @@ if (MSVC)
 endif()
 
 if (WIN32 AND BUILD_SHARED_LIBS)
-    message(STATUS "Copying .dlls")
+    # Copy conan dlls
+    add_custom_command(
+        TARGET pd-slave POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_BINARY_DIR}/bin" "$<TARGET_FILE_DIR:pd-slave>"
+    )
 
     add_custom_command(
             TARGET pd-slave POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:pd-slave> $<TARGET_FILE_DIR:pd-slave>
             COMMAND_EXPAND_LISTS
     )
+
+    # Bncsutil workaround since we don't have cmake targets set up..
+    if(BNCSUTIL_INSTALL_VIA_FETCH)
+        add_custom_command(
+            TARGET pd-slave POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/depends/bncsutil/bncsutil.dll" "$<TARGET_FILE_DIR:pd-slave>"
+            COMMAND_EXPAND_LISTS
+        )
+    endif()
+
+    # Stormlib workaround since we don't have cmake targets set up..
+    if(STORMLIB_INSTALL_VIA_FETCH)
+        add_custom_command(
+            TARGET pd-slave POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/depends/stormlib/StormLib.dll" "$<TARGET_FILE_DIR:pd-slave>"
+            COMMAND_EXPAND_LISTS
+        )
+    endif()
 endif()
 
 #Tests
 if(ENABLE_TESTS)
     set(SOURCES_LIB ${SOURCES})
-    list(REMOVE_ITEM SOURCE_LIB "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+    list(REMOVE_ITEM SOURCES_LIB "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     add_library(pd-slave-lib STATIC ${SOURCES_LIB})
     target_include_directories(pd-slave-lib PRIVATE ${PARENT_INCLUDE_DIRECTORIES})
     target_link_libraries(pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})

@@ -1,7 +1,9 @@
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain
+from conan.tools.files import copy
+import os
 
-class Quazip(ConanFile):
+class Pdm(ConanFile):
 	settings = "os", "compiler", "build_type", "arch"
 	generators = "CMakeDeps"
 
@@ -49,3 +51,14 @@ class Quazip(ConanFile):
 		tc = CMakeToolchain(self)
 		tc.user_presets_path = False
 		tc.generate()
+
+		dest_dir = os.path.join(self.build_folder, "bin")
+
+		for dep in self.dependencies.values():
+			for libdir in dep.cpp_info.libdirs + dep.cpp_info.bindirs:
+				if os.path.isdir(libdir):
+					self.output.info(f"Looking for DLLs in: {libdir}")
+					copy(self, "*.dll", libdir, dest_dir)
+					self.output.info(f"Copied DLLs from {libdir} to {dest_dir}")
+				else:
+					self.output.info(f"Skipped non-existent dir: {libdir}")

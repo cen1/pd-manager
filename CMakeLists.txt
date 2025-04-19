@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+    cmake_policy(SET CMP0167 NEW)
+endif()
 project(pd-root LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
@@ -29,6 +32,8 @@ if(WIN32)
             INPUT ${bncsutil_SOURCE_DIR}/bncsutil_v1.4.3_amd64_dll.zip
             DESTINATION ${BNCSUTIL_DIR}
     )
+
+    set(BNCSUTIL_INSTALL_VIA_FETCH ON)
 endif()
 
 find_package(bncsutil REQUIRED)
