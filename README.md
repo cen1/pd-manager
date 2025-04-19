@@ -129,6 +129,13 @@ If you are behind NAT, you need to port forward 6101, 6102, 6201 and 6202 for de
 ### Systemd
 See `manager/pd-manager.service` and `ghost/pd-slave.service` for a sample service files.
 
+### IP-to-country
+If you want pd-slave to be able to display which country players come from, you need to fill up the `new_ip_to_country` table. A convenience script can be found at `manager/import_ip_to_country.csv` which should be adjusted for db crfedentials and then run once.
+
+Credits:
+- https://github.com/sapics/ip-location-db CC0 1.0 license
+- https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes CC BY-SA 4.0 license
+
 ## Debugging production problems
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
