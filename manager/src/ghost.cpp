@@ -437,7 +437,7 @@ CGHost :: CGHost( CConfig *CFG, boost::asio::io_context &nIOService, boost::asio
 	}
 	m_DotaMaxWinChanceDiffGainConstant = DotaMaxWinChanceDiffGainConstant;
 
-	m_Version = "6.2";
+	m_Version = "7.0";
 	m_ContributorOnlyMode = CFG->GetInt( "bot_contributor_only_mode", 0 );
 	m_MySQLTime = 0;
 	m_CallableMysqlTime = m_DB->ThreadedUnixTimestampGet( );

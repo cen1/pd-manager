@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include <stdint.h>
+#include "../../common/src/masl_protocol_2.h"
 #include <cmath>
-#include "masl_protocol_2.h"
+#include <stdint.h>
 
 using namespace std;
 

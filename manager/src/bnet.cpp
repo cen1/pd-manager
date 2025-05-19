@@ -31,6 +31,7 @@
 #include "masl_manager.h"
 #include "masl_protocol_2.h"
 #include "masl_slavebot.h"
+#include "regions.h"
 #include <unordered_map>
 
 #include <boost/filesystem.hpp>
@@ -796,17 +797,9 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 			transform(Command.begin(), Command.end(), Command.begin(), (int(*)(int))tolower);
 
-			/*if( IsAdmin( User ) || IsRootAdmin( User ) )
-				BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] admin [" + User + "] sent command [" + Message + "]" );
-			else
-				BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] non-admin [" + User + "] sent command [" + Message + "]" );*/
-
-				//BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] user [" + User + " (" + UTIL_ToString( Player->GetAccessLevel( ) ) + ")] sent command [" + Message + "]" );
-
-				//
-				// .DOTA
-				//
-
+			//
+			// .DOTA<region>
+			//
 			if (Command == "dota" && !Payload.empty())
 			{
 				if (Whisper)
@@ -822,10 +815,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 							}
 						}
 						else
@@ -835,14 +829,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .dota)", User);
 			}
 
 			//
-			// .DOTAOBS
+			// .DOTAOBS<region>
 			//
-
 			if (Command == "dotaobs" && !Payload.empty())
 			{
 				if (Whisper)
@@ -858,10 +850,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 							}
 						}
 						else
@@ -871,17 +864,15 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .dotaobs)", User);
 			}
 
 			//
-			// .TOUR
+			// .TOUR<region>
 			//
-
 			if (Command == "tour" && !Payload.empty())
 			{
-				if (Whisper)
+			    	if (Whisper)
 				{
 					if (m_GHost->m_Enabled)
 					{
@@ -894,10 +885,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_TOUR);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, false, MASL_PROTOCOL::GHOST_GROUP_TOUR);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, false, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 							}
 						}
 						else
@@ -912,9 +904,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			}
 
 			//
-			// .TOUROBS
+			// .TOUROBS<region>
 			//
-
 			if (Command == "tourobs" && !Payload.empty())
 			{
 				if (Whisper)
@@ -930,10 +921,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_TOUR);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_TOUR);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 							}
 						}
 						else
@@ -943,16 +935,13 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .dotaobs)", User);
 			}
 
 			//
-			// .GOPRIV
-			// .PRIV
+			// .PRIV<region>
 			//
-
-			else if ((Command == "gopriv" || Command == "priv") && !Payload.empty())
+			else if (Command.starts_with("priv") && !Payload.empty())
 			{
 				if (Whisper)
 				{
@@ -961,7 +950,6 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						if (!Player->GetIsBanned() || Player->GetIsAdmin())
 						{
 							// create private custom game
-
 							string LoadedMap = string();
 							string Name = User;
 							transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
@@ -976,8 +964,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							}
 
 							if (LoadedMap.empty())
-								// SendChatCommand( "You haven't loaded any map, use " + string( 1, m_CommandTrigger ) + "map <pattern> command, visit www.playdota.eu to add a new map via our map upload web page.", User, true );
-								SendChatCommand("Use .map <pattern> command to load a map, visit http://lagabuse.com to add a new map via our map upload web page.", User);
+								SendChatCommand("Use .map <pattern> command to load a map, visit https://eurobattle.net/maps/upload to upload a new map.\"", User);
 							else
 							{
 								if (Payload.size() > 31)
@@ -985,30 +972,31 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 									SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 								else
 								{
+								    	const std::string region = Regions::regionFromPostfix(Command);
 									if (IsInChannel(User))
-										m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 17, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM);
+										m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 17, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 									else
-										m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 17, User, Player->GetAccessLevel(), Payload, LoadedMap, false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM);
+										m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 17, User, Player->GetAccessLevel(), Payload, LoadedMap, false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 								}
 							}
 						}
-						else
-							SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+						else {
+						    	SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+						}
 					}
-					else
-						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
+					else {
+					    	SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
+					}
 				}
-				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
+				else {
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .gopriv)", User);
+				}
 			}
 
 			//
-			// .GOPUB
-			// .PUB
+			// .PUB<region>
 			//
-
-			else if ((Command == "gopub" || Command == "pub") && !Payload.empty())
+			else if (Command.starts_with("pub") && !Payload.empty())
 			{
 				if (m_GHost->m_Enabled)
 				{
@@ -1030,35 +1018,33 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						}
 
 						if (LoadedMap.empty())
-							// SendChatCommand( "You haven't loaded any map, use " + string( 1, m_CommandTrigger ) + "map <pattern> command, visit www.playdota.eu to add a new map via our map upload web page.", User );
-							SendChatCommand("Use .map <pattern> command to load a map, visit http://lagabuse.com to add a new map via our map upload web page.", User);
+							SendChatCommand("Use .map <pattern> command to load a map, visit https://eurobattle.net/maps/upload to upload a new map.", User);
 						else
 						{
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 16, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 16, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 16, User, Player->GetAccessLevel(), Payload, LoadedMap, false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 16, User, Player->GetAccessLevel(), Payload, LoadedMap, false, false, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 							}
 						}
 					}
-					else
+					else {
 						SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+					}
 				}
-				else
-					SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
-
-				//SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .gopub)", User);
+				else {
+				    	SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
+				}
 			}
 
 			//
 			// .MAP
 			//
-
 			else if (Command == "map")
 			{
 				if (Whisper)
@@ -1084,7 +1070,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 								if (LoadedMap.empty())
 									// SendChatCommand( "You haven't loaded any map, use " + string( 1, m_CommandTrigger ) + "map <pattern> command, visit www.playdota.eu to add a new map via our map upload web page.", User );
-									SendChatCommand("Use .map <pattern> command to load a map, visit http://lagabuse.com to add a new map via our map upload web page.", User);
+									SendChatCommand("Use .map <pattern> command to load a map, visit https://eurobattle.net/maps/upload to upload a new map.", User);
 								else
 									SendChatCommand(m_GHost->m_Language->CurrentlyLoadedMapCFGIs(LoadedMap), User);
 							}
@@ -1143,7 +1129,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 										BNET_Print("[MAP] Check matches");
 
 										if (Matches == 0)
-											SendChatCommand("No maps found, visit http://lagabuse.com to add a new map via our map upload web page.", User);
+											SendChatCommand("No maps found, visit https://eurobattle.net/maps/upload to upload a new map.", User);
 										else if (Matches == 1)
 										{
 											string File = LastMatch.filename().string();
@@ -1970,13 +1956,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			}
 
 			//
-			// !GOPRIV
-			// !PRIV
+			// !PRIVL<region>
+			// !PRIV<region>
 			//
-
-			else if ((Command == "gopriv" || Command == "priv" || Command == "goprivl" || Command == "privl") && !Payload.empty())
+			else if ((Command.starts_with("priv") || Command.starts_with("privl")) && !Payload.empty())
 			{
-				bool legacyMap = (Command=="goprivl" || Command=="privl");
+				const bool legacyMap = Command.starts_with("privl");
 
 				if (Whisper)
 				{
@@ -2003,9 +1988,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 									SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
 								}
 								else {
-									bool isInChannel = IsInChannel(User);
-									std::string mapName = legacyMap ? "l" : string();
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA);
+									const bool isInChannel = IsInChannel(User);
+									const std::string region = Regions::regionFromPostfix(Command);
+									const std::string mapName = legacyMap ? "l" : string();
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 								}
 							}
 						}
@@ -2020,11 +2006,9 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			}
 
 			//
-			// !GOPRIVOBS
-			// !PRIVOBS
+			// !PRIVOBS<region>
 			//
-
-			else if ((Command == "goprivobs" || Command == "privobs") && !Payload.empty())
+			else if (Command.starts_with("privobs") && !Payload.empty())
 			{
 				if (Whisper)
 				{
@@ -2041,16 +2025,16 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							else if( IsContributor( User ) )
 								AccessLevel = 1000;*/
 
-								// create DotA game
+							// create DotA game
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else
 							{
+							    	const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 								else
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA);
+									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, string(), true, false, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 							}
 						}
 						else
@@ -2060,18 +2044,16 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " !goprivobs)", User);
 			}
 
 			//
-			// !GOPUB
-			// !PUB
+			// !PUBL<region>
+			// !PUB<region>
 			//
-
-			else if ((Command == "gopub" || Command == "pub" || Command == "gopubl" || Command == "publ") && !Payload.empty())
+			else if ((Command.starts_with("pub") || Command.starts_with("publ")) && !Payload.empty())
 			{
-				bool legacyMap = (Command == "gopubl" || Command == "publ");
+				const bool legacyMap = Command.starts_with("publ");
 
 				if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder)
 				{
@@ -2095,19 +2077,20 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
 							}
 							else {
-								bool isInChannel = IsInChannel(User);
-								std::string mapName = legacyMap ? "l" : string();
-								m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA);
+							    	const std::string region = Regions::regionFromPostfix(Command);
+								const bool isInChannel = IsInChannel(User);
+								const std::string mapName = legacyMap ? "l" : string();
+								m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 							}
 						}
 					}
-					else
-						SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+					else {
+					    	SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+					}
 				}
-				else
+				else {
 					SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
-
-				//SendChatCommand("You have to whisper the bot (/w " + m_UserName + " !gopub)", User);
+				}
 			}
 
 			//
@@ -2208,16 +2191,6 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					{
 						if (Payload.empty())
 						{
-							/*
-							if( m_GHost->m_Manager->PositionInQueue( this, User ) )
-							SendChatCommand( "There are " + UTIL_ToString( GameCount ) + " games in the queue, you are on position #" + UTIL_ToString( m_GHost->m_Manager->PositionInQueue( this, User ) ) + ".", User );
-							else
-							SendChatCommand( "There are " + UTIL_ToString( GameCount ) + " games in the queue, you are not in the queue.", User );
-							*/
-
-							//SendChatCommand( "Want to get rid of the queue? Donate so we can move bots to a better server and support more games with no lag!", User );
-							//SendChatCommand( "Currently if you donate more than 5euros you won't have to wait in the queue.", User );
-							//SendChatCommand( "Find more info about donations and rewards at www.playdota.eu", User );
 							SendChatCommand("There are " + UTIL_ToString(GameCount) + " users in the queue:", User);
 
 							// list all players in the queue
@@ -2257,7 +2230,6 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand("There are no games in the queue.", User);
 				}
 				else
-					//SendChatCommand( "You have to whisper the bot with !queue", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " !queue)", User);
 			}
 
@@ -2383,6 +2355,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 			else if (Command == "version")
 				SendChatCommand(m_GHost->m_Language->Version(m_GHost->m_Version), User);
+
+			else if (Command == "regions") {
+			    SendChatCommand(Regions::toString(), User);
+			}
 
 			//
 			// !WHERE

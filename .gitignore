@@ -39,3 +39,6 @@ data/gamelogs/
 data/lobbylogs/
 data/public/
 mnt/
+slave_cfgs/s01.cfg
+slave_cfgs/s02.cfg
+slave_cfgs/s03.cfg

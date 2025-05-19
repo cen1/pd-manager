@@ -31,7 +31,7 @@ set(SOURCES
     src/language.h
     src/masl_manager.cpp
     src/masl_manager.h
-    src/masl_protocol_2.h
+    ../common/src/masl_protocol_2.h
     src/masl_slavebot.cpp
     src/masl_slavebot.h
     src/ms_stdint.h
@@ -43,6 +43,7 @@ set(SOURCES
     src/typedefs.h
     src/util.cpp
     src/util.h
+    ../common/src/regions.h
 )
 
 target_sources(pd-manager PRIVATE ${SOURCES})
@@ -102,7 +103,7 @@ else()
     endif()
 endif()
 
-target_include_directories(pd-manager PRIVATE ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_include_directories(pd-manager PRIVATE ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src)
 target_link_libraries(pd-manager PRIVATE ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-manager RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)

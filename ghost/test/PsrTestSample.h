@@ -2,6 +2,7 @@
 #define TEST_H
 
 #include "psr.h"
+#include "util.h"
 #include <iostream>
 
 using std::cout;

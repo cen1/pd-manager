@@ -28,5 +28,5 @@ if(bncsutil_FOUND AND NOT TARGET bncsutil::bncsutil)
     )
 endif()
 
-MESSAGE(STATUS "bncsutil include: " ${BNCSUTIL_INCLUDE_DIR})
-MESSAGE(STATUS "bncsutil lib: " ${BNCSUTIL_LIBRARY})
+MESSAGE(STATUS "bncsutil include: " ${bncsutil_INCLUDE_DIR})
+MESSAGE(STATUS "bncsutil lib: " ${bncsutil_LIBRARY})

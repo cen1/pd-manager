@@ -52,7 +52,7 @@ set(SOURCES
     src/map.h
     src/masl_manager.cpp
     src/masl_manager.h
-    src/masl_protocol_2.h
+    ../common/src/masl_protocol_2.h
     src/ms_stdint.h
     src/next_combination.h
     src/packed.cpp
@@ -132,7 +132,7 @@ endif()
 
 find_package(STORMLIB REQUIRED)
 
-target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src)
 target_link_libraries(pd-slave PRIVATE ${STORMLIB_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-slave RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)

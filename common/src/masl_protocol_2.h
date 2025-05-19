@@ -2,7 +2,10 @@
 #ifndef MASL_PROTOCOL_2_H
 #define MASL_PROTOCOL_2_H
 
-#include "util.h"
+#include "common_util.h"
+#include <algorithm>
+#include <string>
+#include <cmath>
 
 namespace MASL_PROTOCOL
 {
@@ -10,7 +13,7 @@ namespace MASL_PROTOCOL
 	inline void SSReadString( stringstream &SS, string &Str );
 	inline void SSWriteString( stringstream &SS, const string &Str );
 	inline uint32_t CalcBanDuration( uint32_t duration, uint32_t banpoints );
-	inline uint32_t CalcAutoBanDuration( uint32_t banpoints );
+	inline uint32_t CalcAutoBanDuration( uint32_t banpoints, uint32_t numberOfGames );
 	inline string FlagToString( int flag );
 
 
@@ -39,7 +42,6 @@ namespace MASL_PROTOCOL
 	const int STM_GAME_NAMECHANGED							= 208;		// sent to master when game name is changed
 	const int STM_GAME_OWNERCHANGED							= 210;		// sent to master when game owner is changed
 	const int STM_GAME_PLAYERJOINEDLOBBY					= 212;		// sent to master when player joins the lobby
-	
 	const int STM_GAME_PLAYERLEFTLOBBY						= 214;		// sent to master when player leaves the lobby
 	
 	const int STM_PLAYERLEAVE_LOBBY_INFORM					= 213;
@@ -48,7 +50,7 @@ namespace MASL_PROTOCOL
 	const int STM_PLAYERLEAVE_LOBBY_WRONG_GPROXY			= 217;
 	const int STM_PLAYERLEAVE_LOBBY_BANNED					= 218;
 	const int STM_PLAYERLEAVE_LOBBY_PING					= 219;
-	const int STM_PLAYERLEAVE_LOBBY_WRONG_W3VESION_GPROXY	= 220;
+	const int STM_PLAYERLEAVE_LOBBY_WRONG_W3VESION_GPROXY			= 220;
 	const int STM_PLAYERLEAVE_LOBBY_FROM					= 221;
 	const int STM_PLAYERLEAVE_LOBBY_OWNER_KICKED			= 222;
 	const int STM_PLAYERLEAVE_LOBBY_NOSC					= 223;
@@ -101,8 +103,7 @@ namespace MASL_PROTOCOL
 	const int MTS_PLAYER_FROMCODES							= 2910;
 	const int MTS_GAME_GETDBID_RESPONSE						= 2950;
 
-	const int MTS_CONFIG_RELOAD								= 2960;		
-
+	const int MTS_CONFIG_RELOAD								= 2960;		// used to dynamically change gproxy version without reboot
 
 	/* OTHER */
 
@@ -147,17 +148,18 @@ namespace MASL_PROTOCOL
 	const int GHOST_GROUP_DIV1DOTA							= 301;
 	const int GHOST_GROUP_DIV2DOTA							= 305;
 	const int GHOST_GROUP_DIV3DOTA							= 310;
-	const int GHOST_GROUP_CG								= 401;
+	const int GHOST_GROUP_CUSTOM							= 401;
+	const int GHOST_GROUP_CUSTOM_DOTA						= 405;
 	const int GHOST_GROUP_TOUR								= 501;
+	const int GHOST_GROUP_MAINTENANCE						= 502;
 
 	/*const int BAN_AUTOBANGAMEINPROGRESS					= 20;		// private game code
 	const int BAN_AUTOBAN									= 21;		// private game code
 	const int BAN_ADMINBAN									= 22;		// private game code*/
 }
 
-inline bool MASL_PROTOCOL :: IsDotAEmMode( string mode )
-{
-	transform( mode.begin( ), mode.end( ), mode.begin( ), (int(*)(int))tolower );
+inline bool MASL_PROTOCOL :: IsDotAEmMode( string mode ) {
+	std::transform( mode.begin( ), mode.end( ), mode.begin( ), (int(*)(int))tolower );
 	uint32_t NumModes = mode.size( ) / 2;
 
 	for( unsigned int i = 0; i < NumModes; ++i )
@@ -171,85 +173,70 @@ inline bool MASL_PROTOCOL :: IsDotAEmMode( string mode )
 	return false;
 }
 
-inline void MASL_PROTOCOL :: SSReadString( stringstream &SS, string &Str )
-{
+inline void MASL_PROTOCOL :: SSReadString( stringstream &SS, string &Str ) {
 	SS >> Str;
 
 	if( Str == "/" )
 		Str.clear( );
 }
 
-inline void MASL_PROTOCOL :: SSWriteString( stringstream &SS, const string &Str )
-{
+inline void MASL_PROTOCOL :: SSWriteString( stringstream &SS, const string &Str ) {
 	if( Str.empty( ) )
 		SS << " " << "/";
 	else
 		SS << " " << Str;
 }
 
-inline uint32_t MASL_PROTOCOL :: CalcBanDuration( uint32_t duration, uint32_t banpoints )
-{
+inline uint32_t MASL_PROTOCOL :: CalcBanDuration( uint32_t duration, uint32_t banpoints ) {
 	if( banpoints )
 		return duration * banpoints;
 	
 	return duration;
 }
 
-inline uint32_t MASL_PROTOCOL :: CalcAutoBanDuration( uint32_t banpoints )
-{
+inline uint32_t MASL_PROTOCOL :: CalcAutoBanDuration( uint32_t banpoints, uint32_t numberOfGames ) {
+	
 	uint32_t BanNumber = banpoints / MASL_PROTOCOL::DB_LEAVER_BAN_POINTS;
+	uint32_t UnixDay = 86400;
+	uint32_t result = UnixDay;
 
-	switch( BanNumber )
-	{
+	switch (BanNumber) {
 	case 0:							// first time
-		return 86400 * 2;			// one day ban
+		result = UnixDay * 1;		// one day ban
+		break;
 	case 1:
-		return 86400 * 4;
+		result = UnixDay * 2;
+		break;
 	case 2:
-		return 86400 * 6;
+		result = UnixDay * 3;
+		break;
 	case 3:
-		return 86400 * 6;
+		result = UnixDay * 4;
+		break;
 	case 4:
-		return 86400 * 7;
+		result = UnixDay * 5;
+		break;
 	case 5:
-		return 86400 * 7;
-	case 6:
-		return 86400 * 7;
-	case 7:
-		return 86400 * 7;
-	case 8:
-		return 86400 * 14;
-	case 9:
-		return 86400 * 14;
-	default:						// tenth time and above
-		return 86400 * 30;
+		result = UnixDay * 6;
+		break;
+	default:						// seventh time and above
+		result = UnixDay * 7;
+		break;
 	}
 
-	/*switch( BanNumber )
-	{
-	case 0:							// first time
-		return 20;			// one day ban
-	case 1:
-		return 40;
-	case 2:
-		return 60;
-	case 3:
-		return 60;
-	case 4:
-		return 70;
-	case 5:
-		return 70;
-	case 6:
-		return 70;
-	case 7:
-		return 70;
-	case 8:
-		return 140;
-	case 9:
-		return 140;
-	default:						// tenth time and above
-		return 300;
-	}*/
+	//Under 100 games no discounts
+	if (numberOfGames < 100) {
+		return result;
+	}
+
+	double discount = floor(((double)numberOfGames + 1000.00) / 1000.00) / 10.00;
+	if (discount > 0.50) {
+		discount = 0.50;
+	}
+
+	result = (uint32_t)((double)result * (1.00-discount));
+
+	return result;
 }
 
 inline string MASL_PROTOCOL :: FlagToString( int flag )
@@ -360,6 +347,10 @@ inline string MASL_PROTOCOL :: FlagToString( int flag )
 		return "STM_USER_GETINFO";
 		break;
 
+	case STM_GHOST_GROUP:
+	    	return "STM_GHOST_GROUP";
+		break;
+
 	case STM_THATSALL:
 		return "STM_THATSALL";
 		break;
@@ -423,6 +414,7 @@ inline string MASL_PROTOCOL :: FlagToString( int flag )
 	case MTS_USER_GETINFO_RESPONSE:
 		return "MTS_USER_GETINFO_RESPONSE";
 		break;
+	
 	case MTS_CONFIG_RELOAD:
 		return "MTS_CONFIG_RELOAD";
 		break;
@@ -434,7 +426,7 @@ inline string MASL_PROTOCOL :: FlagToString( int flag )
 	case GAME_PRIV:
 		return "GAME_PRIV";
 		break;
-	
+
 	default:
 		return UTIL_ToString( flag );
 		break;

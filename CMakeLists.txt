@@ -6,7 +6,7 @@ project(pd-root LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_SHARED_LIBS ON)
 
@@ -38,7 +38,7 @@ endif()
 
 find_package(bncsutil REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(Boost COMPONENTS filesystem system thread chrono regex date_time REQUIRED)
+find_package(Boost "1.81" COMPONENTS filesystem system thread chrono regex date_time REQUIRED)
 
 # Add subdirectories
 # Just a little hack for faster docker builds so we can omit whole source copy
