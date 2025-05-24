@@ -35,6 +35,7 @@
 #include "masl_manager.h"
 #include "masl_protocol_2.h"
 #include "psr.h"
+#include "regions.h"
 
 #include <cmath>
 #include <string.h>
@@ -2454,6 +2455,15 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 			else
 				SendAllChat( "[" + User + "] voted to kick [" + m_KickVotePlayer + "] [" + UTIL_ToString( Votes ) + "/" + UTIL_ToString( VotesNeeded ) + "]" );
 		}
+	}
+
+	//
+	// !REGION
+	//
+
+	else if( Command == "region" )
+	{
+	    SendChat(player, Regions::toString(m_GHost->m_region));
 	}
 
 	//
