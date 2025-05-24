@@ -25,10 +25,11 @@ private:
 	uint32_t m_GameType;
 	bool m_Observers;
 	uint32_t m_GHostGroup;
+	string m_region;
 
 public:
-	CQueuedGame( string nCreatorName, string nCreatorServer, string nGameName, string nMap, uint32_t nAccessLevel, uint32_t nGameState, uint32_t nGameType, bool nObservers, uint32_t nGHostGroup )
-		: m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_GameName( nGameName ), m_Map( nMap ), m_AccessLevel( nAccessLevel ), m_GameState( nGameState ), m_GameType( nGameType ), m_Observers( nObservers ), m_GHostGroup( nGHostGroup ), m_QueuedTime( GetTime( ) ), m_TrueQueuedTime( GetTime( ) ) { }
+	CQueuedGame( string nCreatorName, string nCreatorServer, string nGameName, string nMap, uint32_t nAccessLevel, uint32_t nGameState, uint32_t nGameType, bool nObservers, uint32_t nGHostGroup, string nRegion )
+		: m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_GameName( nGameName ), m_Map( nMap ), m_AccessLevel( nAccessLevel ), m_GameState( nGameState ), m_GameType( nGameType ), m_Observers( nObservers ), m_GHostGroup( nGHostGroup ), m_region( nRegion ), m_QueuedTime( GetTime( ) ), m_TrueQueuedTime( GetTime( ) ) { }
 	~CQueuedGame( ) { }
 
 	string GetCreatorName( )						{ return m_CreatorName; }
@@ -42,6 +43,7 @@ public:
 	uint32_t GetGameType( )							{ return m_GameType; }
 	bool GetObservers( )							{ return m_Observers; }
 	uint32_t GetGHostGroup( )						{ return m_GHostGroup; }
+	string GetRegion( )							{ return m_region; }
 
 	void SetGameName( string nGameName )			{ m_GameName = nGameName; }
 	void SetMap( string nMap )						{ m_Map = nMap; }

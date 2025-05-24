@@ -1651,8 +1651,14 @@ void CBaseGame :: SendWelcomeMessage( CGamePlayer *player )
 				if( !in.eof( ) )
 					SendChat( player, " " );
 			}
-			else
-				SendChat( player, Line );
+			else {
+			    const size_t pos = Line.find("{{region}}");
+			    if (pos != std::string::npos) {
+				Line.replace(pos, sizeof("{{region}}") - 1, m_GHost->m_region);
+			    }
+
+			    SendChat(player, Line);
+			}
 
                         ++Count;
 		}

@@ -260,8 +260,11 @@ void CSlave :: ProcessPackets( )
 
 		case MASL_PROTOCOL :: STM_GHOST_GROUP:
 			{
-				if( !SS.eof( ) )
-					SS >> m_GHostGroup;
+				if ( !SS.eof( ) ) {
+				    SS >> m_GHostGroup;
+				    SS >> m_region;
+				}
+				DEBUG_Print( "[MASL: slave " + UTIL_ToString( m_SlaveBotID ) + "] received packet STM_GHOST_GROUP "+SS.str());
 			}
 			break;
 
@@ -1580,7 +1583,7 @@ void CSlave :: ProcessPackets( )
 	}
 }
 
-bool CSlave :: CanHost( string server, uint32_t ghostGroup )
+bool CSlave :: CanHost(string server, uint32_t ghostGroup, string region)
 {
 	/*CONSOLE_Print( "bool CSlave :: CanHost( " + server + " )" );
 	CONSOLE_Print( "m_BNETs.size( ) = " + UTIL_ToString( m_BNETs.size( ) ) );*/
@@ -1593,6 +1596,10 @@ bool CSlave :: CanHost( string server, uint32_t ghostGroup )
 
 	if( m_GHostGroup != ghostGroup && m_GHostGroup != MASL_PROTOCOL :: GHOST_GROUP_ALL )
 		return false;
+
+	if (m_region != region) {
+	    return false;
+	}
 
 	if (m_BeeingExchanged)
 	{
@@ -1786,9 +1793,9 @@ void CManager :: Update( )
 		CSlave *Slave = NULL;
 
 		if( QueuedGame->GetAccessLevel( ) > 100 )
-			Slave = GetAvailableSlave( QueuedGame->GetCreatorServer( ), QueuedGame->GetGHostGroup( ), false );
+			Slave = GetAvailableSlave( QueuedGame->GetCreatorServer( ), QueuedGame->GetGHostGroup( ), false, QueuedGame->GetRegion() );
 		else
-			Slave = GetAvailableSlave( QueuedGame->GetCreatorServer( ), QueuedGame->GetGHostGroup( ), true );
+			Slave = GetAvailableSlave( QueuedGame->GetCreatorServer( ), QueuedGame->GetGHostGroup( ), true, QueuedGame->GetRegion() );
 
 		if( Slave )
 		{
@@ -1979,7 +1986,7 @@ void CManager :: DeleteQueue( )
 	m_QueuedGames.clear( );
 }
 
-void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, uint32_t accessLevel, string gameName, string map, bool observers, bool queue, uint32_t ghostGroup )
+void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, uint32_t accessLevel, string gameName, string map, bool observers, bool queue, uint32_t ghostGroup, string region )
 {
 	transform( creatorName.begin( ), creatorName.end( ), creatorName.begin( ), (int(*)(int))tolower );
 
@@ -1993,7 +2000,7 @@ void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t ga
 	if( m_GHost->m_ContributorOnlyMode && !creatorServer->IsContributor( creatorName ) && !( accessLevel > 100 ) )
 	{
 		creatorServer->SendChatCommand( "Unable to create game, only contributors can host at the moment.", creatorName );
-		creatorServer->SendChatCommand( "Visit www.lagabuse.com for more info.", creatorName );
+		creatorServer->SendChatCommand( "Visit dota.eurobattle.net for more info.", creatorName );
 		return;
 	}
 
@@ -2036,9 +2043,9 @@ void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t ga
 		CSlave *Slave = NULL;
 
 		if( accessLevel > 100 )
-			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, false );
+			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, false, region );
 		else
-			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, true );
+			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, true, region );
 
 		if( Slave )
 		{
@@ -2066,7 +2073,7 @@ void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t ga
 
 	if( m_QueuedGames.size( ) > 0 )
 	{
-		m_QueuedGames.push_back( new CQueuedGame( creatorName, creatorServer->GetServer( ), gameName, map, accessLevel, gameState, gameType, observers, ghostGroup ) );
+		m_QueuedGames.push_back( new CQueuedGame( creatorName, creatorServer->GetServer( ), gameName, map, accessLevel, gameState, gameType, observers, ghostGroup, region ) );
 		sort( m_QueuedGames.begin( ), m_QueuedGames.end( ), CQueuedGameSortAscByAccessLevelAndQueuedTime( ) );
 
 		uint32_t di = m_QueuedGames.size( );
@@ -2097,9 +2104,9 @@ void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t ga
 		CSlave *Slave = NULL;
 
 		if( accessLevel > 100 )
-			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, false );
+			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, false, region );
 		else
-			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, true );
+			Slave = GetAvailableSlave( creatorServer->GetServer( ), ghostGroup, true, region );
 
 		if( Slave )
 		{
@@ -2121,7 +2128,7 @@ void CManager :: QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t ga
 		}
 		else
 		{
-			m_QueuedGames.push_back( new CQueuedGame( creatorName, creatorServer->GetServer( ), gameName, map, accessLevel, gameState, gameType, observers, ghostGroup ) );
+			m_QueuedGames.push_back( new CQueuedGame( creatorName, creatorServer->GetServer( ), gameName, map, accessLevel, gameState, gameType, observers, ghostGroup, region ) );
 			sort( m_QueuedGames.begin( ), m_QueuedGames.end( ), CQueuedGameSortAscByAccessLevelAndQueuedTime( ) );
 
 			uint32_t j = 0;
@@ -2538,7 +2545,7 @@ string CManager :: GetWherePlayer( string player )
 	return "I don't know where [" + player + "] is";
 }
 
-CSlave *CManager :: GetAvailableSlave( string server, uint32_t ghostGroup, bool useTotalGamesLimit )
+CSlave *CManager :: GetAvailableSlave( string server, uint32_t ghostGroup, bool useTotalGamesLimit, string region )
 {
 	// we maybe don't want to use this restriction when admin or contributor wants to create a game
 
@@ -2569,7 +2576,7 @@ CSlave *CManager :: GetAvailableSlave( string server, uint32_t ghostGroup, bool 
 		CONSOLE_Print( "(*i)->GetNumGames( ) = " + UTIL_ToString( (*i)->GetNumGames( ) ) );
 		CONSOLE_Print( "(*i)->GetID( ) = " + (*i)->GetID( ) );*/
 
-		if((*i)->CanHost( server, ghostGroup ))
+		if((*i)->CanHost( server, ghostGroup, region ))
 		{
 			if( (*i)->GetNumGames( ) == 0 )
 			{
@@ -2668,6 +2675,7 @@ vector<string> CManager :: PrintSlaveInfo( )
 	for ( list<CSlave *> :: iterator i = m_Slaves.begin( ); i != m_Slaves.end( ); ++i )
 	{
 		InfoString.push_back("Slave ID: " + UTIL_ToString( (*i)->GetID( )));
+		InfoString.push_back("Region: " + (*i)->GetRegion());
 		InfoString.push_back("Lobby: " + string( (*i)->GetGameInLobby( ) ? "true" : "false" ));
 		InfoString.push_back("Lobby creator: " + (*i)->GetLobbyCreator( ));
 		InfoString.push_back("Max games: " + UTIL_ToString( (*i)->GetMaxGames( ) ));
@@ -2689,13 +2697,13 @@ vector<string> CManager :: PrintSlaveInfo( )
 vector<string> CManager :: PrintSlaveInfoLesser( )
 {
 	vector<string> InfoString;
-	InfoString.push_back("BNET USERNAMES (BotID - BnetID - Username)");
+	InfoString.push_back("BNET USERNAMES (BotID - BnetID - Username - region)");
 
 	for ( list<CSlave *> :: iterator i = m_Slaves.begin( ); i != m_Slaves.end( ); ++i )
 	{
 		for (map<uint32_t, string> :: iterator j = (*i)->m_SlaveNames.begin(); j != (*i)->m_SlaveNames.end(); ++j)
 		{
-			InfoString.push_back(UTIL_ToString((*i)->GetID())+" "+UTIL_ToString(j->first)+" "+j->second+" ");
+			InfoString.push_back(UTIL_ToString((*i)->GetID())+" "+UTIL_ToString(j->first)+" "+j->second+" "+(*i)->GetRegion());
 		}
 	}
 	return InfoString;

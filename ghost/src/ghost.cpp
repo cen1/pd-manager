@@ -39,6 +39,7 @@
 #include "game_custom.h"
 #include "game_customdota.h"
 #include "game_div1dota.h"
+#include "regions.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -171,7 +172,7 @@ CGHost :: CGHost( CConfig *CFG, string nCFGFile )
 	m_Exiting = false;
 	m_ExitingNice = false;
 	m_Enabled = true;
-	m_Version = "6.1.0";
+	m_Version = "7.0.0";
 	m_HostCounter = 1;
 	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
@@ -400,7 +401,7 @@ CGHost :: CGHost( CConfig *CFG, string nCFGFile )
 	if( m_BNETs.empty( ) )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found" );
 	
-	CONSOLE_Print( "[GHOST] pdBOT Version " + m_Version + " (www.playdota.eu)" );
+	CONSOLE_Print( "[GHOST] pdBOT Version " + m_Version + " (eurobattle.net)" );
 
 	string MASLServer = CFG->GetString( "masl_server", string( ) );
 	uint32_t MASLPort = CFG->GetInt( "masl_port", 0 );
@@ -447,6 +448,12 @@ CGHost :: CGHost( CConfig *CFG, string nCFGFile )
 	m_DidYouKnowEnabled = CFG->GetInt("bot_did_you_know_enabled", 1) == 0 ? false : true;
 	m_allowLanJoinAsRealm = CFG->GetString("bot_allow_lan_join_as_realm", "");
 	m_AutoStartHeldPlayersMaxTimeInMin = CFG->GetInt("bot_auto_start_held_players_max_time_in_min", 3);
+	m_region = CFG->GetString("bot_region", Regions::DEFAULT_REGION);
+	if (Regions::map.find(m_region) == Regions::map.end()) {
+	    CONSOLE_Print("[GHOST] ERROR - Invalid key for bot_region. Defaulting to eu.");
+	    m_region=Regions::DEFAULT_REGION;
+	}
+	CONSOLE_Print("[GHOST] Region set to "+m_region);
 
 	m_BlockMS = 5;
 

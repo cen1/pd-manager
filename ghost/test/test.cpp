@@ -1,5 +1,5 @@
+#include "common_util.h"
 #include "gtest/gtest.h"
-#include "util.h"
 #include <vector>
 
 #include "ghost.h"

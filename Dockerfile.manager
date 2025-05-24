@@ -1,9 +1,11 @@
 FROM debian:bookworm AS build
 
-RUN apt-get update && apt-get install -y \
-    git cmake build-essential libmysqlcppconn-dev libmariadb-dev-compat \
-    libboost-filesystem1.74-dev libboost-system1.74-dev libboost-chrono1.74-dev \
-    libboost-thread1.74-dev libboost-date-time1.74-dev libboost-regex1.74-dev \
+ARG PD_DEBUG=0
+
+RUN apt-get -y update && apt-get install -y \
+    git cmake build-essential libmariadb-dev-compat \
+    libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
+    libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev \
     curl gnupg ca-certificates
 
 # Add xpam repository for bncsutil
@@ -16,9 +18,10 @@ RUN curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-x
 WORKDIR /app
 COPY CMake ./CMake
 COPY manager ./manager
-COPY CMakeLists.txt .
+COPY common ./common
+COPY README.md LICENSE CMakeLists.txt .
 
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DPD_DEBUG=$PD_DEBUG \
     && cmake --build build --config Release --target pd-manager --parallel
 
 FROM debian:bookworm AS runtime
@@ -30,8 +33,8 @@ COPY --from=build /etc/apt/sources.list.d/xpam.sources /etc/apt/sources.list.d/x
 
 RUN apt-get update && apt-get install -y \
     libmysqlcppconn7v5 \
-    libboost-filesystem1.74 libboost-system1.74 libboost-chrono1.74 \
-    libboost-thread1.74 libboost-date-time1.74 libboost-regex1.74 \
+    libboost-filesystem1.81 libboost-system1.81 libboost-chrono1.81 \
+    libboost-thread1.81 libboost-date-time1.81 libboost-regex1.81 \
     bncsutil \
     && rm -rf /var/lib/apt/lists/*
 

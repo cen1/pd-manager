@@ -52,7 +52,7 @@ set(SOURCES
     src/map.h
     src/masl_manager.cpp
     src/masl_manager.h
-    src/masl_protocol_2.h
+    ../common/src/masl_protocol_2.h
     src/ms_stdint.h
     src/next_combination.h
     src/packed.cpp
@@ -132,7 +132,7 @@ endif()
 
 find_package(STORMLIB REQUIRED)
 
-target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src)
 target_link_libraries(pd-slave PRIVATE ${STORMLIB_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-slave RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
@@ -193,6 +193,27 @@ if (WIN32 AND BUILD_SHARED_LIBS)
         )
     endif()
 endif()
+
+#CPack configurtion
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "pd-slave")
+SET(CPACK_PACKAGE_VENDOR "eurobattle.net")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../README.md")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE")
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+
+#DEB configuration
+SET(CPACK_DEBIAN_PACKAGE_SECTION "games")
+SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/cen1/pd-manager")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "imbacen@gmail.com")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${ARCH})
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesystem1.81-dev, libboost-system1.81-dev, libboost-chrono1.81-dev, libboost-thread1.81-dev, libboost-date-time1.81-dev, libboost-regex1.81-dev, bncsutil, stormlib")
+
+INCLUDE(CPack)
 
 #Tests
 if(ENABLE_TESTS)

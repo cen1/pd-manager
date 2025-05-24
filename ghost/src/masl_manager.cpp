@@ -378,8 +378,8 @@ void CManager :: ProcessPackets( )
 
 					Send( MASL_PROTOCOL :: STM_GAME_INPROGRESS, GameData.str( ), true );
 				}*/
-
-				Send( MASL_PROTOCOL :: STM_GHOST_GROUP, UTIL_ToString( m_GHost->m_GHostGroup ) );
+				CONSOLE_Print("[MASL] Sending STM_GHOST_GROUP "+UTIL_ToString( m_GHost->m_GHostGroup )+" "+m_GHost->m_region);
+				Send( MASL_PROTOCOL :: STM_GHOST_GROUP, UTIL_ToString( m_GHost->m_GHostGroup )+" "+m_GHost->m_region, true);
 
 				Send( MASL_PROTOCOL :: STM_THATSALL, true );
 			}

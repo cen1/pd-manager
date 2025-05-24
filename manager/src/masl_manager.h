@@ -4,6 +4,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include "regions.h"
 
 class CQueuedGame;
 class CDBGamePlayers;
@@ -74,6 +75,7 @@ public:
 	string m_RecvBuffer;
 	string m_LobbyCreator;
 	uint32_t m_GHostGroup;
+	string m_region;
 	bool m_BeeingExchanged;
 
 	boost::asio::ip::tcp::socket socket_;
@@ -94,18 +96,20 @@ public:
 	void ExtractPackets( );
 	void ProcessPackets( );
 
-	string GetLobbyCreator( )			{ return m_LobbyCreator; }
-	uint32_t GetID( )					{ return m_SlaveBotID; }
-	uint32_t GetMaxGames( )				{ return m_MaxGames; }
-	uint32_t GetNumGames( );
-	bool GetProtocolInitialized( )		{ return m_ProtocolInitialized; }
-	bool GetGameInLobby( )				{ return m_GameInLobby; }
-	bool CanHost( string server, uint32_t ghostGroup );
-	bool LoggedIn( uint32_t serverID );
-	uint32_t GetGHostGroup( )				{ return m_GHostGroup; }
+	string GetLobbyCreator( )	{ return m_LobbyCreator; }
+	uint32_t GetID( )		{ return m_SlaveBotID; }
+	uint32_t GetMaxGames( )		{ return m_MaxGames; }
+	bool GetProtocolInitialized( )	{ return m_ProtocolInitialized; }
+	bool GetGameInLobby( )		{ return m_GameInLobby; }
+	uint32_t GetGHostGroup( )	{ return m_GHostGroup; }
+	string GetRegion() 		{ return m_region; }
 
 	void SetGameInLobby( bool nGameInLobby )			{ m_GameInLobby = nGameInLobby; }
 	void SetLobbyCreator( string nLobbyCreator )		{ m_LobbyCreator = nLobbyCreator; }
+
+	uint32_t GetNumGames( );
+	bool CanHost( string server, uint32_t ghostGroup, string region=Regions::DEFAULT_REGION);
+	bool LoggedIn( uint32_t serverID );
 
 	void SendCreateGame( string creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, string gameName, string mapName, bool observers );
 	/*void SendCreateDotAGame( string creatorServer, uint32_t gameState, string creatorName, string gameName );
@@ -164,7 +168,7 @@ public:
 	uint32_t HasQueuedGameFromNamePartial( CBNET *creatorServer, string creatorName, CQueuedGame **game );
 	void UnqueueGame( CBNET *creatorServer, string creatorName );
 	void DeleteQueue( );
-	void QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, uint32_t accessLevel, string gameName, string map, bool observers, bool queue, uint32_t ghostGroup );
+	void QueueGame( CBNET *creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, uint32_t accessLevel, string gameName, string map, bool observers, bool queue, uint32_t ghostGroup, string region );
 	void EchoPushPlayer( CBNET *server, string pusher, string player, int32_t howMuch );
 	/*
 	void CreateDotAGame( CBNET *creatorServer, uint32_t gameState, string ownerName, string gameName );
@@ -188,7 +192,7 @@ public:
 	string GetGamePlayerNames( string gameNumber );
 	void SendPlayerWhereDescription( CBNET *server, string user, string player );
 	string GetWherePlayer( string player );
-	CSlave *GetAvailableSlave( string server, uint32_t ghostGroup, bool useTotalGamesLimit );
+	CSlave *GetAvailableSlave( string server, uint32_t ghostGroup, bool useTotalGamesLimitstring, string region="eu" );
 	bool SoftDisableSlave(uint32_t slaveUsernameNumber);
 	void SoftDisableAllSlaves();
 	bool SoftEnableSlave(uint32_t slaveUsernameNumber);

@@ -32,8 +32,8 @@ Alternatively, you need to build and install [bncsutil](https://github.com/BNETD
 ```
 wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt install libmysqlcppconn-dev libmariadb-dev-compat libboost-filesystem-dev libboost-system-dev libboost-chrono-dev \
-libboost-thread-dev libboost-date-time-dev libboost-regex-dev bncsutil stormlib
+sudo apt install libmariadb-dev-compat libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
+libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev bncsutil stormlib
 cmake -B build
 cmake --build build --config Release
 cd build
@@ -135,6 +135,11 @@ If you want pd-slave to be able to display which country players come from, you 
 Credits:
 - https://github.com/sapics/ip-location-db CC0 1.0 license
 - https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes CC BY-SA 4.0 license
+
+### CPack
+``` 
+cpack -G "DEB" --config build/CPackConfig.cmake -B build
+```
 
 ## Debugging production problems
 ```

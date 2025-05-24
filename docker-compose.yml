@@ -12,6 +12,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.manager
+            args:
+              PD_DEBUG: 1
         container_name: pdm
         depends_on:
             - mysql
@@ -34,11 +36,11 @@ services:
         expose:
             - "15002"
 
-    host1:
+    hosteu:
         build:
             context: .
             dockerfile: Dockerfile.slave
-        container_name: host1
+        container_name: hosteu
         ports:
             - "6101:6101/tcp"
             - "6201:6201/tcp"
@@ -61,11 +63,11 @@ services:
             pdmnet:
                 ipv4_address: 172.40.0.6
 
-    host2:
+    hostsa:
         build:
             context: .
             dockerfile: Dockerfile.slave
-        container_name: host2
+        container_name: hostsa
         ports:
             - "6102:6102/tcp"
             - "6202:6202/tcp"
@@ -87,6 +89,33 @@ services:
         networks:
             pdmnet:
                 ipv4_address: 172.40.0.7
+
+    hostas:
+      build:
+        context: .
+        dockerfile: Dockerfile.slave
+      container_name: hostas
+      ports:
+        - "6103:6102/tcp"
+        - "6203:6202/tcp"
+      volumes:
+        - ./slave_cfgs/s03.cfg:/app/s00.cfg
+        - ./pd-slave-docker.cfg:/app/default.cfg
+        - ./ghost/didyouknow.txt:/app/didyouknow.txt
+        - ./ghost/gameloaded.txt:/app/gameloaded.txt
+        - ./ghost/gameover.txt:/app/gameover.txt
+        - ./ghost/ipblacklist.txt:/app/ipblacklist.txt
+        - ./ghost/language.cfg:/app/language.cfg
+        - ./ghost/motd.txt:/app/motd.txt
+        - ./war3_126a:/app/war3_126a
+        - ./data:/app/data
+      depends_on:
+        - mysql
+        - pdm
+      restart: unless-stopped
+      networks:
+        pdmnet:
+          ipv4_address: 172.40.0.8
 
     mysql:
         image: mysql:9

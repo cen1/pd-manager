@@ -134,6 +134,7 @@ public:
 	bool m_UseNewPSRFormula;				// config value: use old (myubernick) or new (luke) formula to calculate PSR for winners and losers after dota game
 	string m_allowLanJoinAsRealm;			// config value: allows joining of LAN players and giving them this value as realm name. For testing with fake bot players only.
 	uint32_t m_AutoStartHeldPlayersMaxTimeInMin; //config value: max time in minutes to wait for held players to join the game
+	string m_region;			     //config value: bot_region, specify in which GEO region bot is located (see common/src/regions.h)
 
 	uint32_t m_DotaMaxWinChanceDiffGainConstant = 0; //config value: if win chance diff is more than this, disabled +1/-1 constant gain
 	uint32_t m_DotaMaxWinChanceDiff = 0;	// config value: max win chance diff allowed for game to be allowed to start. 0-100. 0 means disabled
