@@ -42,3 +42,4 @@ mnt/
 slave_cfgs/s01.cfg
 slave_cfgs/s02.cfg
 slave_cfgs/s03.cfg
+local_slave_build.sh

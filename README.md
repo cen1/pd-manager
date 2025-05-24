@@ -136,6 +136,11 @@ Credits:
 - https://github.com/sapics/ip-location-db CC0 1.0 license
 - https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes CC BY-SA 4.0 license
 
+### CPack
+``` 
+cpack -G "DEB" --config build/CPackConfig.cmake -B build
+```
+
 ## Debugging production problems
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo

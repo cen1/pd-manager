@@ -27,6 +27,15 @@ class Regions {
 	return s;
     }
 
+    static std::string toString(const std::string& key) {
+	if (map.contains(key)) {
+	    std::string s;
+	    s.append(key).append(" (").append(map.at(key)).append(")");
+	    return s;
+	}
+	return "unknown";
+    }
+
     static const std::string regionFromPostfix(const std::string& in) {
 	for (const auto& [k, v] : Regions::map)
 	    if (in.ends_with(k))

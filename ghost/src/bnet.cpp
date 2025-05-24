@@ -36,6 +36,7 @@
 #include "gameplayer.h"
 #include "masl_protocol_2.h"
 #include "game_div1dota.h"
+#include "regions.h"
 
 #include <boost/filesystem.hpp>
 
@@ -1215,6 +1216,15 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					}
 					else
 						QueueChatCommand( m_GHost->m_Language->UnableToUnhostGameNoGameInLobby( ), User, Whisper );
+				}
+
+				//
+				// !REGION
+				//
+
+				else if( Command == "region" )
+				{
+				    QueueChatCommand(Regions::toString(m_GHost->m_region), User, Whisper );
 				}
 
 				//
