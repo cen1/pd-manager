@@ -17,7 +17,7 @@ WORKDIR /app
 COPY CMake ./CMake
 COPY ghost ./ghost
 COPY common ./common
-COPY CMakeLists.txt .
+COPY LICENSE CMakeLists.txt .
 
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release --target pd-slave --parallel
