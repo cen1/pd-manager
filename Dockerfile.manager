@@ -19,7 +19,7 @@ WORKDIR /app
 COPY CMake ./CMake
 COPY manager ./manager
 COPY common ./common
-COPY LICENSE CMakeLists.txt .
+COPY README.md LICENSE CMakeLists.txt .
 
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DPD_DEBUG=$PD_DEBUG \
     && cmake --build build --config Release --target pd-manager --parallel
