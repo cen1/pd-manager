@@ -130,7 +130,8 @@ services:
             - "3306:3306"
         volumes:
             - pdm_db_data:/var/lib/mysql
-            - ./database_schema.sql:/docker-entrypoint-initdb.d/database_schema.sql
+            - ./1_database_migration_initial.sql:/docker-entrypoint-initdb.d/1_database_migration_initial.sql
+            - ./2_database_migration_2025_05_24.sql:/docker-entrypoint-initdb.d/2_database_migration_2025_05_24
             - ./my.cnf:/etc/mysql/my.cnf
         healthcheck:
             test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]

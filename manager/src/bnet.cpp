@@ -1886,7 +1886,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						CheckbanStr += " More info online";
 
 						SendChatCommand(CheckbanStr, User);
-						SendChatCommand("http://lagabuse.com/stats/player/" + UTIL_ToString(m_ServerID) + "/" + NameLower, User);
+						SendChatCommand("https://dota.eurobattle.net/stats/player/" + UTIL_ToString(m_ServerID) + "/" + NameLower, User);
 					}
 					else
 						SendChatCommand(m_GHost->m_Language->UserIsNotBanned(m_Server, Name), User);

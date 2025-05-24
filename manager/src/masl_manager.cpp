@@ -390,7 +390,7 @@ void CSlave :: ProcessPackets( )
 				{
 				case MASL_PROTOCOL :: DB_CUSTOM_GAME:
 					{
-						m_GHost->m_GameCustomAdds.push_back( m_GHost->m_DB->ThreadedGameCustomAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType ) );
+						m_GHost->m_GameCustomAdds.push_back( m_GHost->m_DB->ThreadedGameCustomAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType, m_region ) );
 					}
 					break;
 
@@ -494,7 +494,7 @@ void CSlave :: ProcessPackets( )
 							DBDotAPlayers.push_back( new CDBDotAPlayer( Color, Level, Kills, Deaths, CreepKills, CreepDenies, Assists, Gold, NeutralKills, Item1, Item2, Item3, Item4, Item5, Item6, Hero, NewColor, TowerKills, RaxKills, CourierKills ) );
 						}
 
-						m_GHost->m_GameCustomDotAAdds.push_back( m_GHost->m_DB->ThreadedGameCustomDotAAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType, Winner, CreepsSpawnedTime, CollectDotAStatsOverTime, Min, Sec, DBDotAPlayers, Mode1, Mode2 ) );
+						m_GHost->m_GameCustomDotAAdds.push_back( m_GHost->m_DB->ThreadedGameCustomDotAAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType, Winner, CreepsSpawnedTime, CollectDotAStatsOverTime, Min, Sec, DBDotAPlayers, Mode1, Mode2, m_region ) );
 					}
 					break;
 
@@ -744,7 +744,7 @@ void CSlave :: ProcessPackets( )
 
 						DEBUG_Print( "pp 0" );
 
-						m_GHost->m_GameDiv1DotAAdds.push_back( m_GHost->m_DB->ThreadedGameDiv1DotAAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType, Winner, CreepsSpawnedTime, CollectDotAStatsOverTime, Min, Sec, DBDotAPlayers, Mode1, Mode2, FF, Scored, DBDiv1DotAPlayers ) );
+						m_GHost->m_GameDiv1DotAAdds.push_back( m_GHost->m_DB->ThreadedGameDiv1DotAAdd( MySQLGameID, LobbyDuration, LobbyLog, GameLog, ReplayName, MapLocalPath, GameName, OwnerName, GameDuration, GameState, CreatorName, GetServerID( CreatorServer ), GamePlayers, RMK, GameType, Winner, CreepsSpawnedTime, CollectDotAStatsOverTime, Min, Sec, DBDotAPlayers, Mode1, Mode2, FF, Scored, DBDiv1DotAPlayers, m_region ) );
 
 						DEBUG_Print( "pp 2" );
 					}
@@ -794,7 +794,7 @@ void CSlave :: ProcessPackets( )
 				uint32_t SlaveGameID = 0;
 				SS >> SlaveGameID;
 
-				m_GHost->m_GameIDs.push_back( m_GHost->m_DB->ThreadedGameID( m_SlaveBotID, SlaveGameID ) );
+				m_GHost->m_GameIDs.push_back( m_GHost->m_DB->ThreadedGameID( m_SlaveBotID, SlaveGameID, m_region ) );
 			}
 			break;
 
