@@ -29,6 +29,7 @@
 #include "bncsutilinterface.h"
 #include "bnetprotocol.h"
 #include "masl_slavebot.h"
+#include "sha1.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
@@ -241,7 +242,7 @@ string CRemoteGame :: GetNames( )
 			Names = "[" + UTIL_ToString( GetNumPlayers( ) ) + "/" + UTIL_ToString( m_NumStartPlayers ) + " : " + m_GameName + "]" + Names;
 	}
 
-	return Names;
+	return "["+ hash().substr(0, 5) + "] " + Names;
 }
 
 void CRemoteGame :: SetGamePlayer( uint32_t slot, string name )
@@ -302,4 +303,21 @@ void CRemoteGame :: SetPlayerLeft( string name )
 			}
 		}
 	}
+}
+
+std::string CRemoteGame :: hash() {
+    CSHA1 sha1;
+
+    std::string input = UTIL_ToString(m_BotID) + m_OwnerName + UTIL_ToString(m_CreatorServerID) + UTIL_ToString(m_StartTime);
+
+    sha1.Update(reinterpret_cast<unsigned char*>(const_cast<char*>(input.c_str())), input.length());
+
+    sha1.Final();
+
+    unsigned char digest[CSHA1::SHA1_DIGEST_LENGTH];
+    sha1.GetHash(digest);
+
+    std::string hex_hash = sha1.ToHexString(digest);
+
+    return hex_hash;
 }

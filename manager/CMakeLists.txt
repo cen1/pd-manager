@@ -44,6 +44,8 @@ set(SOURCES
     src/util.cpp
     src/util.h
     ../common/src/regions.h
+    ../common/src/sha1.h
+    ../common/src/sha1.cpp
 )
 
 target_sources(pd-manager PRIVATE ${SOURCES})

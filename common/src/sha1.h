@@ -21,7 +21,7 @@
 
 #include <stdio.h> // Needed for file access
 #include <memory.h> // Needed for memset and memcpy
-#include <string.h> // Needed for strcat and strcpy
+#include <string> // Needed for strcat and strcpy
 
 // standard integer sizes for 64 bit compatibility
 
@@ -36,6 +36,9 @@
 class CSHA1
 {
 public:
+
+  	static const size_t SHA1_DIGEST_LENGTH=20;
+
 	// Rotate x bits to the left
 	#define ROL32(value, bits) (((value)<<(bits))|((value)>>(32-(bits))))
 
@@ -61,9 +64,6 @@ public:
 		uint32_t l[16];
 	} SHA1_WORKSPACE_BLOCK;
 
-	// Two different formats for ReportHash(...)
-	enum { REPORT_HEX = 0, REPORT_DIGIT = 1 };
-
 	// Constructor and Destructor
 	CSHA1();
 	virtual ~CSHA1();
@@ -80,7 +80,7 @@ public:
 
 	// Finalize hash and report
 	void Final();
-	void ReportHash(char *szReport, unsigned char uReportType = REPORT_HEX);
+	std::string ToHexString(const unsigned char* digest);
 	void GetHash(unsigned char *uDest);
 
 private:

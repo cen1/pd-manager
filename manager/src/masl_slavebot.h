@@ -158,6 +158,9 @@ public:
 	void SetGamePlayer( string name );
 	void DelGamePlayer( string name );
 	void SetPlayerLeft( string name );
+
+private:
+	std::string hash();
 };
 
 #endif

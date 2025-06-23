@@ -52,7 +52,6 @@ set(SOURCES
     src/map.h
     src/masl_manager.cpp
     src/masl_manager.h
-    ../common/src/masl_protocol_2.h
     src/ms_stdint.h
     src/next_combination.h
     src/packed.cpp
@@ -64,8 +63,6 @@ set(SOURCES
     src/replay.h
     src/savegame.cpp
     src/savegame.h
-    src/sha1.cpp
-    src/sha1.h
     src/socket.cpp
     src/socket.h
     src/util.cpp
@@ -74,6 +71,9 @@ set(SOURCES
     src/w3g_format.txt
     src/w3version.cpp
     src/w3version.h
+    ../common/src/masl_protocol_2.h
+    ../common/src/sha1.cpp
+    ../common/src/sha1.h
 )
 
 target_sources(pd-slave PRIVATE ${SOURCES})
