@@ -72,6 +72,7 @@ set(SOURCES
     src/w3version.cpp
     src/w3version.h
     ../common/src/masl_protocol_2.h
+    ../common/src/ms_stdint.h
     ../common/src/sha1.cpp
     ../common/src/sha1.h
 )
