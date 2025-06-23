@@ -33,7 +33,6 @@ set(SOURCES
     src/masl_manager.h
     src/masl_slavebot.cpp
     src/masl_slavebot.h
-    src/ms_stdint.h
     src/next_combination.h
     src/psr.cpp
     src/psr.h

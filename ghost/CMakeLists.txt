@@ -52,7 +52,6 @@ set(SOURCES
     src/map.h
     src/masl_manager.cpp
     src/masl_manager.h
-    src/ms_stdint.h
     src/next_combination.h
     src/packed.cpp
     src/packed.h
