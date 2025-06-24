@@ -19,7 +19,6 @@
 
 #include "sha1.h"
 
-
 CSHA1::CSHA1()
 {
 	Reset();
@@ -153,38 +152,19 @@ void CSHA1::Final()
 }
 
 // Get the final hash as a pre-formatted string
-void CSHA1::ReportHash(char *szReport, unsigned char uReportType)
+std::string CSHA1::ToHexString(const unsigned char* digest)
 {
-	/*
+    std::string hex_str;
+    hex_str.reserve(40); // 20 bytes * 2 hex chars
+    char buf[3];
 
-	unsigned char i = 0;
-	char szTemp[4];
+    for (size_t i = 0; i < 20; ++i) // assuming SHA1 is 20 bytes
+    {
+	snprintf(buf, sizeof(buf), "%02x", digest[i]);
+	hex_str += buf;
+    }
 
-	if(uReportType == REPORT_HEX)
-	{
-		sprintf(szTemp, "%02x", m_digest[0]);
-		strcat(szReport, szTemp);
-
-		for(i = 1; i < 20; i++)
-		{
-			sprintf(szTemp, "%02x", m_digest[i]);
-			strcat(szReport, szTemp);
-		}
-	}
-	else if(uReportType == REPORT_DIGIT)
-	{
-		sprintf(szTemp, "%u", m_digest[0]);
-		strcat(szReport, szTemp);
-
-		for(i = 1; i < 20; i++)
-		{
-			sprintf(szTemp, " %u", m_digest[i]);
-			strcat(szReport, szTemp);
-		}
-	}
-	else strcpy(szReport, "Error: Unknown report type!");
-
-	*/
+    return hex_str;
 }
 
 // Get the raw message digest

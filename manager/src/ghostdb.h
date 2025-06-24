@@ -80,12 +80,12 @@ public:
 	// threaded database functions
 
 	CCallableFromCheck *ThreadedFromCheck( uint32_t slavebotID, string name, uint32_t serverID, uint32_t ip );
-	CCallableGameCustomAdd *ThreadedGameCustomAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype );
-	CCallableGameCustomDotAAdd *ThreadedGameCustomDotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2 );
-	CCallableGameDiv1DotAAdd *ThreadedGameDiv1DotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, bool ff, bool scored, vector<CDBDiv1DotAPlayer *> dbdiv1dotaplayers );
+	CCallableGameCustomAdd *ThreadedGameCustomAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, std::string region );
+	CCallableGameCustomDotAAdd *ThreadedGameCustomDotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, std::string region );
+	CCallableGameDiv1DotAAdd *ThreadedGameDiv1DotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, bool ff, bool scored, vector<CDBDiv1DotAPlayer *> dbdiv1dotaplayers, std::string region );
 	CCallableBanAdd *ThreadedBanAdd( string player, uint32_t serverID, uint32_t gameID );
 	CCallableDIV1BanAdd *ThreadedDIV1BanAdd( string adminPlayerName, uint32_t adminServerID, string victimPlayerName, uint32_t victimServerID, uint32_t gameID, string reason );
-	CCallableGameID *ThreadedGameID( uint32_t slaveID, uint32_t slaveGameID );
+	CCallableGameID *ThreadedGameID( uint32_t slaveID, uint32_t slaveGameID, std::string region );
 	CCallableCacheList *ThreadedCacheList( set<uint32_t> server );
 	CCallableContributorList *ThreadedContributorList( uint32_t server );
 	CCallableUnixTimestampGet *ThreadedUnixTimestampGet( );
@@ -104,7 +104,7 @@ uint32_t UnixTimestampGet( void *conn );
 FromCodes FromCheck( void *conn, uint32_t ip );
 BanAddReturn BanAdd( void *conn, string playername, uint32_t serverID, uint32_t gameID );
 BanAddReturn DIV1BanAdd( void *conn, string adminplayername, uint32_t adminserverID, string victimplayername, uint32_t victimserverID, uint32_t gameID, string reason );
-uint32_t GameID( void *conn );
+uint32_t GameID( void *conn, std::string region );
 
 //
 // Callables
@@ -212,11 +212,12 @@ public:
 	uint32_t m_Duration;
 	uint32_t m_GameState;
 	uint32_t m_GameType;
+	std::string m_region;
 	bool m_RMK;
 
 public:
-	CCallableGameCustomAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType ) 
-		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ) { }
+	CCallableGameCustomAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType, std::string nRegion )
+		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ), m_region( nRegion ) { }
 	virtual ~CCallableGameCustomAdd( ) { }
 
 	virtual void ThreadedJob( void *conn );
@@ -244,6 +245,7 @@ public:
 	uint32_t m_Duration;
 	uint32_t m_GameState;
 	uint32_t m_GameType;
+	std::string m_region;
 	bool m_RMK;
 
 	vector<CDBDotAPlayer *> m_DBDotAPlayers;
@@ -257,8 +259,8 @@ public:
 	uint32_t m_Sec;
 
 public:
-	CCallableGameCustomDotAAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType, uint32_t nWinner, uint32_t nCreepsSpawnedTime, uint32_t nCollectDotAStatsOverTime, uint32_t nMin, uint32_t nSec, vector<CDBDotAPlayer *> nDBDotAPlayers, string nMode1, string nMode2 )
-		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ), m_DBDotAGameID( 0 ), m_Winner( nWinner ), m_CreepsSpawnedTime( nCreepsSpawnedTime ), m_CollectDotAStatsOverTime( nCollectDotAStatsOverTime ), m_Min( nMin ), m_Sec( nSec ), m_DBDotAPlayers( nDBDotAPlayers ), m_Mode1( nMode1 ), m_Mode2( nMode2 ) { }
+	CCallableGameCustomDotAAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType, uint32_t nWinner, uint32_t nCreepsSpawnedTime, uint32_t nCollectDotAStatsOverTime, uint32_t nMin, uint32_t nSec, vector<CDBDotAPlayer *> nDBDotAPlayers, string nMode1, string nMode2, std::string nRegion )
+		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ), m_DBDotAGameID( 0 ), m_Winner( nWinner ), m_CreepsSpawnedTime( nCreepsSpawnedTime ), m_CollectDotAStatsOverTime( nCollectDotAStatsOverTime ), m_Min( nMin ), m_Sec( nSec ), m_DBDotAPlayers( nDBDotAPlayers ), m_Mode1( nMode1 ), m_Mode2( nMode2 ), m_region( nRegion ) { }
 	virtual ~CCallableGameCustomDotAAdd( ) { }
 
 	virtual void ThreadedJob( void *conn );
@@ -286,6 +288,7 @@ public:
 	uint32_t m_Duration;
 	uint32_t m_GameState;
 	uint32_t m_GameType;
+	std::string m_region;
 	bool m_RMK;
 
 	vector<CDBDotAPlayer *> m_DBDotAPlayers;
@@ -303,8 +306,8 @@ public:
 	vector<CDBDiv1DotAPlayer *> m_DBDiv1DotAPlayers;
 
 public:
-	CCallableGameDiv1DotAAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType, uint32_t nWinner, uint32_t nCreepsSpawnedTime, uint32_t nCollectDotAStatsOverTime, uint32_t nMin, uint32_t nSec, vector<CDBDotAPlayer *> nDBDotAPlayers, string nMode1, string nMode2, bool nFF, bool nScored, vector<CDBDiv1DotAPlayer *> nDBDiv1DotAPlayers ) 
-		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ), m_DBDotAGameID( 0 ), m_Winner( nWinner ), m_CreepsSpawnedTime( nCreepsSpawnedTime ), m_CollectDotAStatsOverTime( nCollectDotAStatsOverTime ), m_Min( nMin ), m_Sec( nSec ), m_DBDotAPlayers( nDBDotAPlayers ), m_Mode1( nMode1 ), m_Mode2( nMode2 ), m_FF( nFF ), m_Scored( nScored ), m_DBDiv1DotAPlayers( nDBDiv1DotAPlayers ) { }
+	CCallableGameDiv1DotAAdd( uint32_t nDBGameID, uint32_t nLobbyDuration, string nLobbyLog, string nGameLog, string nReplayName, string nMap, string nGameName, string nOwnerName, uint32_t nDuration, uint32_t nGameState, string nCreatorName, uint32_t nCreatorServerID, vector<CDBGamePlayer *> nDBGamePlayers, bool nRMK, uint32_t nGameType, uint32_t nWinner, uint32_t nCreepsSpawnedTime, uint32_t nCollectDotAStatsOverTime, uint32_t nMin, uint32_t nSec, vector<CDBDotAPlayer *> nDBDotAPlayers, string nMode1, string nMode2, bool nFF, bool nScored, vector<CDBDiv1DotAPlayer *> nDBDiv1DotAPlayers, std::string nRegion )
+		: CBaseCallable( ), m_Error( false ), m_DBGameID( nDBGameID ), m_DBCreatorPlayerID( 0 ), m_LobbyDuration( nLobbyDuration ), m_LobbyLog( nLobbyLog ), m_GameLog( nGameLog ), m_ReplayName( nReplayName ), m_Map( nMap ), m_GameName( nGameName ), m_OwnerName( nOwnerName ), m_Duration( nDuration ), m_GameState( nGameState ), m_CreatorName( nCreatorName ), m_CreatorServerID( nCreatorServerID ), m_DBGamePlayers( nDBGamePlayers ), m_RMK( nRMK ), m_GameType( nGameType ), m_DBDotAGameID( 0 ), m_Winner( nWinner ), m_CreepsSpawnedTime( nCreepsSpawnedTime ), m_CollectDotAStatsOverTime( nCollectDotAStatsOverTime ), m_Min( nMin ), m_Sec( nSec ), m_DBDotAPlayers( nDBDotAPlayers ), m_Mode1( nMode1 ), m_Mode2( nMode2 ), m_FF( nFF ), m_Scored( nScored ), m_DBDiv1DotAPlayers( nDBDiv1DotAPlayers ), m_region( nRegion ) { }
 	virtual ~CCallableGameDiv1DotAAdd( ) { }
 
 	virtual void ThreadedJob( void *conn );
@@ -365,9 +368,10 @@ protected:
 	uint32_t m_SlaveID;
 	uint32_t m_SlaveGameID;
 	uint32_t m_Result;
+	std::string m_region;
 
 public:
-	CCallableGameID( uint32_t nSlaveID, uint32_t nSlaveGameID ) : CBaseCallable( ), m_SlaveID( nSlaveID ), m_SlaveGameID( nSlaveGameID ), m_Result( 0 ) { }
+	CCallableGameID( uint32_t nSlaveID, uint32_t nSlaveGameID, std::string nRegion ) : CBaseCallable( ), m_SlaveID( nSlaveID ), m_SlaveGameID( nSlaveGameID ), m_region( nRegion ), m_Result( 0 ) { }
 	virtual ~CCallableGameID( ) { }
 
 	virtual void ThreadedJob( void *conn );
@@ -377,6 +381,7 @@ public:
 
 	uint32_t GetSlaveID( )							{ return m_SlaveID; }
 	uint32_t GetSlaveGameID( )						{ return m_SlaveGameID; }
+	std::string GetRegion( )						{ return m_region; }
 };
 
 class CCallableCacheList : virtual public CBaseCallable

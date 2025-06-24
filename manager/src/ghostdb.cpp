@@ -75,7 +75,7 @@ void LOG_Failed_Query( string query, string error )
 	DB_Log( error );
 }
 
-string MySQLEscapeString( void *conn, string str )
+string MySQLEscapeString( void *conn, const string str )
 {
 	char *to = new char[str.size( ) * 2 + 1];
 	unsigned long size = mysql_real_escape_string( (MYSQL *)conn, to, str.c_str( ), str.size( ) );
@@ -256,23 +256,23 @@ CCallableFromCheck *CGHostDB :: ThreadedFromCheck( uint32_t slavebotID, string n
 	return Callable;
 }
 
-CCallableGameCustomAdd *CGHostDB :: ThreadedGameCustomAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype )
+CCallableGameCustomAdd *CGHostDB :: ThreadedGameCustomAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, std::string region )
 {
-	CCallableGameCustomAdd *Callable = new CCallableGameCustomAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype );
+	CCallableGameCustomAdd *Callable = new CCallableGameCustomAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype, region );
 	QueueCallable( Callable );
 	return Callable;
 }
 
-CCallableGameCustomDotAAdd *CGHostDB :: ThreadedGameCustomDotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2 )
+CCallableGameCustomDotAAdd *CGHostDB :: ThreadedGameCustomDotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, std::string region )
 {
-	CCallableGameCustomDotAAdd *Callable = new CCallableGameCustomDotAAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype, winner, creepsspawnedtime, collectdotastatsovertime, min, sec, dbdotaplayers, mode1, mode2 );
+	CCallableGameCustomDotAAdd *Callable = new CCallableGameCustomDotAAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype, winner, creepsspawnedtime, collectdotastatsovertime, min, sec, dbdotaplayers, mode1, mode2, region );
 	QueueCallable( Callable );
 	return Callable;
 }
 
-CCallableGameDiv1DotAAdd *CGHostDB :: ThreadedGameDiv1DotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, bool ff, bool scored, vector<CDBDiv1DotAPlayer *> dbdiv1dotaplayers )
+CCallableGameDiv1DotAAdd *CGHostDB :: ThreadedGameDiv1DotAAdd( uint32_t mysqlgameid, uint32_t lobbyduration, string lobbylog, string gamelog, string replayname, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, uint32_t creatorserverid, vector<CDBGamePlayer *> gameplayers, bool rmk, uint32_t gametype, uint32_t winner, uint32_t creepsspawnedtime, uint32_t collectdotastatsovertime, uint32_t min, uint32_t sec, vector<CDBDotAPlayer *> dbdotaplayers, string mode1, string mode2, bool ff, bool scored, vector<CDBDiv1DotAPlayer *> dbdiv1dotaplayers, std::string region )
 {
-	CCallableGameDiv1DotAAdd *Callable = new CCallableGameDiv1DotAAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype, winner, creepsspawnedtime, collectdotastatsovertime, min, sec, dbdotaplayers, mode1, mode2, ff, scored, dbdiv1dotaplayers );
+	CCallableGameDiv1DotAAdd *Callable = new CCallableGameDiv1DotAAdd( mysqlgameid, lobbyduration, lobbylog, gamelog, replayname, map, gamename, ownername, duration, gamestate, creatorname, creatorserverid, gameplayers, rmk, gametype, winner, creepsspawnedtime, collectdotastatsovertime, min, sec, dbdotaplayers, mode1, mode2, ff, scored, dbdiv1dotaplayers, region );
 	QueueCallable( Callable );
 	return Callable;
 }
@@ -291,9 +291,9 @@ CCallableDIV1BanAdd *CGHostDB :: ThreadedDIV1BanAdd( string adminPlayerName, uin
 	return Callable;
 }
 
-CCallableGameID *CGHostDB :: ThreadedGameID( uint32_t slaveID, uint32_t slaveGameID )
+CCallableGameID *CGHostDB :: ThreadedGameID( uint32_t slaveID, uint32_t slaveGameID, std::string region )
 {
-	CCallableGameID *Callable = new CCallableGameID( slaveID, slaveGameID );
+	CCallableGameID *Callable = new CCallableGameID( slaveID, slaveGameID, region );
 	QueueCallable( Callable );
 	return Callable;
 }
@@ -459,7 +459,7 @@ void CCallableGameCustomAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", " + m_region + " )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -661,7 +661,7 @@ void CCallableGameCustomDotAAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", "+ m_region + " )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -911,7 +911,7 @@ void CCallableGameDiv1DotAAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", " + m_region + " )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -1482,7 +1482,7 @@ void CCallableGameID :: ThreadedJob( void *conn )
 {
 	m_StartTicks = GetTicks( );
 
-	m_Result = GameID( conn );
+	m_Result = GameID( conn, m_region );
 
 	m_EndTicks = GetTicks( );
 	m_Ready = true;
@@ -2101,13 +2101,13 @@ BanAddReturn DIV1BanAdd( void *conn, string adminplayername, uint32_t adminserve
 	return BanAddReturn( VictimPlayerBanGroupID, VictimBanGroup );
 }
 
-uint32_t GameID( void *conn )
+uint32_t GameID( void *conn, std::string region )
 {
 	uint32_t GameID = 0;
 
 	// save game
 
-	string InsertGameQuery = "INSERT INTO new_game ( game_in_progress ) VALUES ( 1 )";
+	string InsertGameQuery = "INSERT INTO new_game ( game_in_progress, bot_region ) VALUES ( 1, "+MySQLEscapeString(conn, region)+" )";
 
 	if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 	{

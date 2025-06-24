@@ -31,10 +31,8 @@ set(SOURCES
     src/language.h
     src/masl_manager.cpp
     src/masl_manager.h
-    ../common/src/masl_protocol_2.h
     src/masl_slavebot.cpp
     src/masl_slavebot.h
-    src/ms_stdint.h
     src/next_combination.h
     src/psr.cpp
     src/psr.h
@@ -43,7 +41,11 @@ set(SOURCES
     src/typedefs.h
     src/util.cpp
     src/util.h
+    ../common/src/masl_protocol_2.h
+    ../common/src/ms_stdint.h
     ../common/src/regions.h
+    ../common/src/sha1.h
+    ../common/src/sha1.cpp
 )
 
 target_sources(pd-manager PRIVATE ${SOURCES})

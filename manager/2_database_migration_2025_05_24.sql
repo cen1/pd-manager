@@ -1,0 +1,1 @@
+ALTER TABLE `new_game` ADD COLUMN `bot_region` VARCHAR(2) DEFAULT 'eu';
