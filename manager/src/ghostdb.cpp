@@ -459,7 +459,7 @@ void CCallableGameCustomAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", " + m_region + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", '" + m_region + "' )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -661,7 +661,7 @@ void CCallableGameCustomDotAAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", "+ m_region + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", '"+ m_region + "' )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -911,7 +911,7 @@ void CCallableGameDiv1DotAAdd :: ThreadedJob2( void *conn )
 		// this game DB ID is zero
 		// something went wrong when we tried to insert game into the DB when game started
 
-		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", " + m_region + " )";
+		string InsertGameQuery = "INSERT INTO new_game ( lobbyduration, map, datetime, gamename, duration, gamestate, creator_player_id, creator_server_id, rmk, game_type, bot_region ) VALUES ( " + UTIL_ToString( m_LobbyDuration ) + ", '" + EscMap + "', UNIX_TIMESTAMP( ), '" + EscGameName + "', " + UTIL_ToString( m_Duration ) + ", " + UTIL_ToString( m_GameState ) + ", " + UTIL_ToString( m_DBCreatorPlayerID ) + ", " + UTIL_ToString( m_CreatorServerID ) + ", " + ( m_RMK ? "1" : "0" ) + ", " + UTIL_ToString( m_GameType ) + ", '" + m_region + "' )";
 
 		if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 		{
@@ -2107,7 +2107,7 @@ uint32_t GameID( void *conn, std::string region )
 
 	// save game
 
-	string InsertGameQuery = "INSERT INTO new_game ( game_in_progress, bot_region ) VALUES ( 1, "+MySQLEscapeString(conn, region)+" )";
+	string InsertGameQuery = "INSERT INTO new_game ( game_in_progress, bot_region ) VALUES ( 1, '"+MySQLEscapeString(conn, region)+"' )";
 
 	if( mysql_real_query( (MYSQL *)conn, InsertGameQuery.c_str( ), InsertGameQuery.size( ) ) != 0 )
 	{
