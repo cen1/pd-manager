@@ -10,7 +10,7 @@ This repository consists of:
 - `pd-manager`: bot sitting in bnet channel accepting player commands to host games, check lobbies and collect game stats.
 - `pd-slave`: accepts a command from manager and hosts the game lobby. Multiple slave bots can be attached to a single manager.
 
-Copyright [2008] [Trevor Hogan]
+Copyright [2008] [Trevor Hogan]  
 Copyright [2010-2025] [myubernick, cen, luke]
 
 ## Convenience Debian repo for bncsutil and stormlib
