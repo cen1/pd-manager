@@ -147,3 +147,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 gdb --args pd_manager-1.0.0 default.cfg
 r
 ```
+
+## Command list
+
+See [COMMANDS.md](COMMANDS.md).
