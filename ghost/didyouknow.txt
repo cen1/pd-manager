@@ -1,7 +1,15 @@
+Do not miss changes read updates atleast while you waiting in lobby: https://d1map.net/changelogs/704h
+Communicate with everyone and do not miss active lobbies! Join to our Discord: https://discord.gg/8KfFfe7Kjx
+Still Googling for a new map with every update? Why not just update the client that does everything for you? https://eurobattle.net/downloads/file/60
+Got bored with the same visuals of map try next commands: -terra <0-6> , -minimap 1/2/3 , -light <0-6> and -tavnew
+Useful commands: -aoe , -dmgblock (enabled by default, shows amount of blocked physical damage)
+Give a respect to the player via command -tip <slot 1-10>
+-lat <0-100> (local latency between the Warcraft 3 game engine and your PC’s input/output) and !latency <20-80> (network latency between each player and the host/server)
+Avoid farming alone in lanes when enemies are missing from the minimap — there's a 99% chance they're hunting you!
 Purchase and use Town Portal Scrolls to move around the map quickly.
 Flaming a staff member is the easiest way to get banned.
-Anyone can buy wards, and anyone can buy or upgrade the courier. If your team needs something, don't be afraid to buy it.
-Be nice to new players.Everyone has to start somewhere.
+Anyone can buy wards, dusts and smokes. If your team needs something, don't be afraid to buy it.
+Be nice to new players. Everyone has to start somewhere.
 Hero choices matter. Many heroes are strong counters to other heroes, and many hero pairings are far more powerful and useful than any hero is alone.
 Holding Shift allows you to issue actions to be performed in a sequence.
 You can hold Alt and click on an ability or item to inform your teammates if it is ready, on cooldown, or if you do not have enough mana to use it.
@@ -21,11 +29,10 @@ Remember to check your allies' inventories before purchasing an item for its aur
 Stun durations from different skills do not stack. You can keep an enemy stunned for longer with careful timing of your team's skills.
 Always be nice to those who buy Wards and Couriers.
 Switching Power Treads to Agility while healing allows your health and mana to restore slightly faster. Just don't forget to switch them back!
-Average speed of a deer is 48km/h.
+Average speed of White-tailed Deer (North America) is 48km/h, Red Deer (Europe/Asia) 65 km/h and Reindeer (Caribou) 70 km/h!
 Please donate to our Patreon so we can pay for the server, huh?
-If you can't get Brood Radi in min 10 are you even trying?
-If you never played TRAPEM++++1 or DOTABR APEM NOOBS can you really call yourself a DOtA player?
-Who would win in a 1v1 fantasy match? grga_man vs TooShade
-4x bloodstone better than 3x bloodstone.
-Did you know "tooshade" is second place on the ladder?
-Being top 10 on the ladder confirms that you have become a pro player.
+PM FilLaD1N to buy/get ingame bonuses!
+Avoid flamers by muting them, use -mute <slot 1-10> or !ignore <nickname>
+We never forget legends like grga_man and TooShade... but who’s next?
+If you never been played vs Filla Arc Warden do you still call yourself a Dota player?!
+Care about your courier while playing vs FatAndViolent (known animal abuser).
