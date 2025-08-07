@@ -326,20 +326,8 @@ CGHost :: CGHost( CConfig *CFG, string nCFGFile )
 		CONSOLE_Print("[GHOST] adding \".cfg\" to default map obs -> new default is [" + m_DefaultMapObs + "]");
 	}
 
-	// DotA ladder game map
-	CConfig MapCFG;
-	MapCFG.Read( m_MapCFGPath + m_DefaultMap );
-	m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
-
-	// DotA ladder game map legacy
-	CConfig DotALadderMapLegacyCFG;
-	DotALadderMapLegacyCFG.Read(m_MapCFGPath + m_DefaultMapLegacy);
-	m_DotALadderMapLegacy = new CMap(this, &DotALadderMapLegacyCFG, m_MapCFGPath + m_DefaultMapLegacy);
-
-	// DotA ladder game map with observer slots
-	CConfig DotALadderMapObsCFG;
-	DotALadderMapObsCFG.Read( m_MapCFGPath + m_DefaultMapObs );
-	m_DotALadderMapObs = new CMap( this, &DotALadderMapObsCFG, m_MapCFGPath + m_DefaultMapObs );
+	// load map cfg to mem
+	LoadMapCfgs();
 
 	// custom game map
 
@@ -1140,7 +1128,7 @@ void CGHost :: ReloadConfigs( )
 	CFG.Read( m_CFGFile );
 	SetConfigs( &CFG );
 
-	//TODO: reload map.cfg
+	LoadMapCfgs();
 }
 
 void CGHost :: SetConfigs( CConfig *CFG )
@@ -1724,4 +1712,21 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		delete m_CustomGameMap;
 		m_CustomGameMap = NULL;
 	}
+}
+
+void CGHost::LoadMapCfgs() {
+    // DotA ladder game map
+    CConfig MapCFG;
+    MapCFG.Read( m_MapCFGPath + m_DefaultMap );
+    m_Map = new CMap( this, &MapCFG, m_MapCFGPath + m_DefaultMap );
+
+    // DotA ladder game map legacy
+    CConfig DotALadderMapLegacyCFG;
+    DotALadderMapLegacyCFG.Read(m_MapCFGPath + m_DefaultMapLegacy);
+    m_DotALadderMapLegacy = new CMap(this, &DotALadderMapLegacyCFG, m_MapCFGPath + m_DefaultMapLegacy);
+
+    // DotA ladder game map with observer slots
+    CConfig DotALadderMapObsCFG;
+    DotALadderMapObsCFG.Read( m_MapCFGPath + m_DefaultMapObs );
+    m_DotALadderMapObs = new CMap( this, &DotALadderMapObsCFG, m_MapCFGPath + m_DefaultMapObs );
 }
