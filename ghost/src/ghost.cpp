@@ -19,27 +19,27 @@
 */
 
 #include "ghost.h"
-#include "util.h"
-#include "crc32.h"
-#include "sha1.h"
-#include "config.h"
-#include "language.h"
-#include "socket.h"
-#include "ghostdb.h"
 #include "bnet.h"
-#include "map.h"
-#include "masl_manager.h"
-#include "masl_protocol_2.h"
-#include "packed.h"
-#include "savegame.h"
-#include "gameplayer.h"
-#include "gameprotocol.h"
-#include "gpsprotocol.h"
+#include "config.h"
+#include "crc32.h"
 #include "game_base.h"
 #include "game_custom.h"
 #include "game_customdota.h"
 #include "game_div1dota.h"
+#include "gameplayer.h"
+#include "gameprotocol.h"
+#include "ghostdb.h"
+#include "gpsprotocol.h"
+#include "language.h"
+#include "map.h"
+#include "masl_manager.h"
+#include "masl_protocol_2.h"
+#include "packed.h"
 #include "regions.h"
+#include "savegame.h"
+#include "sha1.h"
+#include "socket.h"
+#include "util.h"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -1229,7 +1229,9 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_msGameTimeBeforeAutoban = CFG->GetInt("bot_ms_game_time_before_autoban", 360);
 
 	//Use new (1) or old (0) formula to adjust PSR after game
-	m_UseNewPSRFormula = CFG->GetInt("dota_usenewpsrformula", 0) == 0 ? false : true;
+	m_UseNewPSRFormula = CFG->GetBool("dota_usenewpsrformula", false);
+
+	m_ReplaceAutobanWithPSRPenalty = CFG->GetBool( "dota_replace_autoban_with_psr_penalty", false );
 }
 
 void CGHost :: ExtractScripts( )

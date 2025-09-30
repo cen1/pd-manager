@@ -1659,10 +1659,18 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 	if( ( Command == "autoban" || Command == "canileave" ) && m_GameLoaded )
 	{
 		if( m_AutoBanOn )
+	    	{
+		    if ( m_GHost->m_ReplaceAutobanWithPSRPenalty )
+		    	SendChat( player, "PSR penalty is ON, if you leave you will lose multiples of PSR." );
+		    else
 			SendChat( player, "Autoban is ON, if you leave you will get autobanned." );
+		}
 		else
 		{
-			SendChat( player, "Autoban is OFF, you can leave." );
+		    	if ( m_GHost->m_ReplaceAutobanWithPSRPenalty )
+			    SendChat( player, "PSR penalty is OFF, you can leave." );
+			else
+			    SendChat( player, "Autoban is OFF, you can leave." );
 			
 			if( !m_LadderGameOver )
 				SendChat( player, "This game will be saved in your ladder stats, you should play till the tree/throne is destroyed." );
@@ -1723,7 +1731,8 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 							{
 								CONSOLE_Print( "[GAME: " + m_GameName + "] Sentinel players voted to forfeit the game" );
 								SendAllChat( "All Sentinel players voted to forfeit the game, Scourge won!" );
-								SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+								SendAllAutobanOFF( );
 
 								//SendAllChat( "Stats saving will now stop, you can leave or continue playing for fun." );
 								//SendAllChat( "Use !gameinfo command for more information." );
@@ -1774,7 +1783,8 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 						{
 							CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (Sentinel players voted to forfeit the game)" );
 							SendAllChat( "All Sentinel players voted to forfeit the game, Scourge won!" );
-							SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+							SendAllAutobanOFF();
 
 							//SendAllChat( "Stats saving will now stop, you can leave or continue playing for fun." );
 							//SendAllChat( "Use !gameinfo command for more information." );
@@ -1827,7 +1837,8 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 							{
 								CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (Scourge players voted to forfeit the game)" );
 								SendAllChat( "All Scourge players voted to forfeit the game, Sentinel won!" );
-								SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+								SendAllAutobanOFF();
 
 								//SendAllChat( "Stats saving will now stop, you can leave or continue playing for fun." );
 								//SendAllChat( "Use !gameinfo command for more information." );
@@ -1878,7 +1889,8 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 						{
 							CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (Scourge players voted to forfeit the game)" );
 							SendAllChat( "All Scourge players voted to forfeit the game, Sentinel won!" );
-							SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+							SendAllAutobanOFF();
 
 							//SendAllChat( "Stats saving will now stop, you can leave or continue playing for fun." );
 							//SendAllChat( "Use !gameinfo command for more information." );
@@ -2357,7 +2369,8 @@ void CDiv1DotAGame :: EventPlayerBotCommand2( CGamePlayer *player, string comman
 					CONSOLE_Print( "[GAME: " + m_GameName + "] players voted to remake the game" );
 					SendAllChat( "Vote remake passed, " + UTIL_ToString( Votes ) + " of " + UTIL_ToString( GetNumHumanPlayers( ) ) + " players voted to remake the game." );
 					SendAllChat( "This game won't affect your ladder stats, game result will be a draw." );
-					SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+					SendAllAutobanOFF();
 
 					//SendEndMessage( );
 					//m_GameOverTime = GetTime( );
@@ -2574,15 +2587,16 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 						DotAPlayer->SetBanned( true );
 						m_GHost->m_Manager->SendUserWasBanned( player->GetJoinedRealm( ), player->GetName( ), m_MySQLGameID, string( ) );
 
-						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + " was autobanned." );
-						//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+						const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+
+						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + penalty );
 					}
 					else
 						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
-						//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
 					SendAllChat( "This game won't affect your ladder stats, game result will be a draw." );
-					SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+					SendAllAutobanOFF();
 
 					m_Winner = 0;
 					m_CollectDotAStats = false;
@@ -2599,15 +2613,16 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 						DotAPlayer->SetBanned( true );
 						m_GHost->m_Manager->SendUserWasBanned( player->GetJoinedRealm( ), player->GetName( ), m_MySQLGameID, string( ) );
 
-						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + " was autobanned." );
-						//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+						const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+
+						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + penalty );
 					}
 					else
 						SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
-						//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
 					SendAllChat( "This game won't affect your ladder stats, game result will be a draw." );
-					SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+					SendAllAutobanOFF();
 
 					m_Winner = 0;
 					m_CollectDotAStats = false;
@@ -2626,14 +2641,14 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 							DotAPlayer->SetBanned( true );
 							m_GHost->m_Manager->SendUserWasBanned( player->GetJoinedRealm( ), player->GetName( ), m_MySQLGameID, string( ) );
 
-							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + " was autobanned." );
-							//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+							const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+
+							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + penalty );
 						}
 						else
 							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
-							//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
-						SendAllChat( "Autoban is ON, if you leave you will get autobanned." );
+						SendAllAutobanON();
 					}
 					else if( DotAPlayer->GetCurrentTeam( ) == 1 && NumScourgePlayers == 4 )
 					{
@@ -2651,7 +2666,7 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
 							//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
-						SendAllChat( "Autoban is ON, if you leave you will get autobanned." );
+						SendAllAutobanON();
 					}
 					else if( DotAPlayer->GetCurrentTeam( ) == 0 && NumSentinelPlayers == 3 )
 					{
@@ -2679,7 +2694,8 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 						else
 						{
 							SendAllChat( "This game won't affect your ladder stats, game result will be a draw." );
-							SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+							SendAllAutobanOFF();
 
 							m_Winner = 0;
 							m_CollectDotAStats = false;
@@ -2698,12 +2714,12 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 							DotAPlayer->SetBanned( true );
 							m_GHost->m_Manager->SendUserWasBanned( player->GetJoinedRealm( ), player->GetName( ), m_MySQLGameID, string( ) );
 
-							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + " was autobanned." );
-							//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+							const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+
+							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + ", " + DotAPlayer->GetName( ) + penalty );
 						}
 						else
 							SendAllChat( player->GetName( ) + " " + player->GetLeftReason( ) + "." );
-							//SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
 						if( ( ( m_GameTicks / 1000 ) - m_CreepsSpawnedTime ) > 900 ||
 							m_SentinelTopRax == 0 || m_SentinelMidRax == 0 || m_SentinelBotRax == 0 || m_ScourgeTopRax == 0 || m_ScourgeMidRax == 0 || m_ScourgeBotRax == 0 )
@@ -2715,7 +2731,8 @@ void CDiv1DotAGame :: EventPlayerDeleted( CGamePlayer *player )
 						else
 						{
 							SendAllChat( "This game won't affect your ladder stats, game result will be a draw." );
-							SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+							SendAllAutobanOFF();
 
 							m_Winner = 0;
 							m_CollectDotAStats = false;
@@ -2809,10 +2826,11 @@ void CDiv1DotAGame::EventGameLoaded() {
 
 	if (m_PlayerLeftDuringLoading) {
 		SendAllChat( "Player left the game during loading! This game won't affect your ladder stats, game result will be a draw." );
-		SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+
+		SendAllAutobanOFF();
 	}
 	else {
-		SendAllChat( "If you leave before the tree/throne is destroyed you risk getting autobanned, type " + string( 1, m_GameCommandTrigger ) + "autoban for more info." );
+		SendAllChat( "If you leave before the tree/throne is destroyed you risk getting autobanned or penalized with PSR loss, type " + string( 1, m_GameCommandTrigger ) + "autoban for more info." );
 	}
 
 	//Select a single player to become the event sender. By default all are selected.

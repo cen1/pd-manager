@@ -729,8 +729,15 @@ void CSlave :: ProcessPackets( )
 							if( (*i)->GetBanned( ) || (*i)->GetRecvNegativePSR( ) )
 							{
 								// give negative rating to all leavers
+								double newRating = (*i)->GetRating( ) + ( -1 * PSR->GetPlayerGainLoss( (*i)->GetName( ) ).second );
 
-								(*i)->SetNewRating( (*i)->GetRating( ) + ( -1 * PSR->GetPlayerGainLoss( (*i)->GetName( ) ).second ) );
+								// If multiplier is set, we penalize with PSR instead of autoban
+								if ( m_GHost->m_DotaAutobanPSRMultiplier > 0 ) {
+								    newRating = std::trunc(newRating * m_GHost->m_DotaAutobanPSRMultiplier);
+								    (*i)->SetBanned(false);
+								}
+
+								(*i)->SetNewRating( newRating );
 							}
 
 							CONSOLE_Print( "(*i)->GetName( ) = " + (*i)->GetName( ) );
@@ -1736,9 +1743,6 @@ void CManager :: handle_accept( CSlave* new_slave, const boost::system::error_co
 		m_ConnectingSlaves.push_back( new_slave );
 
 		new_slave = new CSlave( m_GHost, this, ++m_LastSlaveID, m_GHost->m_IOService );
-
-		/*acceptor_.async_accept( new_slave->socket( ), 
-			boost::bind( &CManager::handle_accept, this, new_slave, boost::asio::placeholders::error ) );*/
 
 		m_Acceptor->async_accept( new_slave->socket( ), 
 			boost::bind( &CManager::handle_accept, this, new_slave, boost::asio::placeholders::error ) );

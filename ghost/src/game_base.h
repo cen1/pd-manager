@@ -353,6 +353,8 @@ public:
 	virtual void DeleteVirtualHost( );
 	virtual void CreateFakePlayer( );
 	virtual void DeleteFakePlayer( );
+	void SendAllAutobanON( );
+	void SendAllAutobanOFF( );
 };
 
 #endif

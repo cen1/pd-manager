@@ -1429,6 +1429,20 @@ void CBaseGame :: SendAllChat( string message )
 	}
 }
 
+void CBaseGame :: SendAllAutobanON( ) {
+    if ( m_GHost->m_ReplaceAutobanWithPSRPenalty )
+	SendAllChat("PSR penalty is ON, if you leave you will lose multiples of PSR.");
+    else
+	SendAllChat( "Autoban is ON, if you leave you will get autobanned." );
+}
+
+void CBaseGame :: SendAllAutobanOFF( ) {
+    if ( m_GHost->m_ReplaceAutobanWithPSRPenalty )
+	SendAllChat( "PSR penalty is OFF, you can now leave or continue playing for fun." );
+    else
+	SendAllChat( "Autoban is OFF, you can now leave or continue playing for fun." );
+}
+
 void CBaseGame :: SendLocalAdminChat( string message )
 {
 	if( !m_LocalAdminMessages )

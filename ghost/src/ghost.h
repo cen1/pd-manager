@@ -150,6 +150,7 @@ public:
 	uint32_t m_GHostGroup;
 
 	bool m_ContributorOnlyMode;
+	bool m_ReplaceAutobanWithPSRPenalty;
 
 	string m_CFGFile;
 

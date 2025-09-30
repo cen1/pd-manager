@@ -32,8 +32,8 @@ Alternatively, you need to build and install [bncsutil](https://github.com/BNETD
 ```
 wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt install libmariadb-dev-compat libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
-libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev bncsutil stormlib
+sudo apt install libmariadb-dev-compat libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
+libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil stormlib
 cmake -B build
 cmake --build build --config Release
 cd build

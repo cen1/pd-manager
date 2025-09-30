@@ -184,6 +184,6 @@ Command trigger is usually `!` or `.` depending on the config.
 | `!vopme` | Grants permanent voice privileges to the user who issued the command. |
 | `!slaves` | Displays detailed information about all connected slave hostbots. |
 | `!slavesl` | Displays less detailed information about all connected slave hostbots. |
-| `!rsc` | Sends a command to all slave bots to reload their configurations. This reads the .cfg file again and sets new values in memory. Any config that is loaded on startup and not used dynamically will require a restart so it has limited use. It does **not** reload map cfg. |
+| `!rsc` | Sends a command to all slave bots to reload their configurations. This reads the .cfg file again and sets new values in memory. Any config that is loaded on startup and not used dynamically will require a restart so it has limited use. It also reloads default map cfg. |
 | `!ds [slave ID]` | Disables all slave bots so they can't queue any more games. If a `slave ID` is provided, prevents only that specific slave bot to host games. ID is matched against the hostbot username, 20 would disable bot `lagabuse.com.20`. This is not bot id as displayed by `!slaves` command! This command can be used to disable a subset of the slaves to wait until all their active games are finished so they can be updated and restarted. |
 | `!es [slave ID]` | Enables all slave bots for hosting. If a `slave ID` is provided, enables hosting on the specific bot. Same rule for ID applies as described in `!ds`. |

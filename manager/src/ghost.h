@@ -18,11 +18,11 @@
 
 */
 
-#ifndef GHOST_H
-#define GHOST_H
+#ifndef GHOST_M_H
+#define GHOST_M_H
 
 #include "configuration.h"
-#include <stdint.h>
+#include <cstdint>
 
 // STL
 
@@ -179,6 +179,7 @@ public:
 	uint32_t m_MaxGames;
 	bool m_RPGMode;
 	bool m_UseNewPSRFormula;
+	double m_DotaAutobanPSRMultiplier;
 
 	CGHost( CConfig *CFG, boost::asio::io_context &nIOService, boost::asio::io_context::work &nWork );
 	~CGHost( );

@@ -19,8 +19,8 @@ set(SOURCES
     src/bnetprotocol.h
     src/commandpacket.cpp
     src/commandpacket.h
-    src/config.cpp
-    src/config.h
+    ../common/src/config.cpp
+    ../common/src/config.h
     src/configuration.h
     src/custom_game.h
     src/ghost.cpp

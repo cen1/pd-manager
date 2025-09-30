@@ -17,8 +17,8 @@ set(SOURCES
     src/bnetprotocol.h
     src/commandpacket.cpp
     src/commandpacket.h
-    src/config.cpp
-    src/config.h
+    ../common/src/config.cpp
+    ../common/src/config.h
     src/configuration.h
     src/crc32.cpp
     src/crc32.h
@@ -222,6 +222,7 @@ if(ENABLE_TESTS)
     add_library(pd-slave-lib STATIC ${SOURCES_LIB})
     target_include_directories(pd-slave-lib PRIVATE ${PARENT_INCLUDE_DIRECTORIES})
     target_link_libraries(pd-slave-lib PRIVATE ${PARENT_LINK_LIBRARIES})
+    target_compile_definitions(pd-slave-lib PRIVATE -DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
     if (DEFINED PARENT_COMPILE_OPTIONS AND NOT "${PARENT_COMPILE_OPTIONS}" STREQUAL "PARENT_COMPILE_OPTIONS-NOTFOUND")
         target_compile_options(pd-slave-lib PRIVATE ${PARENT_COMPILE_OPTIONS})
