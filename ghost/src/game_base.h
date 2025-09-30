@@ -22,6 +22,14 @@
 #define GAME_BASE_H
 
 #include "gameslot.h"
+#include <queue>
+#include <set>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+class CBaseGame;
 
 //
 // CGameLog
@@ -55,6 +63,7 @@ class CGameLog {
 //
 // CBaseGame
 //
+class CGHost;
 class CTCPServer;
 class CGameProtocol;
 class CPotentialPlayer;
