@@ -5542,6 +5542,10 @@ void CBaseGame::AddToSpoofed(string server, string name, bool sendMessage)
 
 		Player->SetSpoofedNoticeSent(true);
 	}
+	else {
+		// Player not found - possibly a race condition where spoof check arrived before player was added to m_Players
+		CONSOLE_Print("[GAME: " + m_GameName + "] WARNING: spoof check received for [" + name + "] but player not found in game - possible race condition");
+	}
 }
 
 void CBaseGame::AddToReserved(string name)
