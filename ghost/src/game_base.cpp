@@ -4567,6 +4567,9 @@ void CBaseGame::EventPlayerMapSize(CGamePlayer* player, CIncomingMapSize* mapSiz
 
 void CBaseGame::EventPlayerPongToHost(CGamePlayer* player, uint32_t pong)
 {
+	// log ping received for debugging race conditions
+	CONSOLE_Print("[GAME: " + m_GameName + "] received pong from [" + player->GetName() + "], NumPings=" + UTIL_ToString(player->GetNumPings()) + ", Spoofed=" + UTIL_ToString(player->GetSpoofed()) + ", GProxyVer=" + UTIL_ToString(player->GetXPAMGProxyVersion()));
+
 	// autokick players with excessive pings but only if they're not reserved and we've received at least 3 pings from them
 	// also don't kick anyone if the game is loading or loaded - this could happen because we send pings during loading but we stop sending them after the game is loaded
 	// see the Update function for where we send pings
@@ -4581,13 +4584,15 @@ void CBaseGame::EventPlayerPongToHost(CGamePlayer* player, uint32_t pong)
 		OpenSlot(GetSIDFromPID(player->GetPID()), false);
 	}
 
-	if (!m_GameLoading && !m_GameLoaded && player->GetSpoofed() && player->GetNumPings() == 2) {
+	if (!m_GameLoading && !m_GameLoaded && player->GetSpoofed() && player->GetNumPings() >= 3) {
 		CBNET* Server = NULL;
-		for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); !Server && i != m_GHost->m_BNETs.end(); ++i) {
-			if ((*i)->GetServer() == player->GetSpoofedRealm())
+		for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); ++i) {
+			if ((*i)->GetServer() == player->GetSpoofedRealm()) {
 				Server = *i;
+				break;
+			}
 		}
-		if (Server && Server->GetXPAMGProxyVersion() != 0) {
+		if (Server != NULL && Server->GetXPAMGProxyVersion() != 0) {
 			if (player->GetXPAMGProxyVersion() != Server->GetXPAMGProxyVersion()) {
 				player->SetLeftReason("was kicked for having GProxy version of " + UTIL_ToString(player->GetXPAMGProxyVersion()) + " instead of " + UTIL_ToString(Server->GetXPAMGProxyVersion()));
 				SendAllChat(player->GetName() + " " + player->GetLeftReason());
@@ -5493,15 +5498,20 @@ void CBaseGame::AddToSpoofed(string server, string name, bool sendMessage)
 	CGamePlayer* Player = GetPlayerFromName(name, true);
 
 	if (Player) {
+		// log spoof check completion for debugging race conditions
+		CONSOLE_Print("[GAME: " + m_GameName + "] spoof check completed for [" + Player->GetName() + "], NumPings=" + UTIL_ToString(Player->GetNumPings()) + ", GProxyVer=" + UTIL_ToString(Player->GetXPAMGProxyVersion()));
+
 		Player->SetSpoofedRealm(server);
 		Player->SetSpoofed(true);
-		if (Player->GetNumPings() >= 2) {
+		if (Player->GetNumPings() >= 3) {
 			CBNET* Server = NULL;
-			for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); !Server && i != m_GHost->m_BNETs.end(); ++i) {
-				if ((*i)->GetServer() == server)
+			for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); ++i) {
+				if ((*i)->GetServer() == server) {
 					Server = *i;
+					break;
+				}
 			}
-			if (Server && Server->GetXPAMGProxyVersion() != 0) {
+			if (Server != NULL && Server->GetXPAMGProxyVersion() != 0) {
 				if (Player->GetXPAMGProxyVersion() != Server->GetXPAMGProxyVersion()) {
 					Player->SetLeftReason("was kicked for having GProxy version of " + UTIL_ToString(Player->GetXPAMGProxyVersion()) + " instead of " + UTIL_ToString(Server->GetXPAMGProxyVersion()));
 					SendAllChat(Player->GetName() + " " + Player->GetLeftReason());
