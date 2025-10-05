@@ -96,6 +96,7 @@ public:
 
 private:
 	bool m_Valid;
+	bool m_MapIncompatible;						// map format is incompatible with WC3 1.28
 	string m_CFGFile;
 	string m_MapPath;							// config value: map path
 	BYTEARRAY m_MapSize;						// config value: map size (4 bytes)
@@ -131,6 +132,7 @@ public:
 	~CMap( );
 
 	bool GetValid( )						{ return m_Valid; }
+	bool GetMapIncompatible( )				{ return m_MapIncompatible; }
 	string GetCFGFile( )					{ return m_CFGFile; }
 	string GetMapPath( )					{ return m_MapPath; }
 	BYTEARRAY GetMapSize( )					{ return m_MapSize; }

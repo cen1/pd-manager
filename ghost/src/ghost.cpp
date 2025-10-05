@@ -1433,22 +1433,30 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( !map->GetValid( ) )
 	{
+		string ErrorMessage;
+
+		// Check if the map is incompatible with WC3 1.28
+		if( map->GetMapIncompatible( ) )
+			ErrorMessage = m_Language->UnableToCreateGameIncompatibleMap( gameName );
+		else
+			ErrorMessage = m_Language->UnableToCreateGameInvalidMap( gameName );
+
 		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			/*if( (*i)->GetServer( ) == creatorServer )
-				(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, whisper );*/
+				(*i)->QueueChatCommand( ErrorMessage, creatorName, whisper );*/
 
 			if( (*i)->GetServer( ) == creatorServer )
 			{
 				if( (*i)->GetPasswordHashType( ) == "pvpgn" )
-					(*i)->SendChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName );
+					(*i)->SendChatCommand( ErrorMessage, creatorName );
 				else
-					(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, true );
+					(*i)->QueueChatCommand( ErrorMessage, creatorName, true );
 			}
 		}
 
 		/*if( m_AdminGame )
-			m_AdminGame->SendAllChat( m_Language->UnableToCreateGameInvalidMap( gameName ) );*/
+			m_AdminGame->SendAllChat( ErrorMessage );*/
 
 		return;
 	}

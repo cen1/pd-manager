@@ -40,6 +40,9 @@ find_package(bncsutil REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Boost "1.83" COMPONENTS filesystem system thread chrono regex date_time REQUIRED)
 
+# Enable testing
+enable_testing()
+
 # Add subdirectories
 # Just a little hack for faster docker builds so we can omit whole source copy
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/manager")

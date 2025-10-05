@@ -2,22 +2,24 @@
 #include "gtest/gtest.h"
 #include <vector>
 
-#include "ghost.h"
+#include "PsrTestSample.h"
 #include "config.h"
+#include "crc32.h"
 #include "game_base.h"
 #include "game_div1dota.h"
-#include "gameprotocol.h"
-#include "ghostdb.h"
 #include "gameplayer.h"
-#include "masl_protocol_2.h"
+#include "gameprotocol.h"
+#include "ghost.h"
 #include "map.h"
-#include "PsrTestSample.h"
+#include "sha1.h"
 
 using namespace std;
 
 PsrTestSample psrTestSamples;
+string g_MapPath;
 
-BYTEARRAY getBaseAction() {
+BYTEARRAY getBaseAction()
+{
 	BYTEARRAY b;
 
 	b.push_back('0');
@@ -37,157 +39,160 @@ BYTEARRAY getBaseAction() {
 	return b;
 }
 
-void setData(BYTEARRAY * b, string s) {
+void setData(BYTEARRAY* b, string s)
+{
 	std::vector<unsigned char> vd1(s.c_str(), s.c_str() + s.length() + 1);
 	b->insert(b->end(), vd1.begin(), vd1.end());
 }
 
-void pushInt(BYTEARRAY * b, uint32_t n) {
+void pushInt(BYTEARRAY* b, uint32_t n)
+{
 	b->push_back(n & 0xFF);
 	b->push_back((n >> 8) & 0xFF);
 	b->push_back((n >> 16) & 0xFF);
 	b->push_back((n >> 24) & 0xFF);
 }
 
-TEST(TestCases, DISABLED_FullTest) {
+TEST(TestCases, DISABLED_FullTest)
+{
 
-	//PID 0-255, player gets a new PID assigned, first one that is not already taken.
-	//SID 0-255, slot ID, max is number of slots that map allows
-	//COLOUR 1-5, 7-11
+	// PID 0-255, player gets a new PID assigned, first one that is not already taken.
+	// SID 0-255, slot ID, max is number of slots that map allows
+	// COLOUR 1-5, 7-11
 
-	CGHost *g = new CGHost(true);
-	CMap *m = new CMap(NULL);
+	CGHost g(true);
+	CMap m(NULL);
 
-	CDiv1DotAGame * div1Game = new CDiv1DotAGame(g, m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
-	div1Game->SetGameLoaded(true);
+	CDiv1DotAGame div1Game(&g, &m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
+	div1Game.SetGameLoaded(true);
 
-	//PID ... TEAM, COLOUR (1-5, 7-11)
+	// PID ... TEAM, COLOUR (1-5, 7-11)
 	CGameSlot s0(0, 0, 0, 0, 1, 1, 0);
 	CGameSlot s1(1, 0, 0, 0, 1, 2, 0);
 	CGameSlot s5(2, 0, 0, 0, 2, 7, 0);
-	div1Game->GetSlots()->push_back(s0);
-	div1Game->GetSlots()->push_back(s1);
-	div1Game->GetSlots()->push_back(s5);
+	div1Game.GetSlots()->push_back(s0);
+	div1Game.GetSlots()->push_back(s1);
+	div1Game.GetSlots()->push_back(s5);
 
 	BYTEARRAY mock;
-	//PID
-	CGamePlayer * gp0 = new CGamePlayer(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
-	CGamePlayer * gp1 = new CGamePlayer(NULL, NULL, NULL, 1, "bnet", "player2", mock, false); //sends invalid data
-	CGamePlayer * gp5 = new CGamePlayer(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
+	// PID
+	CGamePlayer gp0(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
+	CGamePlayer gp1(NULL, NULL, NULL, 1, "bnet", "player2", mock, false); // sends invalid data
+	CGamePlayer gp5(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
 
-	CDIV1DotAPlayer * dp0 = new CDIV1DotAPlayer(div1Game, gp0->GetPID(), gp0->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp1 = new CDIV1DotAPlayer(div1Game, gp1->GetPID(), gp1->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp5 = new CDIV1DotAPlayer(div1Game, gp5->GetPID(), gp5->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp0(&div1Game, gp0.GetPID(), gp0.GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp1(&div1Game, gp1.GetPID(), gp1.GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp5(&div1Game, gp5.GetPID(), gp5.GetName(), 1, 1500, false);
 
-	div1Game->GetDotaPlayers()->push_back(dp0);
-	div1Game->GetDotaPlayers()->push_back(dp1);
-	div1Game->GetDotaPlayers()->push_back(dp5);
+	div1Game.GetDotaPlayers()->push_back(&dp0);
+	div1Game.GetDotaPlayers()->push_back(&dp1);
+	div1Game.GetDotaPlayers()->push_back(&dp5);
 
 	BYTEARRAY crc;
 
 	{
-		//Kill action, hero of player 1 dies by the hand of 6, NOT RECORDED!
+		// Kill action, hero of player 1 dies by the hand of 6, NOT RECORDED!
 		BYTEARRAY k = getBaseAction();
 		setData(&k, "Data");
 		setData(&k, "Hero1");
 		pushInt(&k, 6);
 
-		CIncomingAction * ia1 = new CIncomingAction(0, crc, k);
-		CIncomingAction * ia2 = new CIncomingAction(2, crc, k);
+		CIncomingAction ia1(0, crc, k);
+		CIncomingAction ia2(2, crc, k);
 
 		BYTEARRAY h = getBaseAction();
 		setData(&h, "Data");
 		setData(&h, "Hero2");
 		pushInt(&h, 2);
-		CIncomingAction * ia3 = new CIncomingAction(1, crc, h);
+		CIncomingAction ia3(1, crc, h);
 
-		div1Game->EventPlayerAction(gp0, ia1);
-		div1Game->EventPlayerAction(gp5, ia2);
-		div1Game->EventPlayerAction(gp1, ia3);
+		div1Game.EventPlayerAction(&gp0, &ia1);
+		div1Game.EventPlayerAction(&gp5, &ia2);
+		div1Game.EventPlayerAction(&gp1, &ia3);
 	}
 
 	{
-		//Stats action, 1 kill for sid 5
+		// Stats action, 1 kill for sid 5
 		BYTEARRAY k = getBaseAction();
-		setData(&k, "7"); //stats for this COLOUR, adjusted... 6=7
-		setData(&k, "1"); //action key, 1=kills
-		pushInt(&k, 1); //number of kills
+		setData(&k, "7"); // stats for this COLOUR, adjusted... 6=7
+		setData(&k, "1"); // action key, 1=kills
+		pushInt(&k, 1);	  // number of kills
 
-		CIncomingAction * ia1 = new CIncomingAction(0, crc, k);
-		CIncomingAction * ia2 = new CIncomingAction(2, crc, k);
+		CIncomingAction ia1(0, crc, k);
+		CIncomingAction ia2(2, crc, k);
 
 		BYTEARRAY h = getBaseAction();
 		setData(&h, "7");
 		setData(&h, "1");
 		pushInt(&h, 1000);
 
-		CIncomingAction * ia3 = new CIncomingAction(1, crc, h);
+		CIncomingAction ia3(1, crc, h);
 
 		BYTEARRAY h2 = getBaseAction();
 		setData(&h2, "2");
 		setData(&h2, "1");
 		pushInt(&h2, 10000);
 
-		CIncomingAction * ia4 = new CIncomingAction(1, crc, h2);
+		CIncomingAction ia4(1, crc, h2);
 
-		div1Game->EventPlayerAction(gp0, ia1);
-		div1Game->EventPlayerAction(gp5, ia2);
-		div1Game->EventPlayerAction(gp1, ia3);
-		div1Game->EventPlayerAction(gp1, ia4);
+		div1Game.EventPlayerAction(&gp0, &ia1);
+		div1Game.EventPlayerAction(&gp5, &ia2);
+		div1Game.EventPlayerAction(&gp1, &ia3);
+		div1Game.EventPlayerAction(&gp1, &ia4);
 	}
 
 	{
-		//Stats action, 1 death for sid 1
+		// Stats action, 1 death for sid 1
 		BYTEARRAY k = getBaseAction();
-		setData(&k, "1"); //stats for this COLOUR
-		setData(&k, "2"); //action key
-		pushInt(&k, 1); //value
+		setData(&k, "1"); // stats for this COLOUR
+		setData(&k, "2"); // action key
+		pushInt(&k, 1);	  // value
 
-		CIncomingAction * ia1 = new CIncomingAction(0, crc, k);
-		CIncomingAction * ia2 = new CIncomingAction(2, crc, k);
+		CIncomingAction ia1(0, crc, k);
+		CIncomingAction ia2(2, crc, k);
 
-		div1Game->EventPlayerAction(gp0, ia1);
-		div1Game->EventPlayerAction(gp5, ia2);
+		div1Game.EventPlayerAction(&gp0, &ia1);
+		div1Game.EventPlayerAction(&gp5, &ia2);
 	}
 
 	{
-		//Stats action, 2 assists for SID 1
+		// Stats action, 2 assists for SID 1
 		BYTEARRAY k = getBaseAction();
-		setData(&k, "1"); //stats for this COLOUR
-		setData(&k, "5"); //action key
-		pushInt(&k, 2); //value
+		setData(&k, "1"); // stats for this COLOUR
+		setData(&k, "5"); // action key
+		pushInt(&k, 2);	  // value
 
-		CIncomingAction * ia1 = new CIncomingAction(0, crc, k);
-		CIncomingAction * ia2 = new CIncomingAction(2, crc, k);
+		CIncomingAction ia1(0, crc, k);
+		CIncomingAction ia2(2, crc, k);
 
-		div1Game->EventPlayerAction(gp0, ia1);
-		div1Game->EventPlayerAction(gp5, ia2);
+		div1Game.EventPlayerAction(&gp0, &ia1);
+		div1Game.EventPlayerAction(&gp5, &ia2);
 	}
 
-	//Winner action
+	// Winner action
 	BYTEARRAY a1 = getBaseAction();
 	setData(&a1, "Global");
 	setData(&a1, "Winner");
 	pushInt(&a1, 1);
 
-	//send PID
-	CIncomingAction * wa1 = new CIncomingAction(0, crc, a1);
-	CIncomingAction * wa2 = new CIncomingAction(2, crc, a1);
+	// send PID
+	CIncomingAction wa1(0, crc, a1);
+	CIncomingAction wa2(2, crc, a1);
 
-	bool w0 = div1Game->EventPlayerAction(gp0, wa1); //sentinel
-	bool w2 = div1Game->EventPlayerAction(gp5, wa2); //sentinel
+	bool w0 = div1Game.EventPlayerAction(&gp0, &wa1); // sentinel
+	bool w2 = div1Game.EventPlayerAction(&gp5, &wa2); // sentinel
 
 	ASSERT_FALSE(w0);
 	ASSERT_TRUE(w2);
 
-	for (auto it = div1Game->GetDotaPlayers()->begin(); it != div1Game->GetDotaPlayers()->end(); it++) {
+	for (auto it = div1Game.GetDotaPlayers()->begin(); it != div1Game.GetDotaPlayers()->end(); it++) {
 		if ((*it)->GetCurrentColor() == 1) {
 			ASSERT_EQ((*it)->GetKills(), 0);
 			ASSERT_EQ((*it)->GetDeaths(), 1);
 			ASSERT_EQ((*it)->GetAssists(), 2);
 		}
 		else if ((*it)->GetCurrentColor() == 2) {
-			//Player sending invalid data, has no stats
+			// Player sending invalid data, has no stats
 			ASSERT_EQ((*it)->GetKills(), 0);
 			ASSERT_EQ((*it)->GetDeaths(), 0);
 			ASSERT_EQ((*it)->GetAssists(), 0);
@@ -200,65 +205,65 @@ TEST(TestCases, DISABLED_FullTest) {
 	}
 }
 
-TEST(TestCases, DISABLED_1v1Test) {
+TEST(TestCases, DISABLED_1v1Test)
+{
 
-	CGHost *g = new CGHost(true);
-	CMap *m = new CMap(NULL);
+	CGHost g(true);
+	CMap m(NULL);
 
-	CDiv1DotAGame * div1Game = new CDiv1DotAGame(g, m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
-	div1Game->SetGameLoaded(true);
+	CDiv1DotAGame div1Game(&g, &m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
+	div1Game.SetGameLoaded(true);
 
-	//PID ... TEAM, COLOUR (1-5, 7-11)
+	// PID ... TEAM, COLOUR (1-5, 7-11)
 	CGameSlot s0(0, 0, 0, 0, 1, 1, 0);
 	CGameSlot s5(2, 0, 0, 0, 2, 7, 0);
-	div1Game->GetSlots()->push_back(s0);
-	div1Game->GetSlots()->push_back(s5);
+	div1Game.GetSlots()->push_back(s0);
+	div1Game.GetSlots()->push_back(s5);
 
 	BYTEARRAY mock;
-	//PID
-	CGamePlayer * gp0 = new CGamePlayer(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
-	CGamePlayer * gp5 = new CGamePlayer(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
+	// PID
+	CGamePlayer gp0(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
+	CGamePlayer gp5(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
 
-	CDIV1DotAPlayer * dp0 = new CDIV1DotAPlayer(div1Game, gp0->GetPID(), gp0->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp5 = new CDIV1DotAPlayer(div1Game, gp5->GetPID(), gp5->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp0(&div1Game, gp0.GetPID(), gp0.GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp5(&div1Game, gp5.GetPID(), gp5.GetName(), 1, 1500, false);
 
-	div1Game->GetDotaPlayers()->push_back(dp0);
-	div1Game->GetDotaPlayers()->push_back(dp5);
+	div1Game.GetDotaPlayers()->push_back(&dp0);
+	div1Game.GetDotaPlayers()->push_back(&dp5);
 
 	BYTEARRAY crc;
 
 	{
-		//Stats action, 1 kill for sid 5
+		// Stats action, 1 kill for sid 5
 		BYTEARRAY k = getBaseAction();
-		setData(&k, "7"); //stats for this COLOUR, adjusted... 6=7
-		setData(&k, "1"); //action key, 1=kills
-		pushInt(&k, 1); //number of kills
+		setData(&k, "7"); // stats for this COLOUR, adjusted... 6=7
+		setData(&k, "1"); // action key, 1=kills
+		pushInt(&k, 1);	  // number of kills
 
-		CIncomingAction * ia1 = new CIncomingAction(0, crc, k);
-		CIncomingAction * ia2 = new CIncomingAction(2, crc, k);
+		CIncomingAction ia1(0, crc, k);
+		CIncomingAction ia2(2, crc, k);
 
-
-		div1Game->EventPlayerAction(gp0, ia1);
-		div1Game->EventPlayerAction(gp5, ia2);
+		div1Game.EventPlayerAction(&gp0, &ia1);
+		div1Game.EventPlayerAction(&gp5, &ia2);
 	}
 
-	//Winner action
+	// Winner action
 	BYTEARRAY a1 = getBaseAction();
 	setData(&a1, "Global");
 	setData(&a1, "Winner");
 	pushInt(&a1, 1);
 
-	//send PID
-	CIncomingAction * wa1 = new CIncomingAction(0, crc, a1);
-	CIncomingAction * wa2 = new CIncomingAction(2, crc, a1);
+	// send PID
+	CIncomingAction wa1(0, crc, a1);
+	CIncomingAction wa2(2, crc, a1);
 
-	bool w0 = div1Game->EventPlayerAction(gp0, wa1);
-	bool w2 = div1Game->EventPlayerAction(gp5, wa2);
+	bool w0 = div1Game.EventPlayerAction(&gp0, &wa1);
+	bool w2 = div1Game.EventPlayerAction(&gp5, &wa2);
 
 	ASSERT_FALSE(w0);
 	ASSERT_TRUE(w2);
 
-	for (auto it = div1Game->GetDotaPlayers()->begin(); it != div1Game->GetDotaPlayers()->end(); it++) {
+	for (auto it = div1Game.GetDotaPlayers()->begin(); it != div1Game.GetDotaPlayers()->end(); it++) {
 		if ((*it)->GetCurrentColor() == 1) {
 			ASSERT_EQ((*it)->GetKills(), 0);
 			ASSERT_EQ((*it)->GetDeaths(), 0);
@@ -272,69 +277,68 @@ TEST(TestCases, DISABLED_1v1Test) {
 	}
 }
 
-TEST(TestCases, DISABLED_SplitDecisionWinnerTest) {
+TEST(TestCases, DISABLED_SplitDecisionWinnerTest)
+{
 
-	CGHost *g = new CGHost(true);
-	CMap *m = new CMap(NULL);
+	CGHost g(true);
+	CMap m(NULL);
 
-	CDiv1DotAGame * div1Game = new CDiv1DotAGame(g, m, NULL, 6200, '0', "splitdecision", "owner", "owner", "bnet");
-	div1Game->SetGameLoaded(true);
+	CDiv1DotAGame div1Game(&g, &m, NULL, 6200, '0', "splitdecision", "owner", "owner", "bnet");
+	div1Game.SetGameLoaded(true);
 
-	//PID ... TEAM, COLOUR (1-5, 7-11)
+	// PID ... TEAM, COLOUR (1-5, 7-11)
 	CGameSlot s0(0, 0, 0, 0, 1, 1, 0);
 	CGameSlot s1(1, 0, 0, 0, 1, 2, 0);
 	CGameSlot s5(2, 0, 0, 0, 2, 7, 0);
-	div1Game->GetSlots()->push_back(s0);
-	div1Game->GetSlots()->push_back(s1);
-	div1Game->GetSlots()->push_back(s5);
+	div1Game.GetSlots()->push_back(s0);
+	div1Game.GetSlots()->push_back(s1);
+	div1Game.GetSlots()->push_back(s5);
 
 	BYTEARRAY mock;
-	//PID
-	CGamePlayer * gp0 = new CGamePlayer(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
-	CGamePlayer * gp1 = new CGamePlayer(NULL, NULL, NULL, 1, "bnet", "player2", mock, false); //sends invalid data
-	CGamePlayer * gp5 = new CGamePlayer(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
+	// PID
+	CGamePlayer gp0(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
+	CGamePlayer gp1(NULL, NULL, NULL, 1, "bnet", "player2", mock, false); // sends invalid data
+	CGamePlayer gp5(NULL, NULL, NULL, 2, "bnet", "player6", mock, false);
 
-	CDIV1DotAPlayer * dp0 = new CDIV1DotAPlayer(div1Game, gp0->GetPID(), gp0->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp1 = new CDIV1DotAPlayer(div1Game, gp1->GetPID(), gp1->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp5 = new CDIV1DotAPlayer(div1Game, gp5->GetPID(), gp5->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp0(&div1Game, gp0.GetPID(), gp0.GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp1(&div1Game, gp1.GetPID(), gp1.GetName(), 1, 1500, false);
+	CDIV1DotAPlayer dp5(&div1Game, gp5.GetPID(), gp5.GetName(), 1, 1500, false);
 
-	div1Game->GetDotaPlayers()->push_back(dp0);
-	div1Game->GetDotaPlayers()->push_back(dp1);
-	div1Game->GetDotaPlayers()->push_back(dp5);
+	div1Game.GetDotaPlayers()->push_back(&dp0);
+	div1Game.GetDotaPlayers()->push_back(&dp1);
+	div1Game.GetDotaPlayers()->push_back(&dp5);
 
 	BYTEARRAY crc;
 
-	//Winner action
+	// Winner action
 	BYTEARRAY a1 = getBaseAction();
 	setData(&a1, "Global");
 	setData(&a1, "Winner");
 	pushInt(&a1, 1);
 
-	//send PID
-	CIncomingAction * wa1 = new CIncomingAction(0, crc, a1);
+	// send PID
+	CIncomingAction wa1(0, crc, a1);
 
 	BYTEARRAY a2 = getBaseAction();
 	setData(&a2, "Global");
 	setData(&a2, "Winner");
 	pushInt(&a2, 2);
 
-	CIncomingAction * wa3 = new CIncomingAction(1, crc, a2);
+	CIncomingAction wa3(1, crc, a2);
 
-	bool w0 = div1Game->EventPlayerAction(gp0, wa1); //sentinel
-	bool w1 = div1Game->EventPlayerAction(gp1, wa3); //scourge
+	bool w0 = div1Game.EventPlayerAction(&gp0, &wa1); // sentinel
+	bool w1 = div1Game.EventPlayerAction(&gp1, &wa3); // scourge
 
 	ASSERT_FALSE(w0);
-	ASSERT_TRUE(w1); //split decision
+	ASSERT_TRUE(w1); // split decision
 }
 
-void simulateKill(CDIV1DotAPlayer * killer, int newKills,
-	CDIV1DotAPlayer * victim, int newDeaths,
-	vector<CGamePlayer *> allPlayers,
-	CDiv1DotAGame * div1Game) {
+void simulateKill(CDIV1DotAPlayer* killer, int newKills, CDIV1DotAPlayer* victim, int newDeaths, vector<CGamePlayer*> allPlayers, CDiv1DotAGame* div1Game)
+{
 
 	BYTEARRAY crc;
 
-	//Kill
+	// Kill
 	{
 		BYTEARRAY k = getBaseAction();
 		setData(&k, "Data");
@@ -347,12 +351,12 @@ void simulateKill(CDIV1DotAPlayer * killer, int newKills,
 		}
 	}
 
-	//Stats - kill
+	// Stats - kill
 	{
 		BYTEARRAY k = getBaseAction();
-		setData(&k, UTIL_ToString(killer->GetCurrentColor())); //stats for this COLOUR, adjusted... 6=7
-		setData(&k, "1"); //action key, 1=kills
-		pushInt(&k, newKills); //number of kills
+		setData(&k, UTIL_ToString(killer->GetCurrentColor())); // stats for this COLOUR, adjusted... 6=7
+		setData(&k, "1");									   // action key, 1=kills
+		pushInt(&k, newKills);								   // number of kills
 
 		for (auto it = allPlayers.begin(); it != allPlayers.end(); ++it) {
 			CIncomingAction ia((*it)->GetPID(), crc, k);
@@ -360,13 +364,13 @@ void simulateKill(CDIV1DotAPlayer * killer, int newKills,
 		}
 	}
 
-	//Stats - death
+	// Stats - death
 	{
-		//Stats action, 1 death for player 1
+		// Stats action, 1 death for player 1
 		BYTEARRAY k = getBaseAction();
-		setData(&k, UTIL_ToString(victim->GetCurrentColor())); //stats for this COLOUR
-		setData(&k, "2"); //action key
-		pushInt(&k, newDeaths); //value
+		setData(&k, UTIL_ToString(victim->GetCurrentColor())); // stats for this COLOUR
+		setData(&k, "2");									   // action key
+		pushInt(&k, newDeaths);								   // value
 
 		for (auto it = allPlayers.begin(); it != allPlayers.end(); ++it) {
 			CIncomingAction ia((*it)->GetPID(), crc, k);
@@ -375,17 +379,18 @@ void simulateKill(CDIV1DotAPlayer * killer, int newKills,
 	}
 }
 
-TEST(TestCases, FfTest) {
+TEST(TestCases, FfTest)
+{
 
-	//PID 0-255, player gets a new PID assigned, first one that is not already taken.
-	//SID 0-255, slot ID, max is number of slots that map allows
-	//COLOUR 1-5, 7-11
+	// PID 0-255, player gets a new PID assigned, first one that is not already taken.
+	// SID 0-255, slot ID, max is number of slots that map allows
+	// COLOUR 1-5, 7-11
 
-	CGHost *g = new CGHost(true);
+	CGHost* g = new CGHost(true);
 	g->m_DidYouKnowEnabled = false;
-	CMap *m = new CMap(NULL);
+	CMap* m = new CMap(NULL);
 
-	CDiv1DotAGame * div1Game = new CDiv1DotAGame(g, m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
+	CDiv1DotAGame* div1Game = new CDiv1DotAGame(g, m, NULL, 6200, '0', "testgame", "owner", "owner", "bnet");
 	div1Game->SetGameLoaded(true);
 
 	//          PID          T  C
@@ -413,18 +418,18 @@ TEST(TestCases, FfTest) {
 
 	BYTEARRAY mock;
 
-	CGamePlayer * gp0 = new CGamePlayer(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
-	CGamePlayer * gp1 = new CGamePlayer(NULL, NULL, NULL, 1, "bnet", "player2", mock, false);
-	CGamePlayer * gp2 = new CGamePlayer(NULL, NULL, NULL, 2, "bnet", "player3", mock, false);
-	CGamePlayer * gp3 = new CGamePlayer(NULL, NULL, NULL, 3, "bnet", "player4", mock, false);
-	CGamePlayer * gp4 = new CGamePlayer(NULL, NULL, NULL, 4, "bnet", "player5", mock, false);
-	CGamePlayer * gp5 = new CGamePlayer(NULL, NULL, NULL, 5, "bnet", "player6", mock, false);
-	CGamePlayer * gp6 = new CGamePlayer(NULL, NULL, NULL, 6, "bnet", "player7", mock, false);
-	CGamePlayer * gp7 = new CGamePlayer(NULL, NULL, NULL, 7, "bnet", "player8", mock, false);
-	CGamePlayer * gp8 = new CGamePlayer(NULL, NULL, NULL, 8, "bnet", "player9", mock, false);
-	CGamePlayer * gp9 = new CGamePlayer(NULL, NULL, NULL, 9, "bnet", "player10", mock, false);
+	CGamePlayer* gp0 = new CGamePlayer(NULL, NULL, NULL, 0, "bnet", "player1", mock, false);
+	CGamePlayer* gp1 = new CGamePlayer(NULL, NULL, NULL, 1, "bnet", "player2", mock, false);
+	CGamePlayer* gp2 = new CGamePlayer(NULL, NULL, NULL, 2, "bnet", "player3", mock, false);
+	CGamePlayer* gp3 = new CGamePlayer(NULL, NULL, NULL, 3, "bnet", "player4", mock, false);
+	CGamePlayer* gp4 = new CGamePlayer(NULL, NULL, NULL, 4, "bnet", "player5", mock, false);
+	CGamePlayer* gp5 = new CGamePlayer(NULL, NULL, NULL, 5, "bnet", "player6", mock, false);
+	CGamePlayer* gp6 = new CGamePlayer(NULL, NULL, NULL, 6, "bnet", "player7", mock, false);
+	CGamePlayer* gp7 = new CGamePlayer(NULL, NULL, NULL, 7, "bnet", "player8", mock, false);
+	CGamePlayer* gp8 = new CGamePlayer(NULL, NULL, NULL, 8, "bnet", "player9", mock, false);
+	CGamePlayer* gp9 = new CGamePlayer(NULL, NULL, NULL, 9, "bnet", "player10", mock, false);
 
-	vector<CGamePlayer *> gameplayers;
+	vector<CGamePlayer*> gameplayers;
 	gameplayers.push_back(gp0);
 	gameplayers.push_back(gp1);
 	gameplayers.push_back(gp2);
@@ -436,16 +441,16 @@ TEST(TestCases, FfTest) {
 	gameplayers.push_back(gp8);
 	gameplayers.push_back(gp9);
 
-	CDIV1DotAPlayer * dp0 = new CDIV1DotAPlayer(div1Game, gp0->GetPID(), gp0->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp1 = new CDIV1DotAPlayer(div1Game, gp1->GetPID(), gp1->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp2 = new CDIV1DotAPlayer(div1Game, gp2->GetPID(), gp2->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp3 = new CDIV1DotAPlayer(div1Game, gp3->GetPID(), gp3->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp4 = new CDIV1DotAPlayer(div1Game, gp4->GetPID(), gp4->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp5 = new CDIV1DotAPlayer(div1Game, gp5->GetPID(), gp5->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp6 = new CDIV1DotAPlayer(div1Game, gp6->GetPID(), gp6->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp7 = new CDIV1DotAPlayer(div1Game, gp7->GetPID(), gp7->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp8 = new CDIV1DotAPlayer(div1Game, gp8->GetPID(), gp8->GetName(), 1, 1500, false);
-	CDIV1DotAPlayer * dp9 = new CDIV1DotAPlayer(div1Game, gp9->GetPID(), gp9->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp0 = new CDIV1DotAPlayer(div1Game, gp0->GetPID(), gp0->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp1 = new CDIV1DotAPlayer(div1Game, gp1->GetPID(), gp1->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp2 = new CDIV1DotAPlayer(div1Game, gp2->GetPID(), gp2->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp3 = new CDIV1DotAPlayer(div1Game, gp3->GetPID(), gp3->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp4 = new CDIV1DotAPlayer(div1Game, gp4->GetPID(), gp4->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp5 = new CDIV1DotAPlayer(div1Game, gp5->GetPID(), gp5->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp6 = new CDIV1DotAPlayer(div1Game, gp6->GetPID(), gp6->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp7 = new CDIV1DotAPlayer(div1Game, gp7->GetPID(), gp7->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp8 = new CDIV1DotAPlayer(div1Game, gp8->GetPID(), gp8->GetName(), 1, 1500, false);
+	CDIV1DotAPlayer* dp9 = new CDIV1DotAPlayer(div1Game, gp9->GetPID(), gp9->GetName(), 1, 1500, false);
 
 	dp0->SetLobbyColor(1);
 	dp1->SetLobbyColor(2);
@@ -485,47 +490,47 @@ TEST(TestCases, FfTest) {
 	9:  0 0 9 9  9  9
 	*/
 
-	//TODO: simulate assists and other stats
+	// TODO: simulate assists and other stats
 
-	//P0 0-0
+	// P0 0-0
 
-	//P1 1-1
+	// P1 1-1
 	simulateKill(dp5, 1, dp1, 1, gameplayers, div1Game);
 
-	//P2 2-2
+	// P2 2-2
 	simulateKill(dp6, 1, dp2, 1, gameplayers, div1Game);
 	simulateKill(dp6, 2, dp2, 2, gameplayers, div1Game);
 
-	//P3 3-3
+	// P3 3-3
 	simulateKill(dp7, 1, dp3, 1, gameplayers, div1Game);
 	simulateKill(dp7, 2, dp3, 2, gameplayers, div1Game);
 	simulateKill(dp7, 3, dp3, 3, gameplayers, div1Game);
 
-	//P4 4-4
+	// P4 4-4
 	simulateKill(dp8, 1, dp4, 1, gameplayers, div1Game);
 	simulateKill(dp8, 2, dp4, 2, gameplayers, div1Game);
 	simulateKill(dp8, 3, dp4, 3, gameplayers, div1Game);
 	simulateKill(dp8, 4, dp4, 4, gameplayers, div1Game);
 
-	//P5 1-2
+	// P5 1-2
 	simulateKill(dp2, 1, dp5, 1, gameplayers, div1Game);
 	simulateKill(dp2, 2, dp5, 2, gameplayers, div1Game);
 
-	//P6 2-3
+	// P6 2-3
 	simulateKill(dp3, 1, dp6, 1, gameplayers, div1Game);
 	simulateKill(dp3, 2, dp6, 2, gameplayers, div1Game);
 	simulateKill(dp3, 3, dp6, 3, gameplayers, div1Game);
 
-	//P7 3-0
+	// P7 3-0
 
-	//P8 4-5
+	// P8 4-5
 	simulateKill(dp4, 1, dp8, 1, gameplayers, div1Game);
 	simulateKill(dp4, 2, dp8, 2, gameplayers, div1Game);
 	simulateKill(dp4, 3, dp8, 3, gameplayers, div1Game);
 	simulateKill(dp4, 4, dp8, 4, gameplayers, div1Game);
 	simulateKill(dp1, 1, dp8, 5, gameplayers, div1Game);
 
-	//P9 0-0
+	// P9 0-0
 
 	for (auto it = div1Game->GetDotaPlayers()->begin(); it != div1Game->GetDotaPlayers()->end(); it++) {
 		if ((*it)->GetPID() == 0) {
@@ -556,7 +561,7 @@ TEST(TestCases, FfTest) {
 		else if ((*it)->GetPID() == 5) {
 			ASSERT_EQ((*it)->GetKills(), 1);
 			ASSERT_EQ((*it)->GetDeaths(), 2);
-			ASSERT_EQ((*it)->GetAssists(), 0 );
+			ASSERT_EQ((*it)->GetAssists(), 0);
 		}
 		else if ((*it)->GetPID() == 6) {
 			ASSERT_EQ((*it)->GetKills(), 2);
@@ -581,14 +586,17 @@ TEST(TestCases, FfTest) {
 	}
 }
 
-TEST(TestCases, PSRTest) {
+TEST(TestCases, PSRTest)
+{
 
 	for (int i = 0; i < psrTestSamples.size(); i++) {
 		CPSR cpsr;
 
-		cout << "Sample # " << i << endl << endl;
+		cout << "Sample # " << i << endl
+			 << endl;
 
-		cout << psrTestSamples.getSampleDescription(i) << endl << endl;
+		cout << psrTestSamples.getSampleDescription(i) << endl
+			 << endl;
 
 		CPSR cpsr1;
 
@@ -596,14 +604,13 @@ TEST(TestCases, PSRTest) {
 
 		vector<PairedPlayerRating> team1;
 		vector<PairedPlayerRating> team2;
-		vector<CDIV1DotAPlayer *> dotaPlayers;
+		vector<CDIV1DotAPlayer*> dotaPlayers;
 
 		for (int j = 0; j < 10; j++) {
 			//*nGame, unsigned char nPID, string nName, uint32_t nServerID, double nRating, bool nLocked
-			CDIV1DotAPlayer *p = new CDIV1DotAPlayer(NULL, pids[j],
-				psrTestSamples.getSamples()[i][j].first, 0, psrTestSamples.getSamples()[i][j].second->GetRating(), false);
+			CDIV1DotAPlayer* p = new CDIV1DotAPlayer(NULL, pids[j], psrTestSamples.getSamples()[i][j].first, 0, psrTestSamples.getSamples()[i][j].second->GetRating(), false);
 
-			//Hardcode : player 1 is locked (host)
+			// Hardcode : player 1 is locked (host)
 			if (j == 0) {
 				p->SetLocked(true);
 			}
@@ -634,10 +641,8 @@ TEST(TestCases, PSRTest) {
 			double gain = cpsr1.GetPlayerGainLoss((*it)->GetName()).first;
 			double loss = cpsr1.GetPlayerGainLoss((*it)->GetName()).second;
 
-			cout << (*it)->GetName() << ": " << UTIL_ToString((*it)->GetRating(), 0) + ", +"
-				+ UTIL_ToString(gain, 0) + "/-"
-				+ UTIL_ToString(loss, 0)
-				<< std::endl;
+			cout << (*it)->GetName() << ": " << UTIL_ToString((*it)->GetRating(), 0) + ", +" + UTIL_ToString(gain, 0) + "/-" + UTIL_ToString(loss, 0)
+				 << std::endl;
 
 			if (i == 0) {
 				if (c == 0) {
@@ -687,26 +692,27 @@ TEST(TestCases, PSRTest) {
 	}
 }
 
-void createPSRSamples() {
+void createPSRSamples()
+{
 
 	{
-		//Sample 0
+		// Sample 0
 		pair<string, CDBDiv1DPS*> p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, averagePlayer, newPlayer, newStrongPlayer,
-			badPlayer, badHighPSRPlayer, goodHighPSRPlayer, badLowPSRPlayer, goodLowPSRPlayer, veryStrongPlayer;
+		  badPlayer, badHighPSRPlayer, goodHighPSRPlayer, badLowPSRPlayer, goodLowPSRPlayer, veryStrongPlayer;
 		vector<pair<string, CDBDiv1DPS*>> players;
 
 		string description = "Game: https://dota.eurobattle.net/la/forum/index.php?action=gameinfo;sa=game;gid=6355821";
 
 		// rating, highest_rating, games, wins, loses, k, d, ck, cd, a, nk
 
-		//Sentinel team
+		// Sentinel team
 		p1 = make_pair("magdos", new CDBDiv1DPS(1736, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p2 = make_pair("we[n]dy", new CDBDiv1DPS(1652, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p3 = make_pair("juhero", new CDBDiv1DPS(1614, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p4 = make_pair("dejanmatic", new CDBDiv1DPS(1546, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p5 = make_pair("the_miracle", new CDBDiv1DPS(1653, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-		//Scourge team
+		// Scourge team
 		p6 = make_pair("cresovotopce", new CDBDiv1DPS(1694, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p7 = make_pair("exser.", new CDBDiv1DPS(1539, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p8 = make_pair("cant_be_stopped", new CDBDiv1DPS(1708, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -719,9 +725,9 @@ void createPSRSamples() {
 	}
 
 	{
-		//Sample 1
+		// Sample 1
 		pair<string, CDBDiv1DPS*> p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, averagePlayer, newPlayer, newStrongPlayer,
-			badPlayer, badHighPSRPlayer, goodHighPSRPlayer, badLowPSRPlayer, goodLowPSRPlayer, veryStrongPlayer;
+		  badPlayer, badHighPSRPlayer, goodHighPSRPlayer, badLowPSRPlayer, goodLowPSRPlayer, veryStrongPlayer;
 		vector<pair<string, CDBDiv1DPS*>> players;
 
 		string description = "Game: https://dota.eurobattle.net/la/forum/index.php?action=gameinfo;sa=game;gid=6387923";
@@ -732,7 +738,7 @@ void createPSRSamples() {
 		p4 = make_pair("z789456", new CDBDiv1DPS(1600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p5 = make_pair("iernesto94", new CDBDiv1DPS(1800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-		//Scourge 1620
+		// Scourge 1620
 		p6 = make_pair("bazarci", new CDBDiv1DPS(1600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p7 = make_pair("sero", new CDBDiv1DPS(1600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		p8 = make_pair("crackhe", new CDBDiv1DPS(1600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
@@ -745,16 +751,93 @@ void createPSRSamples() {
 	}
 }
 
+/**
+ * GenerateMapCfg Test
+ *
+ * This test accepts a WC3 map path as an argument and generates the map configuration
+ * that can be used in a .cfg file for GHost++.
+ *
+ * Usage:
+ *   ./pds_test --gtest_filter=TestCases.GenerateMapCfg <path_to_map.w3x>
+ */
+TEST(TestCases, GenerateMapCfg)
+{
+	if (g_MapPath.empty()) {
+		GTEST_SKIP() << "Map path not provided. Usage: ./pds_test --gtest_filter=TestCases.GenerateMapCfg <absolute_map_path>";
+		return;
+	}
 
-int main(int argc, char** argv) {
+	string mapPath = g_MapPath;
+
+	CGHost g(true);
+
+	g.m_CRC = new CCRC32();
+	g.m_CRC->Initialize();
+	g.m_SHA = new CSHA1();
+
+	// Set up the base map path (current directory or absolute path handling)
+	// If the path is absolute, we'll split it
+	string basePath;
+	string localPath = mapPath;
+
+	size_t lastSlash = mapPath.find_last_of("/\\");
+	if (lastSlash != string::npos) {
+		basePath = mapPath.substr(0, lastSlash + 1);
+		localPath = mapPath.substr(lastSlash + 1);
+	}
+
+	g.m_MapPath = basePath;
+	g.m_MapCFGPath = "./";
+
+	// Create a minimal config with the map path
+	CConfig cfg;
+	cfg.Set("map_localpath", localPath);
+	cfg.Set("map_path", "Maps\\Download\\" + localPath); // Set a valid WC3-style map path
+
+	// Load the map
+	CMap m(&g, &cfg, "");
+
+	if (!m.GetValid()) {
+		cout << "WARNING: Map validation failed. Some values may be missing or invalid." << endl
+			 << endl;
+	}
+	cout << "map_path=" << m.GetMapPath() << endl;
+	cout << "map_size=" << UTIL_ByteArrayToDecString(m.GetMapSize()) << endl;
+	cout << "map_info=" << UTIL_ByteArrayToDecString(m.GetMapInfo()) << endl;
+	cout << "map_crc=" << UTIL_ByteArrayToDecString(m.GetMapCRC()) << endl;
+	cout << "map_sha1=" << UTIL_ByteArrayToDecString(m.GetMapSHA1()) << endl;
+	cout << "map_speed=" << (int)m.GetMapSpeed() << endl;
+	cout << "map_visibility=" << (int)m.GetMapVisibility() << endl;
+	cout << "map_observers=" << (int)m.GetMapObservers() << endl;
+	cout << "map_flags=" << (int)m.GetMapFlags() << endl;
+	cout << "map_options=" << m.GetMapOptions() << endl;
+	cout << "map_width=" << UTIL_ByteArrayToDecString(m.GetMapWidth()) << endl;
+	cout << "map_height=" << UTIL_ByteArrayToDecString(m.GetMapHeight()) << endl;
+	cout << "map_type=" << m.GetMapType() << endl;
+	cout << "map_numplayers=" << m.GetMapNumPlayers() << endl;
+	cout << "map_numteams=" << m.GetMapNumTeams() << endl;
+
+	vector<CGameSlot> slots = m.GetSlots();
+	for (size_t i = 0; i < slots.size(); i++) {
+		cout << "map_slot" << (i + 1) << "=" << UTIL_ByteArrayToDecString(slots[i].GetByteArray()) << endl;
+	}
+}
+
+int main(int argc, char** argv)
+{
 	testing::InitGoogleTest(&argc, argv);
 
-	//Init
+	// Check if there's a non-gtest argument (map path)
+	if (argc > 1 && argv[argc - 1][0] != '-') {
+		g_MapPath = argv[argc - 1];
+	}
+
+	// Init
 	createPSRSamples();
 
-	//Run
+	// Run
 	int ret = RUN_ALL_TESTS();
-	//cin.get();
+	// cin.get();
 
 	return ret;
 }

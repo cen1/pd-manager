@@ -8,3 +8,4 @@ BreakBeforeBraces: Stroustrup
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 PointerAlignment: Left
+QualifierAlignment: Left
