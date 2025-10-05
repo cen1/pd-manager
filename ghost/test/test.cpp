@@ -5,8 +5,6 @@
 #include "PsrTestSample.h"
 #include "config.h"
 #include "crc32.h"
-#include "game_base.h"
-#include "game_div1dota.h"
 #include "gameplayer.h"
 #include "gameprotocol.h"
 #include "ghost.h"
