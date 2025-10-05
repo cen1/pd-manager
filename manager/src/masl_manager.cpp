@@ -729,14 +729,15 @@ void CSlave :: ProcessPackets( )
 							if( (*i)->GetBanned( ) || (*i)->GetRecvNegativePSR( ) )
 							{
 								// give negative rating to all leavers
-								double newRating = (*i)->GetRating( ) + ( -1 * PSR->GetPlayerGainLoss( (*i)->GetName( ) ).second );
+								double lossAmount = PSR->GetPlayerGainLoss( (*i)->GetName( ) ).second;
 
-								// If multiplier is set, we penalize with PSR instead of autoban
+								// If multiplier is set, we penalize with multiplied PSR instead of autoban
 								if ( m_GHost->m_DotaAutobanPSRMultiplier > 0 ) {
-								    newRating = std::trunc(newRating * m_GHost->m_DotaAutobanPSRMultiplier);
+								    lossAmount = lossAmount * m_GHost->m_DotaAutobanPSRMultiplier;
 								    (*i)->SetBanned(false);
 								}
 
+								double newRating = (*i)->GetRating( ) - lossAmount;
 								(*i)->SetNewRating( newRating );
 							}
 
