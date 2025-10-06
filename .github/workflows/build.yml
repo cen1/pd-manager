@@ -1,97 +1,97 @@
 name: build
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 env:
-    BUILD_TYPE: Release
+  BUILD_TYPE: Release
 
 jobs:
-    debian-bookworm:
-        if: true
-        runs-on: ubuntu-latest
-        container:
-            image: debian:bookworm
+  debian-bookworm:
+    if: true
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Add xpam repo
-              run: |
-                  apt-get update && apt-get install -y curl gnupg git
-                  curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | tee /etc/apt/keyrings/debian-bookworm-xpam.asc
-                  echo "Types: deb
-                  URIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/
-                  Suites: bookworm
-                  Components: main
-                  Signed-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" | tee /etc/apt/sources.list.d/xpam.sources > /dev/null
+      - name: Add xpam repo
+        run: |
+          apt-get update && apt-get install -y curl gnupg git
+          curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | tee /etc/apt/keyrings/debian-trixie-xpam.asc
+          echo "Types: deb
+          URIs: https://repo.xpam.pl/repository/debian-trixie-xpam/
+          Suites: trixie
+          Components: main
+          Signed-By: /etc/apt/keyrings/debian-trixie-xpam.asc" | tee /etc/apt/sources.list.d/xpam.sources > /dev/null
 
-            - name: Install dependencies
-              run: |
-                apt-get update && apt-get install -y \
-                  cmake build-essential libmariadb-dev-compat \
-                  libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
-                  libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev \
-                  bncsutil stormlib
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y \
+            cmake build-essential libmariadb-dev-compat \
+            libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
+            libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev \
+            bncsutil stormlib
 
-            - name: Cmake
-              run: cmake -B ./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      - name: Cmake
+        run: cmake -B ./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
-            - name: Build
-              run: cmake --build ./build --config Release
+      - name: Build
+        run: cmake --build ./build --config Release
 
-    docker-build:
-        if: true
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  docker-build:
+    if: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Build manager image
-              run: docker build --platform linux/amd64 --tag pd-manager --file ./Dockerfile.manager .
+      - name: Build manager image
+        run: docker build --platform linux/amd64 --tag pd-manager --file ./Dockerfile.manager .
 
-            - name: Build slave image
-              run: docker build --platform linux/amd64 --tag pd-slave --file ./Dockerfile.slave .
+      - name: Build slave image
+        run: docker build --platform linux/amd64 --tag pd-slave --file ./Dockerfile.slave .
 
-    windows-latest:
-        if: true
-        runs-on: windows-latest
-        strategy:
-            matrix:
-                deptool: [conan, vcpkg]
+  windows-latest:
+    if: true
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        deptool: [ conan, vcpkg ]
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: TheMrMilchmann/setup-msvc-dev@v3
-              with:
-                arch: x64
+      - uses: TheMrMilchmann/setup-msvc-dev@v3
+        with:
+          arch: x64
 
-            - name: Install Conan
-              if: ${{ matrix.deptool == 'conan' }}
-              uses: turtlebrowser/get-conan@main
+      - name: Install Conan
+        if: ${{ matrix.deptool == 'conan' }}
+        uses: turtlebrowser/get-conan@main
 
-            - name: Init Conan
-              if: ${{ matrix.deptool == 'conan' }}
-              run: conan profile detect
+      - name: Init Conan
+        if: ${{ matrix.deptool == 'conan' }}
+        run: conan profile detect
 
-            - name: Cmake conan
-              if: ${{ matrix.deptool == 'conan' }}
-              run: |
-                conan install . -of build_conan -s build_type=Release -o *:shared=True --build=missing
-                cmake --preset conan
-                cmake --build build_conan --config Release
+      - name: Cmake conan
+        if: ${{ matrix.deptool == 'conan' }}
+        run: |
+          conan install . -of build_conan -s build_type=Release -o *:shared=True --build=missing
+          cmake --preset conan
+          cmake --build build_conan --config Release
 
-            - name: Export GitHub Actions cache environment variables for vcpkg
-              if: ${{ matrix.deptool == 'vcpkg' }}
-              uses: actions/github-script@v7
-              with:
-                script: |
-                  core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-                  core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      - name: Export GitHub Actions cache environment variables for vcpkg
+        if: ${{ matrix.deptool == 'vcpkg' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-            - name: Cmake vcpkg
-              if: ${{ matrix.deptool == 'vcpkg' }}
-              env:
-                  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-              run: |
-                cmake --preset vcpkg
-                cmake --build build_vcpkg --config Release
+      - name: Cmake vcpkg
+        if: ${{ matrix.deptool == 'vcpkg' }}
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: |
+          cmake --preset vcpkg
+          cmake --build build_vcpkg --config Release
