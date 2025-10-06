@@ -14,28 +14,28 @@ This repository consists of:
 Copyright [2008] [Trevor Hogan]  
 Copyright [2010-2025] [myubernick, cen, luke]
 
-## Convenience Debian repo for bncsutil and stormlib
+## Convenience Debian repo for bncsutil
 
 ```
-curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo tee /etc/apt/keyrings/debian-bookworm-xpam.asc
+curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo tee /etc/apt/keyrings/debian-trixie-xpam.asc
 
 echo "Types: deb
-URIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/
-Suites: bookworm
+URIs: https://repo.xpam.pl/repository/debian-trixie-xpam/
+Suites: trixie
 Components: main
-Signed-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" |
+Signed-By: /etc/apt/keyrings/debian-trixie-xpam.asc" |
 sudo tee /etc/apt/sources.list.d/xpam.sources > /dev/null
 ```
 
-Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) and [stormlib](https://github.com/ladislav-zezula/StormLib) from source.
+Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) from source.
 
 ## Build on Linux
 
 ```
-wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo apt-key add -
+wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo apt-key add -
 sudo apt-get update
 sudo apt install libmariadb-dev-compat libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
-libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil stormlib
+libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil libstorm-dev
 cmake -B build
 cmake --build build --config Release
 cd build

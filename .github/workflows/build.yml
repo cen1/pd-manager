@@ -6,7 +6,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  debian-bookworm:
+  debian-trixie:
     if: true
     runs-on: ubuntu-latest
     container:
@@ -31,7 +31,7 @@ jobs:
             cmake build-essential libmariadb-dev-compat \
             libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
             libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev \
-            bncsutil stormlib
+            libstorm-dev bncsutil
 
       - name: Cmake
         run: cmake -B ./build -DCMAKE_BUILD_TYPE=$BUILD_TYPE
