@@ -71,10 +71,6 @@ jobs:
         with:
           cache_packages: true
 
-      - name: Init Conan
-        if: ${{ matrix.deptool == 'conan' }}
-        run: conan profile detect
-
       - name: Cmake conan
         if: ${{ matrix.deptool == 'conan' }}
         run: |
