@@ -67,7 +67,9 @@ jobs:
 
       - name: Install Conan
         if: ${{ matrix.deptool == 'conan' }}
-        uses: turtlebrowser/get-conan@main
+        uses: conan-io/setup-conan@v1
+        with:
+          cache_packages: true
 
       - name: Init Conan
         if: ${{ matrix.deptool == 'conan' }}
