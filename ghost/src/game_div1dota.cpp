@@ -2394,7 +2394,6 @@ void CDiv1DotAGame ::EventPlayerDeleted(CGamePlayer* player)
 							m_GHost->m_Manager->SendUserWasBanned(player->GetJoinedRealm(), player->GetName(), m_MySQLGameID, string());
 
 							const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
-
 							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ", " + DotAPlayer->GetName() + penalty);
 						}
 						else
@@ -2409,12 +2408,11 @@ void CDiv1DotAGame ::EventPlayerDeleted(CGamePlayer* player)
 							DotAPlayer->SetBanned(true);
 							m_GHost->m_Manager->SendUserWasBanned(player->GetJoinedRealm(), player->GetName(), m_MySQLGameID, string());
 
-							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ", " + DotAPlayer->GetName() + " was autobanned.");
-							// SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+							const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ", " + DotAPlayer->GetName() + penalty);
 						}
 						else
 							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ".");
-						// SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
 						SendAllAutobanON();
 					}
@@ -2425,16 +2423,14 @@ void CDiv1DotAGame ::EventPlayerDeleted(CGamePlayer* player)
 							DotAPlayer->SetBanned(true);
 							m_GHost->m_Manager->SendUserWasBanned(player->GetJoinedRealm(), player->GetName(), m_MySQLGameID, string());
 
-							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ", " + DotAPlayer->GetName() + " was autobanned.");
-							// SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was autobanned for leaving the game." );
+							const string penalty = m_GHost->m_ReplaceAutobanWithPSRPenalty ? " penalized with multiples of PSR." : " was autobanned.";
+							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ", " + DotAPlayer->GetName() + penalty);
 						}
 						else
 							SendAllChat(player->GetName() + " " + player->GetLeftReason() + ".");
-						// SendAllChat( "Player [" + DotAPlayer->GetName( ) + "] was not autobanned because he was votekicked." );
 
 						if (((m_GameTicks / 1000) - m_CreepsSpawnedTime) > 900 ||
 							m_SentinelTopRax == 0 || m_SentinelMidRax == 0 || m_SentinelBotRax == 0 || m_ScourgeTopRax == 0 || m_ScourgeMidRax == 0 || m_ScourgeBotRax == 0) {
-							// ingame time is past 15 minutes or one side of sentinel/scourge base has been destroyed
 
 							SendAllChat("This game will be saved in your ladder stats, you should play till the end.");
 						}
