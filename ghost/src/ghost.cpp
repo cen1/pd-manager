@@ -610,10 +610,11 @@ bool CGHost :: Update( long usecBlock )
 				CONSOLE_Print( "[GHOST] listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
 			else
 			{
-				CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) );
+				CONSOLE_Print( "[GHOST] error listening for GProxy++ reconnects on port " + UTIL_ToString( m_ReconnectPort ) + ", failed to bind. Check port conflicts." );
 				delete m_ReconnectSocket;
 				m_ReconnectSocket = NULL;
 				m_Reconnect = false;
+				m_Exiting = true;
 			}
 		}
 		else if( m_ReconnectSocket->HasError( ) )
