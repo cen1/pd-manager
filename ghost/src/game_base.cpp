@@ -4584,7 +4584,7 @@ void CBaseGame::EventPlayerPongToHost(CGamePlayer* player, uint32_t pong)
 		OpenSlot(GetSIDFromPID(player->GetPID()), false);
 	}
 
-	if (!m_GameLoading && !m_GameLoaded && player->GetSpoofed() && player->GetNumPings() >= 3) {
+	if (!m_GameLoading && !m_GameLoaded && player->GetSpoofed() && player->GetNumPings() == 2) {
 		CBNET* Server = NULL;
 		for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); ++i) {
 			if ((*i)->GetServer() == player->GetSpoofedRealm()) {
@@ -5503,7 +5503,7 @@ void CBaseGame::AddToSpoofed(string server, string name, bool sendMessage)
 
 		Player->SetSpoofedRealm(server);
 		Player->SetSpoofed(true);
-		if (Player->GetNumPings() >= 3) {
+		if (Player->GetNumPings() >= 2) {
 			CBNET* Server = NULL;
 			for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); ++i) {
 				if ((*i)->GetServer() == server) {
