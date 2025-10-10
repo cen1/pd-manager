@@ -739,6 +739,8 @@ void CSlave :: ProcessPackets( )
 
 								double newRating = (*i)->GetRating( ) - lossAmount;
 								(*i)->SetNewRating( newRating );
+								// Also update the base rating so the penalty persists in cache
+								(*i)->SetRating( newRating );
 							}
 
 							CONSOLE_Print( "(*i)->GetName( ) = " + (*i)->GetName( ) );
