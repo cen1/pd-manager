@@ -18,20 +18,20 @@
 
 */
 
-#include "ghost.h"
-#include "util.h"
-#include "config.h"
-#include "language.h"
-#include "socket.h"
-#include "commandpacket.h"
-#include "ghostdb.h"
+#include "bnet.h"
 #include "bncsutilinterface.h"
 #include "bnetprotocol.h"
-#include "bnet.h"
+#include "commandpacket.h"
+#include "config.h"
+#include "ghost.h"
+#include "ghostdb.h"
+#include "language.h"
 #include "masl_manager.h"
 #include "masl_protocol_2.h"
 #include "masl_slavebot.h"
 #include "regions.h"
+#include "socket.h"
+#include "util.h"
 #include <unordered_map>
 
 #include <boost/filesystem.hpp>
@@ -54,7 +54,7 @@ CBNET::CBNET(CGHost* nGHost, string nServer, string nServerAlias, string nBNLSSe
 	m_Exiting = false;
 	m_Server = nServer;
 	string LowerServer = m_Server;
-	transform(LowerServer.begin(), LowerServer.end(), LowerServer.begin(), (int(*)(int))tolower);
+	transform(LowerServer.begin(), LowerServer.end(), LowerServer.begin(), (int (*)(int))tolower);
 
 	if (!nServerAlias.empty())
 		m_ServerAlias = nServerAlias;
@@ -76,17 +76,15 @@ CBNET::CBNET(CGHost* nGHost, string nServer, string nServerAlias, string nBNLSSe
 
 	m_CDKeyROC.erase(remove(m_CDKeyROC.begin(), m_CDKeyROC.end(), '-'), m_CDKeyROC.end());
 	m_CDKeyTFT.erase(remove(m_CDKeyTFT.begin(), m_CDKeyTFT.end(), '-'), m_CDKeyTFT.end());
-	transform(m_CDKeyROC.begin(), m_CDKeyROC.end(), m_CDKeyROC.begin(), (int(*)(int))toupper);
-	transform(m_CDKeyTFT.begin(), m_CDKeyTFT.end(), m_CDKeyTFT.begin(), (int(*)(int))toupper);
+	transform(m_CDKeyROC.begin(), m_CDKeyROC.end(), m_CDKeyROC.begin(), (int (*)(int))toupper);
+	transform(m_CDKeyTFT.begin(), m_CDKeyTFT.end(), m_CDKeyTFT.begin(), (int (*)(int))toupper);
 
-	if (m_CDKeyROC.size() != 26)
-	{
+	if (m_CDKeyROC.size() != 26) {
 		CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - your ROC CD key is not 26 characters long and is probably invalid");
 		BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - your ROC CD key is not 26 characters long and is probably invalid");
 	}
 
-	if (m_CDKeyTFT.size() != 26)
-	{
+	if (m_CDKeyTFT.size() != 26) {
 		CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - your TFT CD key is not 26 characters long and is probably invalid");
 		BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - your TFT CD key is not 26 characters long and is probably invalid");
 	}
@@ -97,7 +95,7 @@ CBNET::CBNET(CGHost* nGHost, string nServer, string nServerAlias, string nBNLSSe
 	m_UserPassword = nUserPassword;
 	m_FirstChannel = nFirstChannel;
 	m_RootAdmin = nRootAdmin;
-	transform(m_RootAdmin.begin(), m_RootAdmin.end(), m_RootAdmin.begin(), (int(*)(int))tolower);
+	transform(m_RootAdmin.begin(), m_RootAdmin.end(), m_RootAdmin.begin(), (int (*)(int))tolower);
 	m_CommandTrigger = nCommandTrigger;
 	m_War3Version = nWar3Version;
 	m_EXEVersion = nEXEVersion;
@@ -118,13 +116,12 @@ CBNET::CBNET(CGHost* nGHost, string nServer, string nServerAlias, string nBNLSSe
 	m_LastContributorRefreshTime = GetTime();
 }
 
-CBNET :: ~CBNET()
+CBNET ::~CBNET()
 {
 	delete m_Socket;
 	delete m_Protocol;
 
-	while (!m_Packets.empty())
-	{
+	while (!m_Packets.empty()) {
 		delete m_Packets.front();
 		m_Packets.pop();
 	}
@@ -141,8 +138,7 @@ unsigned int CBNET::SetFD(void* fd, void* send_fd, int* nfds)
 {
 	unsigned int NumFDs = 0;
 
-	if (!m_Socket->HasError() && m_Socket->GetConnected())
-	{
+	if (!m_Socket->HasError() && m_Socket->GetConnected()) {
 		m_Socket->SetFD((fd_set*)fd, (fd_set*)send_fd, nfds);
 		NumFDs++;
 	}
@@ -152,9 +148,8 @@ unsigned int CBNET::SetFD(void* fd, void* send_fd, int* nfds)
 
 bool CBNET::Update(void* fd, void* send_fd)
 {
-	if (m_CallableContributorList && m_CallableContributorList->GetReady())
-	{
-		//CONSOLE_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] updated contributor list, total size of " + UTIL_ToString( m_Contributors.size( ) ) + " rows" );
+	if (m_CallableContributorList && m_CallableContributorList->GetReady()) {
+		// CONSOLE_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] updated contributor list, total size of " + UTIL_ToString( m_Contributors.size( ) ) + " rows" );
 		m_Contributors = m_CallableContributorList->GetResult();
 
 		delete m_CallableContributorList;
@@ -167,13 +162,10 @@ bool CBNET::Update(void* fd, void* send_fd)
 
 	// update loaded maps, delete the loaded map when it's older then 2 minutes
 
-	if (m_GHost->m_RPGMode)
-	{
-		for (vector<CLoadedMap*> ::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); )
-		{
-			if (GetTime() - (*i)->GetLoadedTime() > 120)
-			{
-				delete* i;
+	if (m_GHost->m_RPGMode) {
+		for (vector<CLoadedMap*>::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end();) {
+			if (GetTime() - (*i)->GetLoadedTime() > 120) {
+				delete *i;
 				i = m_LoadedMaps.erase(i);
 			}
 			else
@@ -185,8 +177,7 @@ bool CBNET::Update(void* fd, void* send_fd)
 	// that means it might take a few ms longer to complete a task involving multiple steps (in this case, reconnecting) due to blocking or sleeping
 	// but it's not a big deal at all, maybe 100ms in the worst possible case (based on a 50ms blocking time)
 
-	if (m_Socket->HasError())
-	{
+	if (m_Socket->HasError()) {
 		// the socket has an error
 
 		CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] disconnected from battle.net due to socket error");
@@ -205,8 +196,7 @@ bool CBNET::Update(void* fd, void* send_fd)
 		return m_Exiting;
 	}
 
-	if (!m_Socket->GetConnecting() && !m_Socket->GetConnected() && !m_WaitingToConnect)
-	{
+	if (!m_Socket->GetConnecting() && !m_Socket->GetConnected() && !m_WaitingToConnect) {
 		// the socket was disconnected
 
 		CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] disconnected from battle.net due to socket not connected");
@@ -225,8 +215,7 @@ bool CBNET::Update(void* fd, void* send_fd)
 		return m_Exiting;
 	}
 
-	if (m_Socket->GetConnected())
-	{
+	if (m_Socket->GetConnected()) {
 		// the socket is connected and everything appears to be working properly
 
 		m_Socket->DoRecv((fd_set*)fd);
@@ -245,10 +234,8 @@ bool CBNET::Update(void* fd, void* send_fd)
 		else
 			WaitTicks = 4000;
 
-		if (!m_OutPackets.empty() && GetTicks() >= m_LastOutPacketTicks + WaitTicks)
-		{
-			if (m_OutPackets.size() > 7)
-			{
+		if (!m_OutPackets.empty() && GetTicks() >= m_LastOutPacketTicks + WaitTicks) {
+			if (m_OutPackets.size() > 7) {
 				CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] packet queue warning - there are " + UTIL_ToString(m_OutPackets.size()) + " packets waiting to be sent");
 				BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] packet queue warning - there are " + UTIL_ToString(m_OutPackets.size()) + " packets waiting to be sent");
 			}
@@ -261,17 +248,14 @@ bool CBNET::Update(void* fd, void* send_fd)
 
 		// send a null packet every 60 seconds to detect disconnects
 
-		if (GetTime() >= m_LastNullTime + 60 && GetTicks() >= m_LastOutPacketTicks + 60000)
-		{
+		if (GetTime() >= m_LastNullTime + 60 && GetTicks() >= m_LastOutPacketTicks + 60000) {
 			m_Socket->PutBytes(m_Protocol->SEND_SID_NULL());
 			m_LastNullTime = GetTime();
 		}
 
 		// try to send a queued whisper
-		for (vector< pair<string, uint32_t> >::iterator it = m_DelayedWhispers.begin(); it != m_DelayedWhispers.end();)
-		{
-			if (GetTicks() > it->second)
-			{
+		for (vector<pair<string, uint32_t>>::iterator it = m_DelayedWhispers.begin(); it != m_DelayedWhispers.end();) {
+			if (GetTicks() > it->second) {
 				SendChatCommand(it->first);
 				it = m_DelayedWhispers.erase(it);
 			}
@@ -284,12 +268,10 @@ bool CBNET::Update(void* fd, void* send_fd)
 		return m_Exiting;
 	}
 
-	if (m_Socket->GetConnecting())
-	{
+	if (m_Socket->GetConnecting()) {
 		// we are currently attempting to connect to battle.net
 
-		if (m_Socket->CheckConnect())
-		{
+		if (m_Socket->CheckConnect()) {
 			// the connection attempt completed
 
 			CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] connected");
@@ -307,8 +289,7 @@ bool CBNET::Update(void* fd, void* send_fd)
 
 			return m_Exiting;
 		}
-		else if (GetTime() >= m_NextConnectTime + 15)
-		{
+		else if (GetTime() >= m_NextConnectTime + 15) {
 			// the connection attempt timed out (15 seconds)
 
 			CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] connect timed out");
@@ -325,43 +306,36 @@ bool CBNET::Update(void* fd, void* send_fd)
 		}
 	}
 
-	if (!m_Socket->GetConnecting() && !m_Socket->GetConnected() && GetTime() >= m_NextConnectTime)
-	{
+	if (!m_Socket->GetConnecting() && !m_Socket->GetConnected() && GetTime() >= m_NextConnectTime) {
 		// attempt to connect to battle.net
 
 		CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] connecting to server [" + m_Server + "] on port 6112");
 		BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] connecting to server [" + m_Server + "] on port 6112");
 		m_GHost->EventBNETConnecting(this);
 
-		if (!m_GHost->m_BindAddress.empty())
-		{
+		if (!m_GHost->m_BindAddress.empty()) {
 			CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]");
 			BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] attempting to bind to address [" + m_GHost->m_BindAddress + "]");
 		}
 
-		if (m_ServerIP.empty())
-		{
+		if (m_ServerIP.empty()) {
 			m_Socket->Connect(m_GHost->m_BindAddress, m_Server, 6112);
 
-			if (!m_Socket->HasError())
-			{
+			if (!m_Socket->HasError()) {
 				// don't cache IPs for pvpgn servers
 
-				if (m_PasswordHashType == "pvpgn")
-				{
+				if (m_PasswordHashType == "pvpgn") {
 					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] resolved (but not cached) pvpgn server IP address");
 					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] resolved (but not cached) pvpgn server IP address");
 				}
-				else
-				{
+				else {
 					m_ServerIP = m_Socket->GetIPString();
 					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] resolved and cached server IP address " + m_ServerIP);
 					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] resolved and cached server IP address " + m_ServerIP);
 				}
 			}
 		}
-		else
-		{
+		else {
 			// use cached server IP address since resolving takes time and is blocking
 
 			CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using cached server IP address " + m_ServerIP);
@@ -385,20 +359,16 @@ void CBNET::ExtractPackets()
 
 	// a packet is at least 4 bytes so loop as long as the buffer contains 4 bytes
 
-	while (Bytes.size() >= 4)
-	{
+	while (Bytes.size() >= 4) {
 		// byte 0 is always 255
 
-		if (Bytes[0] == BNET_HEADER_CONSTANT)
-		{
+		if (Bytes[0] == BNET_HEADER_CONSTANT) {
 			// bytes 2 and 3 contain the length of the packet
 
 			uint16_t Length = UTIL_ByteArrayToUInt16(Bytes, false, 2);
 
-			if (Length >= 4)
-			{
-				if (Bytes.size() >= Length)
-				{
+			if (Length >= 4) {
+				if (Bytes.size() >= Length) {
 					m_Packets.push(new CCommandPacket(BNET_HEADER_CONSTANT, Bytes[1], BYTEARRAY(Bytes.begin(), Bytes.begin() + Length)));
 					*RecvBuffer = RecvBuffer->substr(Length);
 					Bytes = BYTEARRAY(Bytes.begin() + Length, Bytes.end());
@@ -406,16 +376,14 @@ void CBNET::ExtractPackets()
 				else
 					return;
 			}
-			else
-			{
+			else {
 				CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error - received invalid packet from battle.net (bad length), disconnecting");
 				BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error - received invalid packet from battle.net (bad length), disconnecting");
 				m_Socket->Disconnect();
 				return;
 			}
 		}
-		else
-		{
+		else {
 			CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error - received invalid packet from battle.net (bad header constant), disconnecting");
 			BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error - received invalid packet from battle.net (bad header constant), disconnecting");
 			m_Socket->Disconnect();
@@ -429,14 +397,13 @@ void CBNET::ProcessPackets()
 	CIncomingGameHost* GameHost = NULL;
 	CIncomingChatEvent* ChatEvent = NULL;
 	BYTEARRAY WardenData;
-	//vector<CIncomingFriendList *> Friends;
-	//vector<CIncomingClanList *> Clans;
+	// vector<CIncomingFriendList *> Friends;
+	// vector<CIncomingClanList *> Clans;
 
 	// process all the received packets in the m_Packets queue
 	// this normally means sending some kind of response
 
-	while (!m_Packets.empty())
-	{
+	while (!m_Packets.empty()) {
 		CCommandPacket* Packet = m_Packets.front();
 		m_Packets.pop();
 
@@ -448,261 +415,239 @@ void CBNET::ProcessPackets()
 		CONSOLE_Print( "GetData = " + string( DDData.begin( ), DDData.end( ) ) );
 		CONSOLE_Print( "-----------" );*/
 
-		if (Packet->GetPacketType() == BNET_HEADER_CONSTANT)
-		{
-			switch (Packet->GetID())
-			{
-			case CBNETProtocol::SID_NULL:
-				// warning: we do not respond to NULL packets with a NULL packet of our own
-				// this is because PVPGN servers are programmed to respond to NULL packets so it will create a vicious cycle of useless traffic
-				// official battle.net servers do not respond to NULL packets
+		if (Packet->GetPacketType() == BNET_HEADER_CONSTANT) {
+			switch (Packet->GetID()) {
+				case CBNETProtocol::SID_NULL:
+					// warning: we do not respond to NULL packets with a NULL packet of our own
+					// this is because PVPGN servers are programmed to respond to NULL packets so it will create a vicious cycle of useless traffic
+					// official battle.net servers do not respond to NULL packets
 
-				m_Protocol->RECEIVE_SID_NULL(Packet->GetData());
-				break;
+					m_Protocol->RECEIVE_SID_NULL(Packet->GetData());
+					break;
 
-			case CBNETProtocol::SID_GETADVLISTEX:
-				GameHost = m_Protocol->RECEIVE_SID_GETADVLISTEX(Packet->GetData());
+				case CBNETProtocol::SID_GETADVLISTEX:
+					GameHost = m_Protocol->RECEIVE_SID_GETADVLISTEX(Packet->GetData());
 
-				if (GameHost)
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining game [" + GameHost->GetGameName() + "]");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining game [" + GameHost->GetGameName() + "]");
-				}
-
-				delete GameHost;
-				GameHost = NULL;
-				break;
-
-			case CBNETProtocol::SID_ENTERCHAT:
-				if (m_Protocol->RECEIVE_SID_ENTERCHAT(Packet->GetData()))
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining channel [" + m_FirstChannel + "]");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining channel [" + m_FirstChannel + "]");
-					m_InChat = true;
-					m_Socket->PutBytes(m_Protocol->SEND_SID_JOINCHANNEL(m_FirstChannel));
-				}
-
-				break;
-
-			case CBNETProtocol::SID_CHATEVENT:
-				ChatEvent = m_Protocol->RECEIVE_SID_CHATEVENT(Packet->GetData());
-
-				if (ChatEvent)
-					ProcessChatEvent(ChatEvent);
-
-				delete ChatEvent;
-				ChatEvent = NULL;
-				break;
-
-			case CBNETProtocol::SID_CHECKAD:
-				m_Protocol->RECEIVE_SID_CHECKAD(Packet->GetData());
-				break;
-
-			case CBNETProtocol::SID_STARTADVEX3:
-				if (m_Protocol->RECEIVE_SID_STARTADVEX3(Packet->GetData()))
-				{
-					m_InChat = false;
-					m_GHost->EventBNETGameRefreshed(this);
-				}
-				else
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] startadvex3 failed");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] startadvex3 failed");
-					m_GHost->EventBNETGameRefreshFailed(this);
-				}
-
-				break;
-
-			case CBNETProtocol::SID_PING:
-				m_Socket->PutBytes(m_Protocol->SEND_SID_PING(m_Protocol->RECEIVE_SID_PING(Packet->GetData())));
-				break;
-
-			case CBNETProtocol::SID_AUTH_INFO:
-				if (m_Protocol->RECEIVE_SID_AUTH_INFO(Packet->GetData()))
-				{
-					if (m_BNCSUtil->HELP_SID_AUTH_CHECK(m_GHost->m_Warcraft3Path, m_CDKeyROC, m_CDKeyTFT, m_Protocol->GetValueStringFormulaString(), m_Protocol->GetIX86VerFileNameString(), m_Protocol->GetClientToken(), m_Protocol->GetServerToken()))
-					{
-						// override the exe information generated by bncsutil if specified in the config file
-						// apparently this is useful for pvpgn users
-
-						if (m_EXEVersion.size() == 4)
-						{
-							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version bnet_custom_exeversion = " + UTIL_ToString(m_EXEVersion[0]) + " " + UTIL_ToString(m_EXEVersion[1]) + " " + UTIL_ToString(m_EXEVersion[2]) + " " + UTIL_ToString(m_EXEVersion[3]));
-							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version bnet_custom_exeversion = " + UTIL_ToString(m_EXEVersion[0]) + " " + UTIL_ToString(m_EXEVersion[1]) + " " + UTIL_ToString(m_EXEVersion[2]) + " " + UTIL_ToString(m_EXEVersion[3]));
-							m_BNCSUtil->SetEXEVersion(m_EXEVersion);
-						}
-
-						if (m_EXEVersionHash.size() == 4)
-						{
-							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString(m_EXEVersionHash[0]) + " " + UTIL_ToString(m_EXEVersionHash[1]) + " " + UTIL_ToString(m_EXEVersionHash[2]) + " " + UTIL_ToString(m_EXEVersionHash[3]));
-							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString(m_EXEVersionHash[0]) + " " + UTIL_ToString(m_EXEVersionHash[1]) + " " + UTIL_ToString(m_EXEVersionHash[2]) + " " + UTIL_ToString(m_EXEVersionHash[3]));
-							m_BNCSUtil->SetEXEVersionHash(m_EXEVersionHash);
-						}
-
-						m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_CHECK(m_Protocol->GetClientToken(), m_BNCSUtil->GetEXEVersion(), m_BNCSUtil->GetEXEVersionHash(), m_BNCSUtil->GetKeyInfoROC(), m_BNCSUtil->GetKeyInfoTFT(), m_BNCSUtil->GetEXEInfo(), "GHost"));
-
-						// the Warden seed is the first 4 bytes of the ROC key hash
+					if (GameHost) {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining game [" + GameHost->GetGameName() + "]");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining game [" + GameHost->GetGameName() + "]");
 					}
-					else
-					{
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
+
+					delete GameHost;
+					GameHost = NULL;
+					break;
+
+				case CBNETProtocol::SID_ENTERCHAT:
+					if (m_Protocol->RECEIVE_SID_ENTERCHAT(Packet->GetData())) {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining channel [" + m_FirstChannel + "]");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joining channel [" + m_FirstChannel + "]");
+						m_InChat = true;
+						m_Socket->PutBytes(m_Protocol->SEND_SID_JOINCHANNEL(m_FirstChannel));
+					}
+
+					break;
+
+				case CBNETProtocol::SID_CHATEVENT:
+					ChatEvent = m_Protocol->RECEIVE_SID_CHATEVENT(Packet->GetData());
+
+					if (ChatEvent)
+						ProcessChatEvent(ChatEvent);
+
+					delete ChatEvent;
+					ChatEvent = NULL;
+					break;
+
+				case CBNETProtocol::SID_CHECKAD:
+					m_Protocol->RECEIVE_SID_CHECKAD(Packet->GetData());
+					break;
+
+				case CBNETProtocol::SID_STARTADVEX3:
+					if (m_Protocol->RECEIVE_SID_STARTADVEX3(Packet->GetData())) {
+						m_InChat = false;
+						m_GHost->EventBNETGameRefreshed(this);
+					}
+					else {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] startadvex3 failed");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] startadvex3 failed");
+						m_GHost->EventBNETGameRefreshFailed(this);
+					}
+
+					break;
+
+				case CBNETProtocol::SID_PING:
+					m_Socket->PutBytes(m_Protocol->SEND_SID_PING(m_Protocol->RECEIVE_SID_PING(Packet->GetData())));
+					break;
+
+				case CBNETProtocol::SID_AUTH_INFO:
+					if (m_Protocol->RECEIVE_SID_AUTH_INFO(Packet->GetData())) {
+						if (m_BNCSUtil->HELP_SID_AUTH_CHECK(m_GHost->m_Warcraft3Path, m_CDKeyROC, m_CDKeyTFT, m_Protocol->GetValueStringFormulaString(), m_Protocol->GetIX86VerFileNameString(), m_Protocol->GetClientToken(), m_Protocol->GetServerToken())) {
+							// override the exe information generated by bncsutil if specified in the config file
+							// apparently this is useful for pvpgn users
+
+							if (m_EXEVersion.size() == 4) {
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version bnet_custom_exeversion = " + UTIL_ToString(m_EXEVersion[0]) + " " + UTIL_ToString(m_EXEVersion[1]) + " " + UTIL_ToString(m_EXEVersion[2]) + " " + UTIL_ToString(m_EXEVersion[3]));
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version bnet_custom_exeversion = " + UTIL_ToString(m_EXEVersion[0]) + " " + UTIL_ToString(m_EXEVersion[1]) + " " + UTIL_ToString(m_EXEVersion[2]) + " " + UTIL_ToString(m_EXEVersion[3]));
+								m_BNCSUtil->SetEXEVersion(m_EXEVersion);
+							}
+
+							if (m_EXEVersionHash.size() == 4) {
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString(m_EXEVersionHash[0]) + " " + UTIL_ToString(m_EXEVersionHash[1]) + " " + UTIL_ToString(m_EXEVersionHash[2]) + " " + UTIL_ToString(m_EXEVersionHash[3]));
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using custom exe version hash bnet_custom_exeversionhash = " + UTIL_ToString(m_EXEVersionHash[0]) + " " + UTIL_ToString(m_EXEVersionHash[1]) + " " + UTIL_ToString(m_EXEVersionHash[2]) + " " + UTIL_ToString(m_EXEVersionHash[3]));
+								m_BNCSUtil->SetEXEVersionHash(m_EXEVersionHash);
+							}
+
+							m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_CHECK(m_Protocol->GetClientToken(), m_BNCSUtil->GetEXEVersion(), m_BNCSUtil->GetEXEVersionHash(), m_BNCSUtil->GetKeyInfoROC(), m_BNCSUtil->GetKeyInfoTFT(), m_BNCSUtil->GetEXEInfo(), "GHost"));
+
+							// the Warden seed is the first 4 bytes of the ROC key hash
+						}
+						else {
+							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
+							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - bncsutil key hash failed (check your Warcraft 3 path and cd keys), disconnecting");
+							m_Socket->Disconnect();
+							delete Packet;
+							return;
+						}
+					}
+
+					break;
+
+				case CBNETProtocol::SID_AUTH_CHECK:
+					if (m_Protocol->RECEIVE_SID_AUTH_CHECK(Packet->GetData())) {
+						// cd keys accepted
+
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] cd keys accepted");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] cd keys accepted");
+						m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON();
+						m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON(m_BNCSUtil->GetClientKey(), m_UserName));
+					}
+					else {
+						// cd keys not accepted
+
+						switch (UTIL_ByteArrayToUInt32(m_Protocol->GetKeyState(), false)) {
+							case CBNETProtocol::KR_ROC_KEY_IN_USE:
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+								break;
+							case CBNETProtocol::KR_TFT_KEY_IN_USE:
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
+								break;
+							case CBNETProtocol::KR_OLD_GAME_VERSION:
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is too old, disconnecting");
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is too old, disconnecting");
+								break;
+							case CBNETProtocol::KR_INVALID_VERSION:
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is invalid, disconnecting");
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is invalid, disconnecting");
+								break;
+							default:
+								CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - cd keys not accepted, disconnecting");
+								BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - cd keys not accepted, disconnecting");
+								break;
+						}
+
 						m_Socket->Disconnect();
 						delete Packet;
 						return;
 					}
-				}
 
-				break;
+					break;
 
-			case CBNETProtocol::SID_AUTH_CHECK:
-				if (m_Protocol->RECEIVE_SID_AUTH_CHECK(Packet->GetData()))
-				{
-					// cd keys accepted
+				case CBNETProtocol::SID_AUTH_ACCOUNTLOGON:
+					if (m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGON(Packet->GetData())) {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] username [" + m_UserName + "] accepted");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] username [" + m_UserName + "] accepted");
 
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] cd keys accepted");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] cd keys accepted");
-					m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGON();
-					m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGON(m_BNCSUtil->GetClientKey(), m_UserName));
-				}
-				else
-				{
-					// cd keys not accepted
+						if (m_PasswordHashType == "pvpgn") {
+							// pvpgn logon
 
-					switch (UTIL_ByteArrayToUInt32(m_Protocol->GetKeyState(), false))
-					{
-					case CBNETProtocol::KR_ROC_KEY_IN_USE:
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - ROC CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-						break;
-					case CBNETProtocol::KR_TFT_KEY_IN_USE:
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - TFT CD key in use by user [" + m_Protocol->GetKeyStateDescription() + "], disconnecting");
-						break;
-					case CBNETProtocol::KR_OLD_GAME_VERSION:
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is too old, disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is too old, disconnecting");
-						break;
-					case CBNETProtocol::KR_INVALID_VERSION:
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is invalid, disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - game version is invalid, disconnecting");
-						break;
-					default:
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - cd keys not accepted, disconnecting");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - cd keys not accepted, disconnecting");
-						break;
+							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using pvpgn logon type (for pvpgn servers only)");
+							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using pvpgn logon type (for pvpgn servers only)");
+							m_BNCSUtil->HELP_PvPGNPasswordHash(m_UserPassword);
+							m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetPvPGNPasswordHash()));
+						}
+						else {
+							// battle.net logon
+
+							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using battle.net logon type (for official battle.net servers only)");
+							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using battle.net logon type (for official battle.net servers only)");
+							m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGONPROOF(m_Protocol->GetSalt(), m_Protocol->GetServerPublicKey());
+							m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetM1()));
+						}
+					}
+					else {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid username, disconnecting");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid username, disconnecting");
+						m_Socket->Disconnect();
+						delete Packet;
+						return;
 					}
 
-					m_Socket->Disconnect();
-					delete Packet;
-					return;
-				}
+					break;
 
-				break;
+				case CBNETProtocol::SID_AUTH_ACCOUNTLOGONPROOF:
+					if (m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGONPROOF(Packet->GetData())) {
+						// logon successful
 
-			case CBNETProtocol::SID_AUTH_ACCOUNTLOGON:
-				if (m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGON(Packet->GetData()))
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] username [" + m_UserName + "] accepted");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] username [" + m_UserName + "] accepted");
-
-					if (m_PasswordHashType == "pvpgn")
-					{
-						// pvpgn logon
-
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using pvpgn logon type (for pvpgn servers only)");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using pvpgn logon type (for pvpgn servers only)");
-						m_BNCSUtil->HELP_PvPGNPasswordHash(m_UserPassword);
-						m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetPvPGNPasswordHash()));
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon successful");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon successful");
+						m_LoggedIn = true;
+						m_GHost->EventBNETLoggedIn(this);
+						m_Socket->PutBytes(m_Protocol->SEND_SID_ENTERCHAT());
+						// m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
+						// m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
 					}
+					else {
+						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid password, disconnecting");
+						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid password, disconnecting");
+
+						// try to figure out if the user might be using the wrong logon type since too many people are confused by this
+
+						string Server = m_Server;
+						transform(Server.begin(), Server.end(), Server.begin(), (int (*)(int))tolower);
+
+						if (m_PasswordHashType == "pvpgn" && (Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net")) {
+							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section");
+							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section");
+						}
+						else if (m_PasswordHashType != "pvpgn" && (Server != "useast.battle.net" && Server != "uswest.battle.net" && Server != "asia.battle.net" && Server != "europe.battle.net")) {
+							CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section");
+							BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section");
+						}
+
+						m_Socket->Disconnect();
+						delete Packet;
+						return;
+					}
+
+					break;
+
+				case CBNETProtocol::SID_WARDEN:
+					WardenData = m_Protocol->RECEIVE_SID_WARDEN(Packet->GetData());
+
+					/*if( m_BNLSClient )
+						m_BNLSClient->QueueWardenRaw( WardenData );
 					else
-					{
-						// battle.net logon
+						BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon" );*/
 
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using battle.net logon type (for official battle.net servers only)");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] using battle.net logon type (for official battle.net servers only)");
-						m_BNCSUtil->HELP_SID_AUTH_ACCOUNTLOGONPROOF(m_Protocol->GetSalt(), m_Protocol->GetServerPublicKey());
-						m_Socket->PutBytes(m_Protocol->SEND_SID_AUTH_ACCOUNTLOGONPROOF(m_BNCSUtil->GetM1()));
-					}
-				}
-				else
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid username, disconnecting");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid username, disconnecting");
-					m_Socket->Disconnect();
-					delete Packet;
-					return;
-				}
+					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon");
+					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon");
 
-				break;
+					break;
 
-			case CBNETProtocol::SID_AUTH_ACCOUNTLOGONPROOF:
-				if (m_Protocol->RECEIVE_SID_AUTH_ACCOUNTLOGONPROOF(Packet->GetData()))
-				{
-					// logon successful
+					/*case CBNETProtocol :: SID_FRIENDSLIST:
+						Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
 
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon successful");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon successful");
-					m_LoggedIn = true;
-					m_GHost->EventBNETLoggedIn(this);
-					m_Socket->PutBytes(m_Protocol->SEND_SID_ENTERCHAT());
-					//m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
-					//m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
-				}
-				else
-				{
-					CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid password, disconnecting");
-					BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] logon failed - invalid password, disconnecting");
+						for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
+							delete *i;
 
-					// try to figure out if the user might be using the wrong logon type since too many people are confused by this
-
-					string Server = m_Server;
-					transform(Server.begin(), Server.end(), Server.begin(), (int(*)(int))tolower);
-
-					if (m_PasswordHashType == "pvpgn" && (Server == "useast.battle.net" || Server == "uswest.battle.net" || Server == "asia.battle.net" || Server == "europe.battle.net"))
-					{
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a battle.net server using a pvpgn logon type, check your config file's \"battle.net custom data\" section");
-					}
-					else if (m_PasswordHashType != "pvpgn" && (Server != "useast.battle.net" && Server != "uswest.battle.net" && Server != "asia.battle.net" && Server != "europe.battle.net"))
-					{
-						CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section");
-						BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] it looks like you're trying to connect to a pvpgn server using a battle.net logon type, check your config file's \"battle.net custom data\" section");
-					}
-
-					m_Socket->Disconnect();
-					delete Packet;
-					return;
-				}
-
-				break;
-
-			case CBNETProtocol::SID_WARDEN:
-				WardenData = m_Protocol->RECEIVE_SID_WARDEN(Packet->GetData());
-
-				/*if( m_BNLSClient )
-					m_BNLSClient->QueueWardenRaw( WardenData );
-				else
-					BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon" );*/
-
-				CONSOLE_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon");
-				BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] warning - received warden packet but no BNLS server is available, you will be kicked from battle.net soon");
-
-				break;
-
-				/*case CBNETProtocol :: SID_FRIENDSLIST:
-					Friends = m_Protocol->RECEIVE_SID_FRIENDSLIST( Packet->GetData( ) );
-
-					for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
-						delete *i;
-
-					m_Friends = Friends;*/
+						m_Friends = Friends;*/
 
 					/* DEBUG_Print( "received " + UTIL_ToString( Friends.size( ) ) + " friends" );
 					for( vector<CIncomingFriendList *> :: iterator i = m_Friends.begin( ); i != m_Friends.end( ); i++ )
 						DEBUG_Print( "friend: " + (*i)->GetAccount( ) ); */
 
-						//break;
+					// break;
 
 					/*case CBNETProtocol :: SID_CLANMEMBERLIST:
 						vector<CIncomingClanList *> Clans = m_Protocol->RECEIVE_SID_CLANMEMBERLIST( Packet->GetData( ) );
@@ -712,11 +657,11 @@ void CBNET::ProcessPackets()
 
 						m_Clans = Clans;*/
 
-						/* DEBUG_Print( "received " + UTIL_ToString( Clans.size( ) ) + " clan members" );
-						for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
-							DEBUG_Print( "clan member: " + (*i)->GetName( ) ); */
+					/* DEBUG_Print( "received " + UTIL_ToString( Clans.size( ) ) + " clan members" );
+					for( vector<CIncomingClanList *> :: iterator i = m_Clans.begin( ); i != m_Clans.end( ); i++ )
+						DEBUG_Print( "clan member: " + (*i)->GetName( ) ); */
 
-							//break;
+					// break;
 			}
 		}
 
@@ -729,16 +674,13 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 	CBNETProtocol::IncomingChatEvent Event = chatEvent->GetChatEvent();
 	bool Whisper = (Event == CBNETProtocol::EID_WHISPER);
 	string User = chatEvent->GetUser();
-	string Message = chatEvent->GetMessage();
+	string Message = chatEvent->GetChatMessage();
 
-	if (Event == CBNETProtocol::EID_WHISPER || Event == CBNETProtocol::EID_TALK)
-	{
+	if (Event == CBNETProtocol::EID_WHISPER || Event == CBNETProtocol::EID_TALK) {
 		CDBPlayer* Player = NULL;
 
-		for (list<CPlayers*> ::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i)
-		{
-			if ((*i)->GetServerID() == m_ServerID)
-			{
+		for (list<CPlayers*>::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i) {
+			if ((*i)->GetServerID() == m_ServerID) {
 				Player = (*i)->GetPlayer(User);
 				break;
 			}
@@ -748,8 +690,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 		bool DeletePlayer = false;
 
-		if (!Player)
-		{
+		if (!Player) {
 			Player = new CDBPlayer(0, 0, 1);
 			DeletePlayer = true;
 		}
@@ -762,10 +703,9 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 		else
 			m_GHost->EventBNETChat( this, User, Message );*/
 
-			// log chat activity
+		// log chat activity
 
-		if (!Message.empty() && (Message[0] == '.' || Message[0] == '!'))
-		{
+		if (!Message.empty() && (Message[0] == '.' || Message[0] == '!')) {
 			if (Event == CBNETProtocol::EID_WHISPER)
 				BNET_Print("[WHISPER: " + m_ServerAlias + " " + m_UserName + "] " + (Player->GetIsAdmin() ? "admin" : "user") + " [" + User + " (" + UTIL_ToString(Player->GetAccessLevel()) + ")] sent command [" + Message + "]");
 			else
@@ -778,8 +718,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 		// handle bot commands (commands with trigger "." are also available)
 
-		if (!Message.empty() && Message[0] == '.')
-		{
+		if (!Message.empty() && Message[0] == '.') {
 			// extract the command trigger, the command, and the payload
 			// e.g. "!say hello world" -> command: "say", payload: "hello world"
 
@@ -787,35 +726,29 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			string Payload;
 			string::size_type PayloadStart = Message.find(" ");
 
-			if (PayloadStart != string::npos)
-			{
+			if (PayloadStart != string::npos) {
 				Command = Message.substr(1, PayloadStart - 1);
 				Payload = Message.substr(PayloadStart + 1);
 			}
 			else
 				Command = Message.substr(1);
 
-			transform(Command.begin(), Command.end(), Command.begin(), (int(*)(int))tolower);
+			transform(Command.begin(), Command.end(), Command.begin(), (int (*)(int))tolower);
 
 			//
 			// .DOTA<region>
 			//
-			if (Command == "dota" && !Payload.empty())
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			if (Command == "dota" && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							// create public custom DotA game
 
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 								else
@@ -835,22 +768,17 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			//
 			// .DOTAOBS<region>
 			//
-			if (Command == "dotaobs" && !Payload.empty())
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			if (Command == "dotaobs" && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							// create public custom DotA game with observer slots
 
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM_DOTA, region);
 								else
@@ -870,22 +798,17 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			//
 			// .TOUR<region>
 			//
-			if (Command == "tour" && !Payload.empty())
-			{
-			    	if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			if (Command == "tour" && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							// create public custom DotA game
 
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), false, true, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 								else
@@ -899,29 +822,24 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
+					// SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .dota)", User);
 			}
 
 			//
 			// .TOUROBS<region>
 			//
-			if (Command == "tourobs" && !Payload.empty())
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			if (Command == "tourobs" && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							// create public custom DotA game with observer slots
 
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_TOUR, region);
 								else
@@ -941,23 +859,17 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			//
 			// .PRIV<region>
 			//
-			else if (Command.starts_with("priv") && !Payload.empty())
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			else if (Command.starts_with("priv") && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							// create private custom game
 							string LoadedMap = string();
 							string Name = User;
-							transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+							transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
-							for (vector<CLoadedMap*> ::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++)
-							{
-								if ((*i)->GetName() == Name)
-								{
+							for (vector<CLoadedMap*>::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++) {
+								if ((*i)->GetName() == Name) {
 									LoadedMap = (*i)->GetMap();
 									break;
 								}
@@ -965,14 +877,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 							if (LoadedMap.empty())
 								SendChatCommand("Use .map <pattern> command to load a map, visit https://eurobattle.net/maps/upload to upload a new map.\"", User);
-							else
-							{
+							else {
 								if (Payload.size() > 31)
-									//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+									// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 									SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-								else
-								{
-								    	const std::string region = Regions::regionFromPostfix(Command);
+								else {
+									const std::string region = Regions::regionFromPostfix(Command);
 									if (IsInChannel(User))
 										m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 17, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 									else
@@ -981,11 +891,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							}
 						}
 						else {
-						    	SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+							SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
 						}
 					}
 					else {
-					    	SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
+						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 					}
 				}
 				else {
@@ -996,22 +906,17 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			//
 			// .PUB<region>
 			//
-			else if (Command.starts_with("pub") && !Payload.empty())
-			{
-				if (m_GHost->m_Enabled)
-				{
-					if (!Player->GetIsBanned() || Player->GetIsAdmin())
-					{
+			else if (Command.starts_with("pub") && !Payload.empty()) {
+				if (m_GHost->m_Enabled) {
+					if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 						// create public custom game
 
 						string LoadedMap = string();
 						string Name = User;
-						transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+						transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
-						for (vector<CLoadedMap*> ::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++)
-						{
-							if ((*i)->GetName() == Name)
-							{
+						for (vector<CLoadedMap*>::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++) {
+							if ((*i)->GetName() == Name) {
 								LoadedMap = (*i)->GetMap();
 								break;
 							}
@@ -1019,13 +924,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 						if (LoadedMap.empty())
 							SendChatCommand("Use .map <pattern> command to load a map, visit https://eurobattle.net/maps/upload to upload a new map.", User);
-						else
-						{
+						else {
 							if (Payload.size() > 31)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_CUSTOM_GAME, 16, User, Player->GetAccessLevel(), Payload, LoadedMap, false, true, MASL_PROTOCOL::GHOST_GROUP_CUSTOM, region);
 								else
@@ -1038,31 +941,24 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					}
 				}
 				else {
-				    	SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
+					SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 			}
 
 			//
 			// .MAP
 			//
-			else if (Command == "map")
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
-							if (Payload.empty())
-							{
+			else if (Command == "map") {
+				if (Whisper) {
+					if (m_GHost->m_Enabled) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
+							if (Payload.empty()) {
 								string LoadedMap = string();
 								string Name = User;
-								transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+								transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
-								for (vector<CLoadedMap*> ::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++)
-								{
-									if ((*i)->GetName() == Name)
-									{
+								for (vector<CLoadedMap*>::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++) {
+									if ((*i)->GetName() == Name) {
 										LoadedMap = (*i)->GetMap();
 										break;
 									}
@@ -1074,39 +970,33 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								else
 									SendChatCommand(m_GHost->m_Language->CurrentlyLoadedMapCFGIs(LoadedMap), User);
 							}
-							else
-							{
+							else {
 								string FoundMaps;
 
-								try
-								{
+								try {
 									BNET_Print("[MAP] Start");
 									path MapPath(m_GHost->m_MapPath);
 									string Pattern = Payload;
-									transform(Pattern.begin(), Pattern.end(), Pattern.begin(), (int(*)(int))tolower);
+									transform(Pattern.begin(), Pattern.end(), Pattern.begin(), (int (*)(int))tolower);
 									BNET_Print("[MAP] Check path: " + m_GHost->m_MapPath);
 
-									if (!exists(MapPath))
-									{
+									if (!exists(MapPath)) {
 										BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error listing maps - map path doesn't exist");
 										SendChatCommand(m_GHost->m_Language->ErrorListingMaps(), User);
 									}
-									else
-									{
+									else {
 										directory_iterator EndIterator;
 										path LastMatch;
 										uint32_t Matches = 0;
 
-										for (directory_iterator i(MapPath); i != EndIterator; ++i)
-										{
+										for (directory_iterator i(MapPath); i != EndIterator; ++i) {
 											BNET_Print("[MAP] Iteration");
 											string FileName = i->path().filename().string();
 											string Stem = i->path().stem().string();
-											transform(FileName.begin(), FileName.end(), FileName.begin(), (int(*)(int))tolower);
-											transform(Stem.begin(), Stem.end(), Stem.begin(), (int(*)(int))tolower);
+											transform(FileName.begin(), FileName.end(), FileName.begin(), (int (*)(int))tolower);
+											transform(Stem.begin(), Stem.end(), Stem.begin(), (int (*)(int))tolower);
 											BNET_Print("[MAP] Check : " + FileName);
-											if (!is_directory(i->status()) && FileName.find(Pattern) != string::npos)
-											{
+											if (!is_directory(i->status()) && FileName.find(Pattern) != string::npos) {
 												LastMatch = i->path();
 												++Matches;
 												BNET_Print("[MAP] Match++");
@@ -1118,8 +1008,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 												// if the pattern matches the filename exactly, with or without extension, stop any further matching
 
-												if (FileName == Pattern || Stem == Pattern)
-												{
+												if (FileName == Pattern || Stem == Pattern) {
 													Matches = 1;
 													break;
 												}
@@ -1130,19 +1019,16 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 										if (Matches == 0)
 											SendChatCommand("No maps found, visit https://eurobattle.net/maps/upload to upload a new map.", User);
-										else if (Matches == 1)
-										{
+										else if (Matches == 1) {
 											string File = LastMatch.filename().string();
 											SendChatCommand(m_GHost->m_Language->LoadingConfigFile(File), User);
 
 											string Name = User;
-											transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+											transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
-											for (vector<CLoadedMap*> ::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++)
-											{
-												if ((*i)->GetName() == Name)
-												{
-													delete* i;
+											for (vector<CLoadedMap*>::iterator i = m_LoadedMaps.begin(); i != m_LoadedMaps.end(); i++) {
+												if ((*i)->GetName() == Name) {
+													delete *i;
 													m_LoadedMaps.erase(i);
 													break;
 												}
@@ -1166,8 +1052,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 										BNET_Print("[MAP] End");
 									}
 								}
-								catch (const exception& ex)
-								{
+								catch (const exception& ex) {
 									BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] error listing maps - caught exception [" + ex.what() + "]");
 									SendChatCommand(m_GHost->m_Language->ErrorListingMaps(), User);
 								}
@@ -1180,12 +1065,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->UnableToCreateGameDisabled(m_GHost->m_DisabledMessage), User);
 				}
 				else
-					//SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
+					// SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .map)", User);
 			}
 		}
-		else if (!Message.empty() && Message[0] == m_CommandTrigger)
-		{
+		else if (!Message.empty() && Message[0] == m_CommandTrigger) {
 			// extract the command trigger, the command, and the payload
 			// e.g. "!say hello world" -> command: "say", payload: "hello world"
 
@@ -1193,39 +1077,35 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			string Payload;
 			string::size_type PayloadStart = Message.find(" ");
 
-			if (PayloadStart != string::npos)
-			{
+			if (PayloadStart != string::npos) {
 				Command = Message.substr(1, PayloadStart - 1);
 				Payload = Message.substr(PayloadStart + 1);
 			}
 			else
 				Command = Message.substr(1);
 
-			transform(Command.begin(), Command.end(), Command.begin(), (int(*)(int))tolower);
+			transform(Command.begin(), Command.end(), Command.begin(), (int (*)(int))tolower);
 
-			//BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] admin [" + User + "] sent command [" + Message + "]" );
-			//BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] user [" + User + " (" + UTIL_ToString( Player->GetAccessLevel( ) ) + ")] sent command [" + Message + "]" );
+			// BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] admin [" + User + "] sent command [" + Message + "]" );
+			// BNET_Print( "[BNET: " + m_ServerAlias + " " + m_UserName + "] user [" + User + " (" + UTIL_ToString( Player->GetAccessLevel( ) ) + ")] sent command [" + Message + "]" );
 
 			bool IsAdmin = false;
 
 			if (Player)
 				IsAdmin = Player->GetIsAdmin();
 
-			if (IsRootAdmin(User) || IsAdmin)
-			{
+			if (IsRootAdmin(User) || IsAdmin) {
 				//
 				// !ANNOUNCE
 				// !ANN
 				//
 
-				if ((Command == "announce" || Command == "ann") && !Payload.empty())
-				{
+				if ((Command == "announce" || Command == "ann") && !Payload.empty()) {
 					// only allow tour staff to use !announce
 					// 4050 	Tour Admin
 					// 4001 	Tour Moderator
 
-					if (IsRootAdmin(User) || Player->GetAccessLevel() == 4050
-						|| Player->GetAccessLevel() == 4001 || Player->GetAccessLevel() > 8000)
+					if (IsRootAdmin(User) || Player->GetAccessLevel() == 4050 || Player->GetAccessLevel() == 4001 || Player->GetAccessLevel() > 8000)
 						SendChatCommand("/ann " + Payload);
 					else
 						SendChatCommand("Only tour staff or lvl>8000 can use this command.");
@@ -1255,8 +1135,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !CBAN
 				//
 
-				else if ((Command == "ban" || Command == "cban") && !Payload.empty())
-				{
+				else if ((Command == "ban" || Command == "cban") && !Payload.empty()) {
 					string Victim;
 					string Reason;
 
@@ -1264,8 +1143,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					SS << Payload;
 					SS >> Victim;
 
-					if (!SS.eof())
-					{
+					if (!SS.eof()) {
 						getline(SS, Reason);
 						SendChatCommand("/ban " + Victim + " " + User + ": " + Reason + ".");
 					}
@@ -1277,8 +1155,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !CHANNEL (change channel)
 				//
 
-				else if (Command == "channel" && !Payload.empty())
-				{
+				else if (Command == "channel" && !Payload.empty()) {
 					if (IsRootAdmin(User))
 						SendChatCommand("/join " + Payload);
 					else
@@ -1302,8 +1179,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !CMD
 				//
 
-				else if (Command == "cmd" && !Payload.empty())
-				{
+				else if (Command == "cmd" && !Payload.empty()) {
 					if (IsRootAdmin(User))
 						m_GHost->m_Manager->SendAll(MASL_PROTOCOL::MTS_REMOTE_CMD, UTIL_ToString(m_ServerID) + " " + User + " " + Payload);
 					else
@@ -1331,8 +1207,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !CUNBAN
 				//
 
-				else if ((Command == "unban" || Command == "cunban") && !Payload.empty())
-				{
+				else if ((Command == "unban" || Command == "cunban") && !Payload.empty()) {
 					SendChatCommand("/unban " + Payload);
 					SendChatCommand(Payload + " should now be unbanned from the channel.", User);
 				}
@@ -1358,10 +1233,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !DISABLE
 				//
 
-				else if (Command == "disable")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "disable") {
+					if (IsRootAdmin(User)) {
 						SendChatCommand(m_GHost->m_Language->BotDisabled(), User);
 						m_GHost->m_Enabled = false;
 
@@ -1377,10 +1250,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					}
 				}
 
-				else if (Command == "disableladder")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "disableladder") {
+					if (IsRootAdmin(User)) {
 						SendChatCommand(m_GHost->m_Language->BotLadderDisabled(), User);
 						m_GHost->m_EnabledLadder = false;
 					}
@@ -1391,22 +1262,18 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 				// !COM
 
-				else if (Command == "com")
-				{
-					if (IsRootAdmin(User))
-					{
-						if (m_GHost->m_ContributorOnlyMode)
-						{
+				else if (Command == "com") {
+					if (IsRootAdmin(User)) {
+						if (m_GHost->m_ContributorOnlyMode) {
 							m_GHost->m_ContributorOnlyMode = false;
 							SendChatCommand("Contributor only mode is now OFF", User);
 						}
-						else
-						{
+						else {
 							m_GHost->m_ContributorOnlyMode = true;
 							SendChatCommand("Contributor only mode is now ON", User);
 						}
 
-						for (list<CSlave*> ::iterator i = m_GHost->m_Manager->m_Slaves.begin(); i != m_GHost->m_Manager->m_Slaves.end(); ++i)
+						for (list<CSlave*>::iterator i = m_GHost->m_Manager->m_Slaves.begin(); i != m_GHost->m_Manager->m_Slaves.end(); ++i)
 							(*i)->SendContributorOnlyMode(m_GHost->m_ContributorOnlyMode);
 					}
 					else
@@ -1415,10 +1282,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 				// !COMSTATUS
 
-				else if (Command == "comstatus")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "comstatus") {
+					if (IsRootAdmin(User)) {
 						if (m_GHost->m_ContributorOnlyMode)
 							SendChatCommand("Contributor only mode is ON", User);
 						else
@@ -1432,8 +1297,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !DEVOICE
 				//
 
-				else if (Command == "devoice" && !Payload.empty())
-				{
+				else if (Command == "devoice" && !Payload.empty()) {
 					if (IsRootAdmin(User) || Player->GetAccessLevel() > 8000)
 						SendChatCommand("/devoice " + Payload);
 					else
@@ -1451,10 +1315,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !ENABLE
 				//
 
-				else if (Command == "enable")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "enable") {
+					if (IsRootAdmin(User)) {
 						SendChatCommand(m_GHost->m_Language->BotEnabled(), User);
 						m_GHost->m_Enabled = true;
 						m_GHost->m_DisabledMessage.clear();
@@ -1463,10 +1325,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 				}
 
-				else if (Command == "enableladder")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "enableladder") {
+					if (IsRootAdmin(User)) {
 						SendChatCommand(m_GHost->m_Language->BotLadderEnabled(), User);
 						m_GHost->m_EnabledLadder = true;
 					}
@@ -1480,10 +1340,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !QUIT
 				//
 
-				else if (Command == "exit" || Command == "quit")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "exit" || Command == "quit") {
+					if (IsRootAdmin(User)) {
 						if (Payload == "nice")
 							m_GHost->m_ExitingNice = true;
 						else if (Payload == "force")
@@ -1500,8 +1358,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !CKICK
 				//
 
-				else if ((Command == "kick" || Command == "ckick") && !Payload.empty())
-				{
+				else if ((Command == "kick" || Command == "ckick") && !Payload.empty()) {
 					string Victim;
 					string Reason;
 
@@ -1509,8 +1366,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					SS << Payload;
 					SS >> Victim;
 
-					if (!SS.eof())
-					{
+					if (!SS.eof()) {
 						getline(SS, Reason);
 						SendChatCommand("/kick " + Victim + " " + User + ": " + Reason + ".");
 					}
@@ -1522,14 +1378,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !MAXGAMES
 				//
 
-				else if (Command == "maxgames")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "maxgames") {
+					if (IsRootAdmin(User)) {
 						if (Payload.empty())
 							SendChatCommand("Max games is set to " + UTIL_ToString(m_GHost->m_MaxGames), User);
-						else
-						{
+						else {
 							m_GHost->m_MaxGames = UTIL_ToUInt32(Payload);
 							SendChatCommand("Setting max games to " + Payload, User);
 						}
@@ -1553,8 +1406,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !SAY
 				//
 
-				else if (Command == "say" && !Payload.empty())
-				{
+				else if (Command == "say" && !Payload.empty()) {
 					if (IsRootAdmin(User))
 						QueueChatCommand(Payload);
 					else
@@ -1576,8 +1428,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !VOICE (temporary voice, expires when user reconnects)
 				//
 
-				else if (Command == "voice" && !Payload.empty())
-				{
+				else if (Command == "voice" && !Payload.empty()) {
 					if (IsRootAdmin(User))
 						SendChatCommand("/voice " + Payload);
 					else
@@ -1588,8 +1439,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !VOP (permanent voice)
 				//
 
-				else if (Command == "vop" && !Payload.empty())
-				{
+				else if (Command == "vop" && !Payload.empty()) {
 					if (IsRootAdmin(User) || Player->GetAccessLevel() > 8000)
 						SendChatCommand("/vop " + Payload);
 					else
@@ -1618,18 +1468,14 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !SLAVES
 				//
 
-				else if (Command == "slaves")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "slaves") {
+					if (IsRootAdmin(User)) {
 						vector<string> slaveinfo = m_GHost->m_Manager->PrintSlaveInfo();
-						for (vector<string>::iterator i = slaveinfo.begin(); i != slaveinfo.end(); ++i)
-						{
+						for (vector<string>::iterator i = slaveinfo.begin(); i != slaveinfo.end(); ++i) {
 							SendChatCommand(*i, User);
 						}
 					}
-					else
-					{
+					else {
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 					}
 				}
@@ -1638,18 +1484,14 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !SLAVES
 				//
 
-				else if (Command == "slavesl")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "slavesl") {
+					if (IsRootAdmin(User)) {
 						vector<string> slaveinfo = m_GHost->m_Manager->PrintSlaveInfoLesser();
-						for (vector<string>::iterator i = slaveinfo.begin(); i != slaveinfo.end(); ++i)
-						{
+						for (vector<string>::iterator i = slaveinfo.begin(); i != slaveinfo.end(); ++i) {
 							SendChatCommand(*i, User);
 						}
 					}
-					else
-					{
+					else {
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 					}
 				}
@@ -1658,15 +1500,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !RSC
 				//
 
-				else if (Command == "rsc")
-				{
-					if (IsRootAdmin(User))
-					{
+				else if (Command == "rsc") {
+					if (IsRootAdmin(User)) {
 						m_GHost->m_Manager->ReloadSlaveConfig();
 						SendChatCommand("Config reload sent to all slaves", User);
 					}
-					else
-					{
+					else {
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 					}
 				}
@@ -1675,42 +1514,33 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !DS
 				//
 
-				else if (Command == "ds")
-				{
-					if (IsRootAdmin(User))
-					{
-						if (Payload.empty())
-						{
+				else if (Command == "ds") {
+					if (IsRootAdmin(User)) {
+						if (Payload.empty()) {
 							m_GHost->m_Manager->SoftDisableAllSlaves();
 							SendChatCommand("Softly disabling all slaves", User);
 						}
-						else
-						{
+						else {
 							stringstream SS;
 							uint32_t slaveID = 0;
 							SS << Payload;
 							SS >> slaveID;
 
-							if (SS.fail())
-							{
+							if (SS.fail()) {
 								SendChatCommand("Failed to disable slave with unknown ID", User);
 							}
-							else
-							{
+							else {
 								bool result = m_GHost->m_Manager->SoftDisableSlave(slaveID);
-								if (result)
-								{
+								if (result) {
 									SendChatCommand("Successfully disabled slave with ID " + UTIL_ToString(slaveID), User);
 								}
-								else
-								{
+								else {
 									SendChatCommand("Failed to disable slave with ID " + UTIL_ToString(slaveID), User);
 								}
 							}
 						}
 					}
-					else
-					{
+					else {
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 					}
 				}
@@ -1719,42 +1549,33 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				// !ES
 				//
 
-				else if (Command == "es")
-				{
-					if (IsRootAdmin(User))
-					{
-						if (Payload.empty())
-						{
+				else if (Command == "es") {
+					if (IsRootAdmin(User)) {
+						if (Payload.empty()) {
 							m_GHost->m_Manager->SoftEnableAllSlaves();
 							SendChatCommand("Softly enabling all slaves", User);
 						}
-						else
-						{
+						else {
 							stringstream SS;
 							uint32_t slaveID = 0;
 							SS << Payload;
 							SS >> slaveID;
 
-							if (SS.fail())
-							{
+							if (SS.fail()) {
 								SendChatCommand("Failed to enable slave with unknown ID", User);
 							}
-							else
-							{
+							else {
 								bool result = m_GHost->m_Manager->SoftEnableSlave(slaveID);
-								if (result)
-								{
+								if (result) {
 									SendChatCommand("Successfully enabled slave with ID " + UTIL_ToString(slaveID), User);
 								}
-								else
-								{
+								else {
 									SendChatCommand("Failed to enable slave with ID " + UTIL_ToString(slaveID), User);
 								}
 							}
 						}
 					}
-					else
-					{
+					else {
 						SendChatCommand(m_GHost->m_Language->YouDontHaveAccessToThatCommand(), User);
 					}
 				}
@@ -1764,8 +1585,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !CHECKALL
 			//
 
-			if (Command == "_checkall")
-			{
+			if (Command == "_checkall") {
 				if (Payload.empty())
 					Payload = User;
 
@@ -1780,33 +1600,27 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !CHECKBAN
 			//
 
-			else if (Command == "checkban")
-			{
+			else if (Command == "checkban") {
 				string Name = Payload.empty() ? User : Payload;
 				string NameLower = Name;
-				transform(NameLower.begin(), NameLower.end(), NameLower.begin(), (int(*)(int))tolower);
+				transform(NameLower.begin(), NameLower.end(), NameLower.begin(), (int (*)(int))tolower);
 				CDBPlayer* CheckbanPlayer = NULL;
 
 				if (Payload.empty())
 					CheckbanPlayer = Player;
-				else
-				{
-					for (list<CPlayers*> ::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i)
-					{
-						if ((*i)->GetServerID() == m_ServerID)
-						{
+				else {
+					for (list<CPlayers*>::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i) {
+						if ((*i)->GetServerID() == m_ServerID) {
 							CheckbanPlayer = (*i)->GetPlayer(NameLower);
 							break;
 						}
 					}
 				}
 
-				if (CheckbanPlayer)
-				{
+				if (CheckbanPlayer) {
 					CDBBanGroup* BanGroup = CheckbanPlayer->GetBanGroup();
 
-					if (BanGroup && BanGroup->GetIsBanned())
-					{
+					if (BanGroup && BanGroup->GetIsBanned()) {
 						/*string RemainingTime = Player->GetBan( )->GetReadableTimeRemaining( GetMySQLTime( ) );
 
 						if( RemainingTime.empty( ) )
@@ -1824,8 +1638,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 						// print when is the ban expiring if it's not perma ban
 
-						if (BanGroup->GetDuration())
-						{
+						if (BanGroup->GetDuration()) {
 							CheckbanStr += " Ban expiring in";
 
 							if (GetMySQLTime() >= (BanGroup->GetDatetime() + BanGroup->GetDuration()))
@@ -1848,30 +1661,24 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 							uint32_t Seconds = RemainingTime;
 
-							if (Months)
-							{
+							if (Months) {
 								CheckbanStr += " " + UTIL_ToString(Months) + " months";
 								if (Days)
 									CheckbanStr += " " + UTIL_ToString(Days) + " days";
 							}
-							else
-							{
-								if (Days)
-								{
+							else {
+								if (Days) {
 									CheckbanStr += " " + UTIL_ToString(Days) + " days";
 									if (Hours)
 										CheckbanStr += " " + UTIL_ToString(Hours) + " hours";
 								}
-								else
-								{
-									if (Hours)
-									{
+								else {
+									if (Hours) {
 										CheckbanStr += " " + UTIL_ToString(Hours) + " hours";
 										if (Minutes)
 											CheckbanStr += " " + UTIL_ToString(Minutes) + " minutes";
 									}
-									else
-									{
+									else {
 										if (Minutes)
 											CheckbanStr += " " + UTIL_ToString(Minutes) + " minutes";
 										else
@@ -1906,18 +1713,14 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !GAMESINFO
 			//
 
-			else if (Command == "gamesinfo")
-			{
-				if (m_GHost->m_Manager->m_RemoteGames.size() > 0)
-				{
+			else if (Command == "gamesinfo") {
+				if (m_GHost->m_Manager->m_RemoteGames.size() > 0) {
 					unsigned int j = 0;
-					for (list<CRemoteGame *> :: iterator i = m_GHost->m_Manager->m_RemoteGames.begin( ); i != m_GHost->m_Manager->m_RemoteGames.end( ); ++i )
-					{
-						SendChatCommand(UTIL_ToString(++j) + ". " + (*i)->GetDescription( ), User);
+					for (list<CRemoteGame*>::iterator i = m_GHost->m_Manager->m_RemoteGames.begin(); i != m_GHost->m_Manager->m_RemoteGames.end(); ++i) {
+						SendChatCommand(UTIL_ToString(++j) + ". " + (*i)->GetDescription(), User);
 					}
 				}
-				else
-				{
+				else {
 					SendChatCommand("There are no running games at the moment.", User);
 				}
 			}
@@ -1933,23 +1736,17 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !GNAMES
 			//
 
-			else if (Command == "gnames")
-			{
-				if (!Payload.empty())
-				{
+			else if (Command == "gnames") {
+				if (!Payload.empty()) {
 					SendChatCommand(m_GHost->m_Manager->GetGamePlayerNames(Payload), User);
 				}
-				else
-				{
-					if (m_GHost->m_Manager->m_RemoteGames.size() > 0)
-					{
-						for (list<CRemoteGame *> :: iterator i = m_GHost->m_Manager->m_RemoteGames.begin(); i != m_GHost->m_Manager->m_RemoteGames.end(); ++i)
-						{
+				else {
+					if (m_GHost->m_Manager->m_RemoteGames.size() > 0) {
+						for (list<CRemoteGame*>::iterator i = m_GHost->m_Manager->m_RemoteGames.begin(); i != m_GHost->m_Manager->m_RemoteGames.end(); ++i) {
 							SendChatCommand((*i)->GetNames(), User);
 						}
 					}
-					else
-					{
+					else {
 						SendChatCommand("There are no running games at the moment.", User);
 					}
 				}
@@ -1959,16 +1756,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !PRIVL<region>
 			// !PRIV<region>
 			//
-			else if ((Command.starts_with("priv") || Command.starts_with("privl")) && !Payload.empty())
-			{
+			else if ((Command.starts_with("priv") || Command.starts_with("privl")) && !Payload.empty()) {
 				const bool legacyMap = Command.starts_with("privl");
 
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+				if (Whisper) {
+					if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							/*uint32_t AccessLevel = 100;
 
 							if( IsRootAdmin( User ) )
@@ -1978,12 +1771,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							else if( IsContributor( User ) )
 								AccessLevel = 1000;*/
 
-								// create DotA game
+							// create DotA game
 							if (Payload.size() > 31)
-								//SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
+								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
+							else {
 								if (legacyMap && !UTIL_IsTDay()) {
 									SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
 								}
@@ -2008,14 +1800,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			//
 			// !PRIVOBS<region>
 			//
-			else if (Command.starts_with("privobs") && !Payload.empty())
-			{
-				if (Whisper)
-				{
-					if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder)
-					{
-						if (!Player->GetIsBanned() || Player->GetIsAdmin())
-						{
+			else if (Command.starts_with("privobs") && !Payload.empty()) {
+				if (Whisper) {
+					if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder) {
+						if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 							/*uint32_t AccessLevel = 100;
 
 							if( IsRootAdmin( User ) )
@@ -2028,9 +1816,8 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							// create DotA game
 							if (Payload.size() > 31)
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
-							else
-							{
-							    	const std::string region = Regions::regionFromPostfix(Command);
+							else {
+								const std::string region = Regions::regionFromPostfix(Command);
 								if (IsInChannel(User))
 									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, string(), true, true, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 								else
@@ -2051,14 +1838,11 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !PUBL<region>
 			// !PUB<region>
 			//
-			else if ((Command.starts_with("pub") || Command.starts_with("publ")) && !Payload.empty())
-			{
+			else if ((Command.starts_with("pub") || Command.starts_with("publ")) && !Payload.empty()) {
 				const bool legacyMap = Command.starts_with("publ");
 
-				if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder)
-				{
-					if (!Player->GetIsBanned() || Player->GetIsAdmin())
-					{
+				if (m_GHost->m_Enabled && m_GHost->m_EnabledLadder) {
+					if (!Player->GetIsBanned() || Player->GetIsAdmin()) {
 						/*uint32_t AccessLevel = 100;
 
 						if( IsRootAdmin( User ) )
@@ -2068,7 +1852,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						else if( IsContributor( User ) )
 							AccessLevel = 1000;*/
 
-							// create DotA game
+						// create DotA game
 						if (Payload.size() > 31) {
 							SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 						}
@@ -2077,7 +1861,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
 							}
 							else {
-							    	const std::string region = Regions::regionFromPostfix(Command);
+								const std::string region = Regions::regionFromPostfix(Command);
 								const bool isInChannel = IsInChannel(User);
 								const std::string mapName = legacyMap ? "l" : string();
 								m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
@@ -2085,7 +1869,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 						}
 					}
 					else {
-					    	SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
+						SendChatCommand(m_GHost->m_Language->UserYouCantCreateGameBecauseYouAreBanned(User), User);
 					}
 				}
 				else {
@@ -2097,20 +1881,16 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !INFO
 			//
 
-			if (Command == "info")
-			{
+			if (Command == "info") {
 				string CheckPlayerName = User;
 				CDBPlayer* CheckPlayer = Player;
 
-				if (!Payload.empty())
-				{
+				if (!Payload.empty()) {
 					CheckPlayerName = Payload;
 					CheckPlayer = NULL;
 
-					for (list<CPlayers*> ::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i)
-					{
-						if ((*i)->GetServerID() == m_ServerID)
-						{
+					for (list<CPlayers*>::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i) {
+						if ((*i)->GetServerID() == m_ServerID) {
 							CheckPlayer = (*i)->GetPlayer(Payload);
 							break;
 						}
@@ -2163,12 +1943,9 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !LOBBIES
 			//
 
-			else if (Command == "lobbies")
-			{
-				if (m_GHost->m_Manager->m_RemoteGamesInLobby.size() > 0)
-				{
-					for (int i = 1; i <= m_GHost->m_Manager->m_RemoteGamesInLobby.size(); i++)
-					{
+			else if (Command == "lobbies") {
+				if (m_GHost->m_Manager->m_RemoteGamesInLobby.size() > 0) {
+					for (int i = 1; i <= m_GHost->m_Manager->m_RemoteGamesInLobby.size(); i++) {
 						SendChatCommand(m_GHost->m_Manager->GetLobbyPlayerNames(UTIL_ToString(i)), User);
 					}
 				}
@@ -2181,16 +1958,12 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !QUEUE
 			//
 
-			else if (Command == "queue" || Command == "q")
-			{
-				if (Whisper)
-				{
+			else if (Command == "queue" || Command == "q") {
+				if (Whisper) {
 					uint32_t GameCount = m_GHost->m_Manager->QueueGameCount();
 
-					if (GameCount)
-					{
-						if (Payload.empty())
-						{
+					if (GameCount) {
+						if (Payload.empty()) {
 							SendChatCommand("There are " + UTIL_ToString(GameCount) + " users in the queue:", User);
 
 							// list all players in the queue
@@ -2199,12 +1972,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							CQueuedGame* Game = m_GHost->m_Manager->GetQueuedGame(i);
 							string Queue;
 
-							while (Game != NULL)
-							{
+							while (Game != NULL) {
 								Queue += UTIL_ToString(i) + ". " + Game->GetCreatorName() + " ";
 
-								if (Queue.size() > 150)
-								{
+								if (Queue.size() > 150) {
 									SendChatCommand(Queue, User);
 									Queue.clear();
 								}
@@ -2216,8 +1987,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							if (!Queue.empty())
 								SendChatCommand(Queue, User);
 						}
-						else
-						{
+						else {
 							CQueuedGame* QueuedGame = m_GHost->m_Manager->GetQueuedGame(UTIL_ToUInt32(Payload));
 
 							if (QueuedGame)
@@ -2238,26 +2008,21 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !SD
 			//
 
-			else if (Command == "statsdota" || Command == "sd")
-			{
+			else if (Command == "statsdota" || Command == "sd") {
 				CDBDotAPlayerSummary* DotAPlayerSummary = NULL;
 				string TargetUser;
 
-				if (Payload.empty())
-				{
+				if (Payload.empty()) {
 					if (Player)
 						DotAPlayerSummary = Player->GetDotAPlayerSummary();
 
 					TargetUser = User;
 				}
-				else
-				{
+				else {
 					CDBPlayer* TargetPlayer = NULL;
 
-					for (list<CPlayers*> ::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i)
-					{
-						if ((*i)->GetServerID() == m_ServerID)
-						{
+					for (list<CPlayers*>::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i) {
+						if ((*i)->GetServerID() == m_ServerID) {
 							CDBPlayer* TargetPlayer = (*i)->GetPlayer(Payload);
 
 							if (TargetPlayer)
@@ -2270,8 +2035,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					TargetUser = Payload;
 				}
 
-				if (DotAPlayerSummary)
-				{
+				if (DotAPlayerSummary) {
 					SendChatCommand("[" + TargetUser + "] PSR: " + UTIL_ToString(DotAPlayerSummary->GetRating(), 0) + " games: " + UTIL_ToString(DotAPlayerSummary->GetTotalGames()) + " W/L: " + UTIL_ToString(DotAPlayerSummary->GetTotalWins()) + "/" + UTIL_ToString(DotAPlayerSummary->GetTotalLosses()), User);
 					SendChatCommand("H. K/D/A " + UTIL_ToString(DotAPlayerSummary->GetAvgKills(), 2) + "/" + UTIL_ToString(DotAPlayerSummary->GetAvgDeaths(), 2) + "/" + UTIL_ToString(DotAPlayerSummary->GetAvgAssists(), 2) + " C. K/D/N " + UTIL_ToString(DotAPlayerSummary->GetAvgCreepKills(), 2) + "/" + UTIL_ToString(DotAPlayerSummary->GetAvgCreepDenies(), 2) + "/" + UTIL_ToString(DotAPlayerSummary->GetAvgNeutralKills(), 2), User);
 				}
@@ -2284,26 +2048,21 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !HS
 			//
 
-			else if (Command == "highscore" || Command == "hs")
-			{
+			else if (Command == "highscore" || Command == "hs") {
 				CDBDotAPlayerSummary* DotAPlayerSummary = NULL;
 				string TargetUser;
 
-				if (Payload.empty())
-				{
+				if (Payload.empty()) {
 					if (Player)
 						DotAPlayerSummary = Player->GetDotAPlayerSummary();
 
 					TargetUser = User;
 				}
-				else
-				{
+				else {
 					CDBPlayer* TargetPlayer = NULL;
 
-					for (list<CPlayers*> ::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i)
-					{
-						if ((*i)->GetServerID() == m_ServerID)
-						{
+					for (list<CPlayers*>::iterator i = m_GHost->m_Players.begin(); i != m_GHost->m_Players.end(); ++i) {
+						if ((*i)->GetServerID() == m_ServerID) {
 							CDBPlayer* TargetPlayer = (*i)->GetPlayer(Payload);
 
 							if (TargetPlayer)
@@ -2316,8 +2075,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					TargetUser = Payload;
 				}
 
-				if (DotAPlayerSummary)
-				{
+				if (DotAPlayerSummary) {
 					SendChatCommand("[" + TargetUser + "] highest PSR: " + UTIL_ToString(DotAPlayerSummary->GetHighestRating(), 0), User);
 				}
 				else
@@ -2328,15 +2086,13 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			// !UNQUEUE
 			//
 
-			else if (Command == "unqueue")
-			{
+			else if (Command == "unqueue") {
 				string Target = User;
 
 				if (!Payload.empty() && (IsAdmin || IsRootAdmin(User)))
 					Target = Payload;
 
-				if (m_GHost->m_Manager->HasQueuedGame(this, Target))
-				{
+				if (m_GHost->m_Manager->HasQueuedGame(this, Target)) {
 					SendChatCommand("Deleted game from queue for user [" + Target + "].", User);
 					m_GHost->m_Manager->UnqueueGame(this, Target);
 				}
@@ -2357,7 +2113,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				SendChatCommand(m_GHost->m_Language->Version(m_GHost->m_Version), User);
 
 			else if (Command == "regions") {
-			    SendChatCommand(Regions::toString(), User);
+				SendChatCommand(Regions::toString(), User);
 			}
 
 			//
@@ -2373,8 +2129,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 		if (DeletePlayer)
 			delete Player;
 	}
-	else if (Event == CBNETProtocol::EID_CHANNEL)
-	{
+	else if (Event == CBNETProtocol::EID_CHANNEL) {
 		// keep track of current channel so we can rejoin it after hosting a game
 
 		BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] joined channel [" + Message + "]");
@@ -2385,8 +2140,7 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 		m_PlayersInChannel.clear();
 	}
-	else if (Event == CBNETProtocol::EID_INFO)
-	{
+	else if (Event == CBNETProtocol::EID_INFO) {
 		BNET_Print("[INFO: " + m_ServerAlias + " " + m_UserName + "] " + Message);
 
 		// extract the first word which we hope is the username
@@ -2402,52 +2156,46 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 	}
 	else if (Event == CBNETProtocol::EID_ERROR)
 		BNET_Print("[ERROR: " + m_ServerAlias + " " + m_UserName + "] " + Message);
-	else if (Event == CBNETProtocol::EID_EMOTE)
-	{
+	else if (Event == CBNETProtocol::EID_EMOTE) {
 		BNET_Print("[EMOTE: " + m_ServerAlias + " " + m_UserName + "] [" + User + "] " + Message);
 		m_GHost->EventBNETEmote(this, User, Message);
 	}
-	else if (Event == CBNETProtocol::EID_SHOWUSER)
-	{
+	else if (Event == CBNETProtocol::EID_SHOWUSER) {
 		// we joined a new channel and this player was already in it
 
 		string Name = User;
-		transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+		transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
 		// add player to the channel players list
 
 		m_PlayersInChannel.push_back(Name);
 	}
-	else if (Event == CBNETProtocol::EID_JOIN)
-	{
+	else if (Event == CBNETProtocol::EID_JOIN) {
 		// player joined our channel
 
 		string Name = User;
-		transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+		transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
 		// add player to the channel players list
 
 		m_PlayersInChannel.push_back(Name);
 	}
-	else if (Event == CBNETProtocol::EID_LEAVE)
-	{
+	else if (Event == CBNETProtocol::EID_LEAVE) {
 		// player left our channel
 
 		string Name = User;
-		transform(Name.begin(), Name.end(), Name.begin(), (int(*)(int))tolower);
+		transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
 
 		// unqueue the game when player leaves the channel
 
-		if (m_GHost->m_Manager->HasQueuedGame(this, Name))
-		{
+		if (m_GHost->m_Manager->HasQueuedGame(this, Name)) {
 			SendChatCommand("Your game was unqueued since you left the channel.", Name);
 			m_GHost->m_Manager->UnqueueGame(this, Name);
 		}
 
 		// remove player from the channel players list
 
-		for (list<string> ::iterator i = m_PlayersInChannel.begin(); i != m_PlayersInChannel.end(); )
-		{
+		for (list<string>::iterator i = m_PlayersInChannel.begin(); i != m_PlayersInChannel.end();) {
 			if ((*i) == Name)
 				i = m_PlayersInChannel.erase(i);
 			else
@@ -2473,8 +2221,7 @@ void CBNET::QueueChatCommand(string chatCommand)
 	if (chatCommand.empty())
 		return;
 
-	if (m_LoggedIn)
-	{
+	if (m_LoggedIn) {
 		if (m_PasswordHashType == "pvpgn" && chatCommand.size() > m_MaxMessageLength)
 			chatCommand = chatCommand.substr(0, m_MaxMessageLength);
 
@@ -2483,8 +2230,7 @@ void CBNET::QueueChatCommand(string chatCommand)
 
 		if (m_OutPackets.size() > 10)
 			BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] attempted to queue chat command [" + chatCommand + "] but there are too many (" + UTIL_ToString(m_OutPackets.size()) + ") packets queued, discarding");
-		else
-		{
+		else {
 			BNET_Print("[QUEUED: " + m_ServerAlias + " " + m_UserName + "] " + chatCommand);
 			m_OutPackets.push(m_Protocol->SEND_SID_CHATCOMMAND(chatCommand));
 		}
@@ -2509,14 +2255,12 @@ void CBNET::SendChatCommand(string chatCommand)
 	if (chatCommand.empty())
 		return;
 
-	if (m_PasswordHashType != "pvpgn")
-	{
+	if (m_PasswordHashType != "pvpgn") {
 		BNET_Print("[BNET: " + m_ServerAlias + " " + m_UserName + "] attempted to send chat command [" + chatCommand + "] but server is not PVPGN, discarding");
 		return;
 	}
 
-	if (m_LoggedIn)
-	{
+	if (m_LoggedIn) {
 		if (chatCommand.size() > 255)
 			chatCommand = chatCommand.substr(0, 255);
 
@@ -2540,7 +2284,7 @@ void CBNET::SendChatCommand(string chatCommand, string user)
 	else {
 		unsigned int chunkSize = CBNET::BNET_MAX_WHISPER_SIZE - user.length() - 4;
 
-		for (unsigned int i=0; i<chatCommand.length(); i+=chunkSize) {
+		for (unsigned int i = 0; i < chatCommand.length(); i += chunkSize) {
 			string chunk = chatCommand.substr(i, chunkSize);
 			SendChatCommand("/w " + user + " " + chunk);
 		}
@@ -2560,7 +2304,7 @@ void CBNET::SendDelayedWhisper(string chatCommand, string user, uint32_t msec)
 bool CBNET::IsRootAdmin(string name)
 {
 	// m_RootAdmin was already transformed to lower case in the constructor
-	transform(name.begin(), name.end(), name.begin(), (int(*)(int))tolower);
+	transform(name.begin(), name.end(), name.begin(), (int (*)(int))tolower);
 
 	// updated to permit multiple root admins seperated by a space, e.g. "Varlock Kilranin Instinct121"
 	// note: this function gets called frequently so it would be better to parse the root admins just once and store them in a list somewhere
@@ -2570,8 +2314,7 @@ bool CBNET::IsRootAdmin(string name)
 	string s;
 	SS << m_RootAdmin;
 
-	while (!SS.eof())
-	{
+	while (!SS.eof()) {
 		SS >> s;
 
 		if (name == s)
@@ -2583,10 +2326,9 @@ bool CBNET::IsRootAdmin(string name)
 
 bool CBNET::IsContributor(string name)
 {
-	transform(name.begin(), name.end(), name.begin(), (int(*)(int))tolower);
+	transform(name.begin(), name.end(), name.begin(), (int (*)(int))tolower);
 
-	for (list<string> ::iterator i = m_Contributors.begin(); i != m_Contributors.end(); ++i)
-	{
+	for (list<string>::iterator i = m_Contributors.begin(); i != m_Contributors.end(); ++i) {
 		if (*i == name)
 			return true;
 	}
@@ -2715,10 +2457,9 @@ bool CBNET::IsContributor(string name)
 
 bool CBNET::IsInChannel(string name)
 {
-	transform(name.begin(), name.end(), name.begin(), (int(*)(int))tolower);
+	transform(name.begin(), name.end(), name.begin(), (int (*)(int))tolower);
 
-	for (list<string> ::iterator i = m_PlayersInChannel.begin(); i != m_PlayersInChannel.end(); ++i)
-	{
+	for (list<string>::iterator i = m_PlayersInChannel.begin(); i != m_PlayersInChannel.end(); ++i) {
 		if ((*i) == name)
 			return true;
 	}

@@ -2630,7 +2630,7 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 				else if (ExtraFlags[0] == 0) {
 					// this is an ingame [All] message, print it to the console
 
-					CONSOLE_Print("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName() + "]: " + chatPlayer->GetMessage());
+					CONSOLE_Print("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [All] [" + player->GetName() + "]: " + chatPlayer->GetChatMessage());
 
 					// don't relay ingame messages targeted for all players if we're currently muting all
 					// note that commands will still be processed even when muting all because we only stop relaying the messages, the rest of the function is unaffected
@@ -2643,7 +2643,7 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 				else if (ExtraFlags[0] == 2) {
 					// this is an ingame [Obs/Ref] message, print it to the console
 
-					CONSOLE_Print("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Obs/Ref] [" + player->GetName() + "]: " + chatPlayer->GetMessage());
+					CONSOLE_Print("[GAME: " + m_GameName + "] (" + MinString + ":" + SecString + ") [Obs/Ref] [" + player->GetName() + "]: " + chatPlayer->GetChatMessage());
 				}
 
 				if (Relay) {
@@ -2651,9 +2651,9 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 					// this includes allied chat and private chat from both teams as long as it was relayed
 
 					if (m_Replay)
-						m_Replay->AddChatMessage(chatPlayer->GetFromPID(), chatPlayer->GetFlag(), UTIL_ByteArrayToUInt32(chatPlayer->GetExtraFlags(), false), chatPlayer->GetMessage());
+						m_Replay->AddChatMessage(chatPlayer->GetFromPID(), chatPlayer->GetFlag(), UTIL_ByteArrayToUInt32(chatPlayer->GetExtraFlags(), false), chatPlayer->GetChatMessage());
 
-					m_GameLog->AddMessage(ExtraFlags[0], player->GetName(), chatPlayer->GetMessage());
+					m_GameLog->AddMessage(ExtraFlags[0], player->GetName(), chatPlayer->GetChatMessage());
 				}
 			}
 			else {
@@ -2662,19 +2662,19 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 				else {
 					// this is a lobby message, print it to the console
 
-					CONSOLE_Print("[GAME: " + m_GameName + "] [Lobby] [" + player->GetName() + "]: " + chatPlayer->GetMessage());
+					CONSOLE_Print("[GAME: " + m_GameName + "] [Lobby] [" + player->GetName() + "]: " + chatPlayer->GetChatMessage());
 
 					if (m_MuteLobby)
 						Relay = false;
 
 					if (Relay)
-						m_LobbyLog->AddMessage(player->GetName(), chatPlayer->GetMessage());
+						m_LobbyLog->AddMessage(player->GetName(), chatPlayer->GetChatMessage());
 				}
 			}
 
 			// handle bot commands
 
-			string Message = chatPlayer->GetMessage();
+			string Message = chatPlayer->GetChatMessage();
 
 			/*if( Message == "?trigger" )
 				SendChat( player, m_GHost->m_Language->CommandTrigger( string( 1, m_GHost->m_CommandTrigger ) ) );
@@ -2751,7 +2751,7 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 						vToPIDs.push_back(ToPIDs[i]);
 					}
 				}
-				Send(ToPIDs, m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), vToPIDs, chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetMessage()));
+				Send(ToPIDs, m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), vToPIDs, chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetChatMessage()));
 			}
 		}
 		else if (chatPlayer->GetType() == CIncomingChatPlayer ::CTH_TEAMCHANGE && !m_CountDownStarted)
