@@ -46,4 +46,5 @@ Checks: '
     ,-cppcoreguidelines-pro-bounds-array-to-pointer-decay
     ,-cppcoreguidelines-avoid-c-arrays
     ,-cppcoreguidelines-narrowing-conversions
+    ,-performance-avoid-endl
 '

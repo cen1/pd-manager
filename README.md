@@ -7,33 +7,35 @@ Warcraft III hosting system based on original ghost++ project.
 Created by myubernick and maintained by cen. This system hosted thousands of DotA and custom games on former playdota.eu/lagabuse.com since 2008, now known as dota.eurobattle.net.
 
 This repository consists of:
+
 - `pd-manager`: bot sitting in bnet channel accepting player commands to host games, check lobbies and collect game stats.
 - `pd-slave`: accepts a command from manager and hosts the game lobby. Multiple slave bots can be attached to a single manager.
 
 Copyright [2008] [Trevor Hogan]  
 Copyright [2010-2025] [myubernick, cen, luke]
 
-## Convenience Debian repo for bncsutil and stormlib
+## Convenience Debian repo for bncsutil
 
 ```
-curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo tee /etc/apt/keyrings/debian-bookworm-xpam.asc
+curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo tee /etc/apt/keyrings/debian-trixie-xpam.asc
 
 echo "Types: deb
-URIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/
-Suites: bookworm
+URIs: https://repo.xpam.pl/repository/debian-trixie-xpam/
+Suites: trixie
 Components: main
-Signed-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" |
+Signed-By: /etc/apt/keyrings/debian-trixie-xpam.asc" |
 sudo tee /etc/apt/sources.list.d/xpam.sources > /dev/null
 ```
 
-Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) and [stormlib](https://github.com/ladislav-zezula/StormLib) from source.
+Alternatively, you need to build and install [bncsutil](https://github.com/BNETDocs/bncsutil) from source.
 
 ## Build on Linux
+
 ```
-wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | sudo apt-key add -
+wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt install libmariadb-dev-compat libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
-libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev bncsutil stormlib
+sudo apt install libmariadb-dev-compat libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
+libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil libstorm-dev
 cmake -B build
 cmake --build build --config Release
 cd build
@@ -45,18 +47,22 @@ ctest --verbose -C Release
 Use Visual Studio CMD.
 
 Using vcpkg
+
 ```
 cmake --preset vcpkg
 cmake --build build_vcpkg --config Release
 ```
+
 Vcpkg builds everything from source so it can take a while.
 
 Using conan v2
+
 ```
-conan install . -of build_conan -s build_type=Release -o *:shared=True --build=missing
+conan install . -of build_conan -s build_type=Release -s compiler.cppstd=20 -o *:shared=True --build=missing
 cmake --preset conan
 cmake --build build_conan --config Release
 ```
+
 Conan does not currently package Stormlib so the binaries are fetched by CMake.
 Bncsutil binaries are also fetched by CMake since it is not packaged in either repository.
 
@@ -66,6 +72,7 @@ To develop in Visual Studio, you can add `-G "Visual Studio 17 2022"` to the pre
 
 Before you begin, you need to place `blizzard.j` and `common.j` from your W3 install into your mapcfgs directory, for example in `./data/mapcfgs`.
 You also need to prepare a W3 directory with minimal set of files:
+
 - game.dll
 - Storm.dll
 - war3.exe
@@ -89,17 +96,17 @@ You should prepare `pd-manager-docker.cfg` which will be volume mounted into the
 
 You need to configure at a minimum these options from the example manager cfg:
 
-| Option    | Description                                                                                                                                          |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bot_war3path    | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
-| bnet_server | Bnet server                                                                                                                                          |
-| bnet_serveralias | Bnet server alias name                                                                                                                               |
-| bnet_username | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
-| bnet_password | Bnet bot username password. Use lowercase only.                                                                                                      |
-| bnet_rootadmin | Bnet player account that will have root privileges for all commands.                                                                                 |
-| bnet_custom_war3version | Set to minor W3 version, `26` or `28`.                                                                                                               |
+| Option                       | Description                                                                                                                                          |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
+| bnet_server                  | Bnet server                                                                                                                                          |
+| bnet_serveralias             | Bnet server alias name                                                                                                                               |
+| bnet_username                | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
+| bnet_password                | Bnet bot username password. Use lowercase only.                                                                                                      |
+| bnet_rootadmin               | Bnet player account that will have root privileges for all commands.                                                                                 |
+| bnet_custom_war3version      | Set to minor W3 version, `26` or `28`.                                                                                                               |
 | bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                                   |
-| db_mysql_* | Connection options to your MySQL database.																												                                                                               |
+| db_mysql_*                   | Connection options to your MySQL database.																												                                                                               |
 
 Default manager config expect the game files in `./war3_126a` and all you need to provide is essentially the username and password to get started.
 
@@ -107,16 +114,16 @@ You should also prepare `pd-slave-docker.cfg`, `slave_cfgs/s01.cfg` and `slave_c
 
 You need to configure at a minimum these options from the example slave cfg:
 
-| Option    | Description                                                                                                                                                |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bot_war3path    | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
-| bnet_server | Bnet server                                                                                                                                              |
-| bnet_serveralias | Bnet server                                                                                                                                         |
-| bnet_username | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account.   |
-| bnet_password | Bnet bot username password. Use lowercase only.                                                                                                        |
-| bnet_rootadmin | Bnet player account that will have root privileges for all commands.                                                                                  |
-| bnet_custom_war3version | Set to minor W3 version, `26` or `28`.                                                                                                       |
-| bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                      |
+| Option                       | Description                                                                                                                                          |
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
+| bnet_server                  | Bnet server                                                                                                                                          |
+| bnet_serveralias             | Bnet server                                                                                                                                          |
+| bnet_username                | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
+| bnet_password                | Bnet bot username password. Use lowercase only.                                                                                                      |
+| bnet_rootadmin               | Bnet player account that will have root privileges for all commands.                                                                                 |
+| bnet_custom_war3version      | Set to minor W3 version, `26` or `28`.                                                                                                               |
+| bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                                   |
 
 You can leave `bnet_username` and `bnet_password` blank in `pd-slave-docker.cfg` and set them in `slave_cfgs/s01.cfg` and `slave_cfgs/s02.cfg`.
 
@@ -127,21 +134,27 @@ Run with `docker compose up -d`.
 If you are behind NAT, you need to port forward 6101, 6102, 6201 and 6202 for default hosts to be able to accept player connections once in lobby.
 
 ### Systemd
+
 See `manager/pd-manager.service` and `ghost/pd-slave.service` for a sample service files.
 
 ### IP-to-country
-If you want pd-slave to be able to display which country players come from, you need to fill up the `new_ip_to_country` table. A convenience script can be found at `manager/import_ip_to_country.csv` which should be adjusted for db credentials and then run once.
+
+If you want pd-slave to be able to display which country players come from, you need to fill up the `new_ip_to_country` table. A convenience script can be found at `manager/import_ip_to_country.csv` which should be adjusted for db credentials and then run
+once.
 
 Credits:
+
 - https://github.com/sapics/ip-location-db CC0 1.0 license
 - https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes CC BY-SA 4.0 license
 
 ### CPack
-``` 
-cpack -G "DEB" --config build/CPackConfig.cmake -B build
+
+```
+cd build && cpack
 ```
 
 ## Debugging production problems
+
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 gdb --args pd_manager-1.0.0 default.cfg

@@ -948,6 +948,13 @@ string CLanguage :: UnableToCreateGameInvalidMap( string gamename )
 	return Out;
 }
 
+string CLanguage :: UnableToCreateGameIncompatibleMap( string gamename )
+{
+	string Out = m_CFG->GetString( "lang_0301", "lang_0301" );
+	UTIL_Replace( Out, "$GAMENAME$", gamename );
+	return Out;
+}
+
 string CLanguage :: WaitingForPlayersBeforeAutoStart( string players, string playersleft )
 {
 	string Out = m_CFG->GetString( "lang_0129", "lang_0129" );

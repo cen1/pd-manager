@@ -21,6 +21,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <string>
+#include <map>
+
 //
 // CConfig
 //
@@ -28,17 +31,19 @@
 class CConfig
 {
 private:
-	map<string, string> m_CFG;
+	std::map<std::string, std::string> m_CFG;
 
 public:
 	CConfig( );
 	~CConfig( );
 
-	void Read( string file );
-	bool Exists( string key );
-	int GetInt( string key, int x );
-	string GetString( string key, string x );
-	void Set( string key, string x );
+	void Read( const std::string& file );
+	bool Exists( const std::string& key );
+	bool GetBool( const std::string& key, bool x );
+	int GetInt( const std::string& key, int x );
+	double GetDouble( const std::string& key, double x );
+	std::string GetString( const std::string& key, std::string x );
+	void Set( const std::string& key, std::string x );
 };
 
 #endif

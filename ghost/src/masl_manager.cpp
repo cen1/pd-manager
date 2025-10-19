@@ -1119,7 +1119,8 @@ void CManager :: SendErrorGameNameExists( string gameName )
 
 void CManager :: SendUserWasBanned( string server, string victim, uint32_t mysqlGameID, string reason )
 {
-	Send( MASL_PROTOCOL :: STM_USER_WASBANNED, server + " " + victim + " " + UTIL_ToString( mysqlGameID ) + " " + reason );
+    	if ( !m_GHost->m_ReplaceAutobanWithPSRPenalty )
+		Send( MASL_PROTOCOL :: STM_USER_WASBANNED, server + " " + victim + " " + UTIL_ToString( mysqlGameID ) + " " + reason );
 }
 
 void CManager :: SendDIV1PlayerWasBanned( uint32_t adminServerID, string adminName, uint32_t victimServerID, string victimName, uint32_t mysqlGameID, string reason )

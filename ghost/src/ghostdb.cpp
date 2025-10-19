@@ -59,8 +59,7 @@ unsigned char CDotAPlayer :: GetLobbyTeam( )
 	if( m_LobbyColor == 255 )
 	{
 		// game is still in lobby
-
-		unsigned char SID = m_Game->GetSIDFromPID( m_PID );
+		const unsigned char SID = m_Game->GetSIDFromPID( m_PID );
 
 		if( SID < m_Game->m_Slots.size( ) )
 			return m_Game->m_Slots[SID].GetTeam( );
@@ -77,12 +76,9 @@ unsigned char CDotAPlayer :: GetLobbyTeam( )
 
 		return 1;
 	}
-	else
-	{
-		// observer
 
-		return 12;
-	}
+	// observer
+	return 12;
 }
 
 unsigned char CDotAPlayer :: GetLobbyColor( )
@@ -90,8 +86,7 @@ unsigned char CDotAPlayer :: GetLobbyColor( )
 	if( m_LobbyColor == 255 )
 	{
 		// game is still in lobby
-
-		unsigned char SID = m_Game->GetSIDFromPID( m_PID );
+		const unsigned char SID = m_Game->GetSIDFromPID( m_PID );
 		
 		if( SID < m_Game->m_Slots.size( ) )
 			return m_Game->m_Slots[SID].GetColour( );
@@ -105,8 +100,7 @@ unsigned char CDotAPlayer :: GetCurrentTeam( )
 	if( m_NewColor == 255 )
 	{
 		// game is still in lobby
-
-		unsigned char SID = m_Game->GetSIDFromPID( m_PID );
+		const unsigned char SID = m_Game->GetSIDFromPID( m_PID );
 
 		if( SID < m_Game->m_Slots.size( ) )
 			return m_Game->m_Slots[SID].GetTeam( );
@@ -114,21 +108,16 @@ unsigned char CDotAPlayer :: GetCurrentTeam( )
 	else if( m_NewColor >= 1 && m_NewColor <= 5 )
 	{
 		// sentinel player
-
 		return 0;
 	}
 	else if( m_NewColor >= 7 && m_NewColor <= 11 )
 	{
 		// scourge player
-
 		return 1;
 	}
-	else
-	{
-		// observer
 
-		return 12;
-	}
+	// observer
+	return 12;
 }
 
 unsigned char CDotAPlayer :: GetCurrentColor( )
@@ -137,7 +126,7 @@ unsigned char CDotAPlayer :: GetCurrentColor( )
 	{
 		// game is still in lobby
 
-		unsigned char SID = m_Game->GetSIDFromPID( m_PID );
+		const unsigned char SID = m_Game->GetSIDFromPID( m_PID );
 		
 		if( SID < m_Game->m_Slots.size( ) )
 			return m_Game->m_Slots[SID].GetColour( );

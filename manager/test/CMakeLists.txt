@@ -19,4 +19,6 @@ target_include_directories(pdm_test PRIVATE ../src)
 
 target_link_libraries (pdm_test PRIVATE gtest_main)
 
+target_compile_definitions(pdm_test PRIVATE -DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+
 add_test(NAME pdm_test COMMAND pdm_test)

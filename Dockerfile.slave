@@ -1,17 +1,17 @@
-FROM debian:bookworm AS build
+FROM debian:trixie AS build
 
 RUN apt-get -y update && apt-get install -y \
     git cmake build-essential libmariadb-dev-compat \
-    libboost-filesystem1.81-dev libboost-system1.81-dev libboost-chrono1.81-dev \
-    libboost-thread1.81-dev libboost-date-time1.81-dev libboost-regex1.81-dev \
+    libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
+    libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev libstorm-dev \
     curl gnupg ca-certificates
 
 # Add xpam repository for bncsutil
-RUN curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-bookworm-xpam.asc | tee /etc/apt/keyrings/debian-bookworm-xpam.asc \
-    && echo "Types: deb\nURIs: https://repo.xpam.pl/repository/debian-bookworm-xpam/\nSuites: bookworm\nComponents: main\nSigned-By: /etc/apt/keyrings/debian-bookworm-xpam.asc" \
+RUN curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | tee /etc/apt/keyrings/debian-trixie-xpam.asc \
+    && echo "Types: deb\nURIs: https://repo.xpam.pl/repository/debian-trixie-xpam/\nSuites: trixie\nComponents: main\nSigned-By: /etc/apt/keyrings/debian-trixie-xpam.asc" \
     | tee /etc/apt/sources.list.d/xpam.sources > /dev/null \
     && apt-get -y update \
-    && apt-get install -y bncsutil stormlib
+    && apt-get install -y bncsutil
 
 WORKDIR /app
 COPY CMake ./CMake
@@ -22,21 +22,21 @@ COPY README.md LICENSE CMakeLists.txt .
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release --target pd-slave --parallel
 
-FROM debian:bookworm AS runtime
+FROM debian:trixie AS runtime
 
 RUN apt-get update && apt-get -y install ca-certificates
 
-COPY --from=build /etc/apt/keyrings/debian-bookworm-xpam.asc /etc/apt/keyrings/debian-bookworm-xpam.asc
+COPY --from=build /etc/apt/keyrings/debian-trixie-xpam.asc /etc/apt/keyrings/debian-trixie-xpam.asc
 COPY --from=build /etc/apt/sources.list.d/xpam.sources /etc/apt/sources.list.d/xpam.sources
 
 RUN apt-get update && apt-get install -y \
-    libboost-filesystem1.81 libboost-system1.81 libboost-chrono1.81 \
-    libboost-thread1.81 libboost-date-time1.81 libboost-regex1.81 \
-    bncsutil stormlib \
+    libboost-filesystem1.83 libboost-system1.83 libboost-chrono1.83 \
+    libboost-thread1.83 libboost-date-time1.83 libboost-regex1.83 \
+    bncsutil libstorm9 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=build /app/build/ghost/pd-slave-1.0.0 .
+COPY --from=build /app/build/ghost/pd-slave-1.0.1 .
 
 COPY ghost/didyouknow.txt ghost/gameloaded.txt ghost/gameover.txt ghost/language.cfg ghost/ipblacklist.txt .
 

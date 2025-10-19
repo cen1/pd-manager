@@ -35,7 +35,7 @@
 // CMap
 //
 
-CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapLoadInGame( false ), m_MapNumPlayers( 12 ), m_MapNumTeams( 12 )
+CMap :: CMap( CGHost *nGHost ) : m_GHost( nGHost ), m_Valid( true ), m_MapIncompatible( false ), m_MapPath( "Maps\\FrozenThrone\\(12)EmeraldGardens.w3x" ), m_MapSpeed( MAPSPEED_FAST ), m_MapVisibility( MAPVIS_DEFAULT ), m_MapObservers( MAPOBS_NONE ), m_MapFlags( MAPFLAG_TEAMSTOGETHER | MAPFLAG_FIXEDTEAMS ), m_MapFilterMaker( MAPFILTER_MAKER_BLIZZARD ), m_MapFilterType( MAPFILTER_TYPE_MELEE ), m_MapFilterSize( MAPFILTER_SIZE_LARGE ), m_MapFilterObs( MAPFILTER_OBS_NONE ), m_MapOptions( MAPOPT_MELEE ), m_MapLoadInGame( false ), m_MapNumPlayers( 12 ), m_MapNumTeams( 12 )
 {
 	CONSOLE_Print( "[MAP] using hardcoded Emerald Gardens map data for Warcraft 3 version 1.24 & 1.24b" );
 	m_MapSize = UTIL_ExtractNumbers( "174 221 4 0", 4 );
@@ -237,6 +237,7 @@ unsigned char CMap :: GetMapLayoutStyle( )
 void CMap :: Load( CConfig *CFG, string nCFGFile )
 {
 	m_Valid = true;
+	m_MapIncompatible = false;
 	m_CFGFile = nCFGFile;
 
 	// load the map data
@@ -684,6 +685,12 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
 									(*i).SetRace( (*i).GetRace( ) | SLOTRACE_SELECTABLE );
 							}
+						}
+						else
+						{
+							m_MapIncompatible = true;
+							CONSOLE_Print( "[MAP] incompatible map format detected - this map requires Warcraft 3 version 1.29 or higher (map format version " + UTIL_ToString( FileFormat ) + ")" );
+							CONSOLE_Print( "[MAP] this bot only supports Warcraft 3 1.28 and lower (map format versions 18 and 25)" );
 						}
 					}
 					else

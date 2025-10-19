@@ -26,6 +26,7 @@
 //
 
 class CDBDotAPlayer;
+class CDotAPlayer;
 
 class CCustomDotAGame : public CBaseGame
 {

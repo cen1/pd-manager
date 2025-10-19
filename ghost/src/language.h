@@ -162,6 +162,7 @@ public:
 	string BotDisabled( );
 	string BotEnabled( );
 	string UnableToCreateGameInvalidMap( string gamename );
+	string UnableToCreateGameIncompatibleMap( string gamename );
 	string WaitingForPlayersBeforeAutoStart( string players, string playersleft );
 	string AutoStartDisabled( );
 	string AutoStartEnabled( string players );

@@ -436,6 +436,7 @@ CGHost :: CGHost( CConfig *CFG, boost::asio::io_context &nIOService, boost::asio
 		CONSOLE_Print("[GHOST] warn - dota_max_win_chance_diff_gain_constant incorrect range, disabling");
 	}
 	m_DotaMaxWinChanceDiffGainConstant = DotaMaxWinChanceDiffGainConstant;
+	m_DotaAutobanPSRMultiplier = CFG->GetDouble("dota_autoban_psr_multiplier", 0.0);
 
 	m_Version = "7.0";
 	m_ContributorOnlyMode = CFG->GetInt( "bot_contributor_only_mode", 0 );
