@@ -1,6 +1,9 @@
 #include "common_util.h"
 #include "gtest/gtest.h"
 #include <vector>
+#include <algorithm>
+#include <sstream>
+#include <fstream>
 
 #include "PsrTestSample.h"
 #include "config.h"
@@ -15,6 +18,9 @@ using namespace std;
 
 PsrTestSample psrTestSamples;
 string g_MapPath;
+string g_RootPath;
+string g_OutputFile;
+bool g_SilentMode = false;
 
 BYTEARRAY getBaseAction()
 {
@@ -756,12 +762,17 @@ void createPSRSamples()
  * that can be used in a .cfg file for GHost++.
  *
  * Usage:
- *   ./pds_test --gtest_filter=TestCases.GenerateMapCfg <path_to_map.w3x>
+ *   ./pds_test --gtest_filter=TestCases.GenerateMapCfg <path_to_map.w3x> [root_path] [output_file]
+ *
+ * Arguments:
+ *   <path_to_map.w3x> - Absolute path to the map file
+ *   [root_path]       - Optional: Root folder containing common.j and other auxiliary files
+ *   [output_file]     - Optional: Output file path for the generated config
  */
 TEST(TestCases, GenerateMapCfg)
 {
 	if (g_MapPath.empty()) {
-		GTEST_SKIP() << "Map path not provided. Usage: ./pds_test --gtest_filter=TestCases.GenerateMapCfg <absolute_map_path>";
+		GTEST_SKIP() << "Map path not provided. Usage: ./pds_test --gtest_filter=TestCases.GenerateMapCfg <absolute_map_path> [root_path]";
 		return;
 	}
 
@@ -785,7 +796,16 @@ TEST(TestCases, GenerateMapCfg)
 	}
 
 	g.m_MapPath = basePath;
-	g.m_MapCFGPath = "./";
+
+	// Use custom root path if provided for auxiliary files (common.j, blizzard.j)
+	if (!g_RootPath.empty()) {
+		g.m_MapCFGPath = g_RootPath;
+		if (g_RootPath.back() != '/' && g_RootPath.back() != '\\') {
+			g.m_MapCFGPath += "/";
+		}
+	} else {
+		g.m_MapCFGPath = basePath;  // Use map directory by default
+	}
 
 	// Create a minimal config with the map path
 	CConfig cfg;
@@ -796,28 +816,64 @@ TEST(TestCases, GenerateMapCfg)
 	CMap m(&g, &cfg, "");
 
 	if (!m.GetValid()) {
-		cout << "WARNING: Map validation failed. Some values may be missing or invalid." << endl
-			 << endl;
+		FAIL() << "Map validation failed. Cannot generate config.";
+		return;
 	}
-	cout << "map_path=" << m.GetMapPath() << endl;
-	cout << "map_size=" << UTIL_ByteArrayToDecString(m.GetMapSize()) << endl;
-	cout << "map_info=" << UTIL_ByteArrayToDecString(m.GetMapInfo()) << endl;
-	cout << "map_crc=" << UTIL_ByteArrayToDecString(m.GetMapCRC()) << endl;
-	cout << "map_sha1=" << UTIL_ByteArrayToDecString(m.GetMapSHA1()) << endl;
-	cout << "map_speed=" << (int)m.GetMapSpeed() << endl;
-	cout << "map_visibility=" << (int)m.GetMapVisibility() << endl;
-	cout << "map_observers=" << (int)m.GetMapObservers() << endl;
-	cout << "map_flags=" << (int)m.GetMapFlags() << endl;
-	cout << "map_options=" << m.GetMapOptions() << endl;
-	cout << "map_width=" << UTIL_ByteArrayToDecString(m.GetMapWidth()) << endl;
-	cout << "map_height=" << UTIL_ByteArrayToDecString(m.GetMapHeight()) << endl;
-	cout << "map_type=" << m.GetMapType() << endl;
-	cout << "map_numplayers=" << m.GetMapNumPlayers() << endl;
-	cout << "map_numteams=" << m.GetMapNumTeams() << endl;
+
+	// Detect if this is a DotA map (case-insensitive)
+	string localPathLower = localPath;
+	transform(localPathLower.begin(), localPathLower.end(), localPathLower.begin(), ::tolower);
+	bool isDota = (localPathLower.find("dota") != string::npos);
+
+	// Set map_type to dota if filename contains "dota"
+	string mapType = isDota ? "dota" : m.GetMapType();
+	int mapGameType = isDota ? 1 : (int)m.GetMapGameType();
+
+	// Build output
+	stringstream output;
+	output << "map_path = " << m.GetMapPath() << endl;
+	output << "map_localpath = " << localPath << endl;
+	output << "map_type = " << mapType << endl;
+	output << endl;
+	output << "map_matchmakingcategory = dota_elo" << endl;
+	output << "map_defaulthcl = " << endl;
+	output << "map_defaultplayerscore = " << endl;
+	output << "map_loadingame = " << endl;
+	output << endl;
+	output << "map_size = " << UTIL_ByteArrayToDecString(m.GetMapSize()) << endl;
+	output << "map_info = " << UTIL_ByteArrayToDecString(m.GetMapInfo()) << endl;
+	output << "map_crc = " << UTIL_ByteArrayToDecString(m.GetMapCRC()) << endl;
+	output << "map_sha1 = " << UTIL_ByteArrayToDecString(m.GetMapSHA1()) << endl;
+	output << "map_options = " << m.GetMapOptions() << endl;
+	output << "map_width = " << UTIL_ByteArrayToDecString(m.GetMapWidth()) << endl;
+	output << "map_height = " << UTIL_ByteArrayToDecString(m.GetMapHeight()) << endl;
+	output << "map_numplayers = " << m.GetMapNumPlayers() << endl;
+	output << "map_numteams = " << m.GetMapNumTeams() << endl;
 
 	vector<CGameSlot> slots = m.GetSlots();
 	for (size_t i = 0; i < slots.size(); i++) {
-		cout << "map_slot" << (i + 1) << "=" << UTIL_ByteArrayToDecString(slots[i].GetByteArray()) << endl;
+		output << "map_slot" << (i + 1) << " = " << UTIL_ByteArrayToDecString(slots[i].GetByteArray()) << endl;
+	}
+
+	output << endl;
+	output << "map_observers = " << (int)m.GetMapObservers() << endl;
+	output << endl;
+	output << "map_speed = " << (int)m.GetMapSpeed() << endl;
+	output << "map_visibility = " << (int)m.GetMapVisibility() << endl;
+	output << "map_flags = " << (int)m.GetMapFlags() << endl;
+	output << "map_gametype = " << mapGameType << endl;
+
+	// Write to file or stdout
+	if (!g_OutputFile.empty()) {
+		ofstream outFile(g_OutputFile);
+		if (outFile.is_open()) {
+			outFile << output.str();
+			outFile.close();
+		} else {
+			FAIL() << "Failed to open output file: " << g_OutputFile;
+		}
+	} else {
+		cout << output.str();
 	}
 }
 
@@ -825,9 +881,20 @@ int main(int argc, char** argv)
 {
 	testing::InitGoogleTest(&argc, argv);
 
-	// Check if there's a non-gtest argument (map path)
-	if (argc > 1 && argv[argc - 1][0] != '-') {
-		g_MapPath = argv[argc - 1];
+	// Parse non-gtest arguments (map path, optional root path, optional output file)
+	// Arguments after gtest processing that don't start with '-'
+	int nonGtestArgCount = 0;
+	for (int i = 1; i < argc; i++) {
+		if (argv[i][0] != '-') {
+			nonGtestArgCount++;
+			if (nonGtestArgCount == 1) {
+				g_MapPath = argv[i];
+			} else if (nonGtestArgCount == 2) {
+				g_RootPath = argv[i];
+			} else if (nonGtestArgCount == 3) {
+				g_OutputFile = argv[i];
+			}
+		}
 	}
 
 	// Init

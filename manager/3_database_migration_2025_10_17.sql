@@ -1,0 +1,1 @@
+CREATE INDEX idx_div1dotaplayer_gameid_color ON new_div1dotaplayer (game_id, color);
