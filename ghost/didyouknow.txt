@@ -1,5 +1,5 @@
-Do not miss changes read updates atleast while you waiting in lobby: https://d1map.net/changelogs/704h
-Communicate with everyone and do not miss active lobbies! Join to our Discord: https://discord.gg/8KfFfe7Kjx
+Read updates while you wait in the lobby so you don't miss anything: https://d1map.net/changelogs
+Don't miss out on active lobbies — connect with the community on Discord! https://discord.gg/8KfFfe7Kjx
 Still Googling for a new map with every update? Why not just update the client that does everything for you? https://eurobattle.net/downloads/file/60
 Got bored with the same visuals of map try next commands: -terra <0-6> , -minimap 1/2/3 , -light <0-6> and -tavnew
 Useful commands: -aoe , -dmgblock (enabled by default, shows amount of blocked physical damage)
@@ -24,15 +24,14 @@ Often the best way to learn a Hero's weaknesses is to play them yourself.
 Be aware of your position when attacking creeps. You may wind up pushing your team's creeps, and yourself, into a dangerous location.
 The Secret Shop is not actually a secret.
 After Roshan has been killed, he will respawn at a random time between 8 and 11 minutes.
+Killed Roshan last time? Be careful. He will roar next time, and everyone will hear it!
 Shift - clicking actions or abilities allows you to queue them.
 Remember to check your allies' inventories before purchasing an item for its aura effect. A teammate may already have that item, and most auras do not stack.
 Stun durations from different skills do not stack. You can keep an enemy stunned for longer with careful timing of your team's skills.
 Always be nice to those who buy Wards and Couriers.
 Switching Power Treads to Agility while healing allows your health and mana to restore slightly faster. Just don't forget to switch them back!
 Average speed of White-tailed Deer (North America) is 48km/h, Red Deer (Europe/Asia) 65 km/h and Reindeer (Caribou) 70 km/h!
-Please donate to our Patreon so we can pay for the server, huh?
+Please donate to our Patreon so we can pay for the server, huh? www.patreon.com/eurobattle
 PM FilLaD1N to buy/get ingame bonuses!
 Avoid flamers by muting them, use -mute <slot 1-10> or !ignore <nickname>
-We never forget legends like grga_man and TooShade... but who’s next?
-If you never been played vs Filla Arc Warden do you still call yourself a Dota player?!
-Care about your courier while playing vs FatAndViolent (known animal abuser).
+Care about your courier while playing vs FatAndViolent (known animal abuser)
