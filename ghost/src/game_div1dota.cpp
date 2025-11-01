@@ -2784,6 +2784,10 @@ void CDiv1DotAGame ::BalanceSlots2(const set<unsigned char>& locked_slots)
 	set<unsigned char> TakenSlots;
 
 	for (list<CDIV1DotAPlayer*>::iterator i = m_DotAPlayers.begin(); i != m_DotAPlayers.end(); ++i) {
+		// skip observers (team != 0 and team != 1)
+		if ((*i)->GetCurrentTeam() != 0 && (*i)->GetCurrentTeam() != 1)
+			continue;
+
 		bool Locked = false;
 		unsigned char SID = GetSIDFromPID((*i)->GetPID());
 
