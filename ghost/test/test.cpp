@@ -855,8 +855,12 @@ TEST(TestCases, GenerateMapCfg)
 		output << "map_slot" << (i + 1) << " = " << UTIL_ByteArrayToDecString(slots[i].GetByteArray()) << endl;
 	}
 
+	// Add observer slots
+	output << "map_slot" << (slots.size() + 1) << " = 0 255 1 0 12 12 32 1 100" << endl;
+	output << "map_slot" << (slots.size() + 2) << " = 0 255 1 0 12 12 32 1 100" << endl;
+
 	output << endl;
-	output << "map_observers = " << (int)m.GetMapObservers() << endl;
+	output << "map_observers = 3" << endl;
 	output << endl;
 	output << "map_speed = " << (int)m.GetMapSpeed() << endl;
 	output << "map_visibility = " << (int)m.GetMapVisibility() << endl;
