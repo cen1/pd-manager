@@ -9,11 +9,14 @@ RUN apt-get -y update && apt-get install -y \
     curl gnupg ca-certificates
 
 # Add xpam repository for bncsutil
-RUN curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | tee /etc/apt/keyrings/debian-trixie-xpam.asc \
-    && echo "Types: deb\nURIs: https://repo.xpam.pl/repository/debian-trixie-xpam/\nSuites: trixie\nComponents: main\nSigned-By: /etc/apt/keyrings/debian-trixie-xpam.asc" \
-    | tee /etc/apt/sources.list.d/xpam.sources > /dev/null \
-    && apt-get -y update \
-    && apt-get install -y bncsutil
+RUN mkdir -p /etc/apt/keyrings \
+ && curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc \
+    -o /etc/apt/keyrings/debian-trixie-xpam.asc \
+ && chmod 644 /etc/apt/keyrings/debian-trixie-xpam.asc \
+ && printf "Types: deb\nURIs: https://repo.xpam.pl/repository/debian-trixie-xpam/\nSuites: trixie\nComponents: main\nSigned-By: /etc/apt/keyrings/debian-trixie-xpam.asc\n" \
+    > /etc/apt/sources.list.d/xpam.sources \
+ && apt-get -y update \
+ && apt-get -y install bncsutil
 
 WORKDIR /app
 COPY CMake ./CMake
@@ -43,4 +46,4 @@ COPY --from=build /app/build/manager/pd-manager-1.0.1 .
 
 COPY manager/language.cfg manager/ipblacklist.txt .
 
-CMD ["/app/pd-manager-1.0.0", "pd-manager-docker.cfg"]
+CMD ["/app/pd-manager-1.0.1", "pd-manager-docker.cfg"]
