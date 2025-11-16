@@ -22,7 +22,7 @@ COPY common ./common
 COPY README.md LICENSE CMakeLists.txt .
 
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DPD_DEBUG=$PD_DEBUG \
-    && cmake --build build --config Release --target pd-manager --parallel
+    && cmake --build build --config Release --target pd-manager
 
 FROM debian:trixie AS runtime
 

@@ -20,7 +20,7 @@ COPY common ./common
 COPY README.md LICENSE CMakeLists.txt .
 
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
-    && cmake --build build --config Release --target pd-slave --parallel
+    && cmake --build build --config Release --target pd-slave
 
 FROM debian:trixie AS runtime
 
