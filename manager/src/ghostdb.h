@@ -538,8 +538,8 @@ private:
 	//double m_HighestRating;
 
 public:
-	CDBPlayer2( bool nBanned, string nName, string nServer, uint32_t nColor, uint32_t nPlayerID, uint32_t nBanGroupID, uint32_t nStatsDotAID ) 
-		: m_Banned( nBanned ), m_Name( nName ), m_Server( nServer ), m_Color( nColor ), m_PlayerID( nPlayerID ), m_BanGroupID( nBanGroupID ), m_StatsDotAID( nStatsDotAID ) { }
+	CDBPlayer2( bool nBanned, string nName, string nServer, uint32_t nColor, uint32_t nPlayerID, uint32_t nBanGroupID, uint32_t nStatsDotAID )
+		: m_Banned( nBanned ), m_Name( nName ), m_Server( nServer ), m_Color( nColor ), m_PlayerID( nPlayerID ), m_BanGroupID( nBanGroupID ), m_StatsDotAID( nStatsDotAID ), m_UpdateBanGroupID( false ), m_UpdateStatsDotAID( false ), m_BanGroup( NULL ), m_DotAPlayerSummary( NULL ) { }
 	CDBPlayer2( ) { }
 	~CDBPlayer2( ) { }
 

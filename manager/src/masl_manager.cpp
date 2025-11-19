@@ -641,10 +641,11 @@ void CSlave :: ProcessPackets( )
 
 									if( Player )
 									{
-										if( Player->GetDotAPlayerSummary( ) )
+										CDBDotAPlayerSummary *DotAPlayerSummary = Player->GetDotAPlayerSummary( );
+										if( DotAPlayerSummary )
 										{
-											Rating = Player->GetDotAPlayerSummary( )->GetRating( );
-											HighestRating = Player->GetDotAPlayerSummary( )->GetHighestRating( );
+											Rating = DotAPlayerSummary->GetRating( );
+											HighestRating = DotAPlayerSummary->GetHighestRating( );
 										}
 									}
 
@@ -1549,20 +1550,21 @@ void CSlave :: ProcessPackets( )
 					else
 						UserInfo << " " << 0;
 
-					if( Player->GetDotAPlayerSummary( ) )
+					CDBDotAPlayerSummary *DotAPlayerSummary = Player->GetDotAPlayerSummary( );
+					if( DotAPlayerSummary )
 					{
 						UserInfo << " " << 1;
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalGames( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalWins( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalLosses( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalKills( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalDeaths( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalCreepKills( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalCreepDenies( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalAssists( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetTotalNeutralKills( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetRating( );
-						UserInfo << " " << Player->GetDotAPlayerSummary( )->GetHighestRating( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalGames( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalWins( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalLosses( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalKills( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalDeaths( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalCreepKills( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalCreepDenies( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalAssists( );
+						UserInfo << " " << DotAPlayerSummary->GetTotalNeutralKills( );
+						UserInfo << " " << DotAPlayerSummary->GetRating( );
+						UserInfo << " " << DotAPlayerSummary->GetHighestRating( );
 					}
 					else
 						UserInfo << " " << 0;

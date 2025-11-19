@@ -1178,15 +1178,19 @@ void CGHost :: Update( const boost::system::error_code& error )
 
 					// update DIV1 DotA stats
 
-					if( m_DotAPlayerSummary.size( ) > (*j)->GetStatsDotAID( ) )
+					CDBDotAPlayerSummary *NewDotAPlayerSummary = (*j)->GetDotAPlayerSummary( );
+					if( NewDotAPlayerSummary )
 					{
-						if( m_DotAPlayerSummary[(*j)->GetStatsDotAID( )] != NULL )
-							delete m_DotAPlayerSummary[(*j)->GetStatsDotAID( )];
-					}
-					else
-						m_DotAPlayerSummary.resize( (*j)->GetStatsDotAID( ) + 1, NULL );
+						if( m_DotAPlayerSummary.size( ) > (*j)->GetStatsDotAID( ) )
+						{
+							if( m_DotAPlayerSummary[(*j)->GetStatsDotAID( )] != NULL )
+								delete m_DotAPlayerSummary[(*j)->GetStatsDotAID( )];
+						}
+						else
+							m_DotAPlayerSummary.resize( (*j)->GetStatsDotAID( ) + 1, NULL );
 
-					m_DotAPlayerSummary[(*j)->GetStatsDotAID( )] = (*j)->GetDotAPlayerSummary( );
+						m_DotAPlayerSummary[(*j)->GetStatsDotAID( )] = NewDotAPlayerSummary;
+					}
 
 					// TODO: update global stats
 				}
