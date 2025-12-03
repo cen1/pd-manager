@@ -786,7 +786,12 @@ bool CGHost :: Update( long usecBlock )
 		CTCPSocket *NewSocket = m_ReconnectSocket->Accept( &fd );
 
 		if( NewSocket )
+		{
+			if( m_TCPNoDelay )
+				NewSocket->SetNoDelay( true );
+
 			m_ReconnectSockets.push_back( NewSocket );
+		}
 	}
 
 	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); )
