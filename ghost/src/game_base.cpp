@@ -214,7 +214,7 @@ CBaseGame::CBaseGame(CGHost* nGHost, CMap* nMap, CSaveGame* nSaveGame, uint16_t 
 	m_CreatorName = nCreatorName;
 	m_CreatorServer = nCreatorServer;
 	m_GameType = nGameType;
-	m_HCLCommandString = m_Map->GetMapDefaultHCL();
+	m_HCLCommandString = m_Map->GetMapHCLPrefix() + m_Map->GetMapDefaultHCL();
 	m_RandomSeed = GetTicks();
 	m_HostCounter = m_GHost->m_HostCounter++;
 	m_EntryKey = rand();
@@ -3681,11 +3681,12 @@ void CBaseGame::EventPlayerBotCommand2(CGamePlayer* player, string command, stri
 	else if ((Command == "hcl" || Command == "mode") && !m_CountDownStarted) {
 		if ((rootadmin || admin || owner) && !m_CountDownStarted) {
 			if (!Payload.empty()) {
-				if (Payload.size() <= m_Slots.size()) {
+				string FinalHCL = m_Map->GetMapHCLPrefix() + Payload;
+				if (FinalHCL.size() <= m_Slots.size()) {
 					string HCLChars = "abcdefghijklmnopqrstuvwxyz0123456789 -=,.";
 
 					if (Payload.find_first_not_of(HCLChars) == string ::npos) {
-						m_HCLCommandString = Payload;
+						m_HCLCommandString = FinalHCL;
 						SendChat(player, m_GHost->m_Language->SettingHCL(m_HCLCommandString));
 					}
 					else

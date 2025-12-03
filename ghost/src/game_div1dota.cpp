@@ -1808,7 +1808,7 @@ void CDiv1DotAGame ::EventPlayerBotCommand2(CGamePlayer* player, string command,
 			UTIL_Replace(HCLCommandString, "-", "");
 
 			if (!HCLCommandString.empty()) {
-				if (HCLCommandString.size() <= m_Slots.size()) {
+				if ((m_Map->GetMapHCLPrefix().size() + HCLCommandString.size()) <= m_Slots.size()) {
 					string HCLChars = "abcdefghijklmnopqrstuvwxyz0123456789 -=,.";
 
 					if (HCLCommandString.find_first_not_of(HCLChars) == string ::npos) {
@@ -1834,7 +1834,7 @@ void CDiv1DotAGame ::EventPlayerBotCommand2(CGamePlayer* player, string command,
 								SendChat(player, "Create game with .dota command to play non-ladder game");
 							}
 							else {
-								m_HCLCommandString = HCLCommandString;
+								m_HCLCommandString = m_Map->GetMapHCLPrefix() + HCLCommandString;
 								SendChat(player, m_GHost->m_Language->SettingHCL(m_HCLCommandString));
 							}
 						}

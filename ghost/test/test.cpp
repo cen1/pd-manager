@@ -1,9 +1,9 @@
 #include "common_util.h"
 #include "gtest/gtest.h"
-#include <vector>
 #include <algorithm>
-#include <sstream>
 #include <fstream>
+#include <sstream>
+#include <vector>
 
 #include "PsrTestSample.h"
 #include "config.h"
@@ -803,8 +803,9 @@ TEST(TestCases, GenerateMapCfg)
 		if (g_RootPath.back() != '/' && g_RootPath.back() != '\\') {
 			g.m_MapCFGPath += "/";
 		}
-	} else {
-		g.m_MapCFGPath = basePath;  // Use map directory by default
+	}
+	else {
+		g.m_MapCFGPath = basePath; // Use map directory by default
 	}
 
 	// Create a minimal config with the map path
@@ -837,6 +838,7 @@ TEST(TestCases, GenerateMapCfg)
 	output << endl;
 	output << "map_matchmakingcategory = dota_elo" << endl;
 	output << "map_defaulthcl = " << endl;
+	output << "map_hcl_prefix = eb" << endl;
 	output << "map_defaultplayerscore = " << endl;
 	output << "map_loadingame = " << endl;
 	output << endl;
@@ -873,10 +875,12 @@ TEST(TestCases, GenerateMapCfg)
 		if (outFile.is_open()) {
 			outFile << output.str();
 			outFile.close();
-		} else {
+		}
+		else {
 			FAIL() << "Failed to open output file: " << g_OutputFile;
 		}
-	} else {
+	}
+	else {
 		cout << output.str();
 	}
 }
@@ -893,9 +897,11 @@ int main(int argc, char** argv)
 			nonGtestArgCount++;
 			if (nonGtestArgCount == 1) {
 				g_MapPath = argv[i];
-			} else if (nonGtestArgCount == 2) {
+			}
+			else if (nonGtestArgCount == 2) {
 				g_RootPath = argv[i];
-			} else if (nonGtestArgCount == 3) {
+			}
+			else if (nonGtestArgCount == 3) {
 				g_OutputFile = argv[i];
 			}
 		}

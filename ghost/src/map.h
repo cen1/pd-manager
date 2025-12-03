@@ -118,6 +118,7 @@ private:
 	string m_MapMatchMakingCategory;			// config value: map matchmaking category (for matchmaking)
 	string m_MapStatsW3MMDCategory;				// config value: map stats w3mmd category (for saving w3mmd stats)
 	string m_MapDefaultHCL;						// config value: map default HCL to use (this should really be specified elsewhere and not part of the map config)
+	string m_HCLPrefix;							// config value: prefix to prepend to HCL commands set by users
 	uint32_t m_MapDefaultPlayerScore;			// config value: map default player score (for matchmaking)
 	string m_MapLocalPath;						// config value: map local path
 	bool m_MapLoadInGame;
@@ -153,6 +154,7 @@ public:
 	string GetMapMatchMakingCategory( )		{ return m_MapMatchMakingCategory; }
 	string GetMapStatsW3MMDCategory( )		{ return m_MapStatsW3MMDCategory; }
 	string GetMapDefaultHCL( )				{ return m_MapDefaultHCL; }
+	string GetMapHCLPrefix( )				{ return m_HCLPrefix; }
 	uint32_t GetMapDefaultPlayerScore( )	{ return m_MapDefaultPlayerScore; }
 	string GetMapLocalPath( )				{ return m_MapLocalPath; }
 	bool GetMapLoadInGame( )				{ return m_MapLoadInGame; }
