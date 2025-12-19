@@ -8,20 +8,19 @@ class CCustomGame;
 // CSlaveBot
 //
 
-class CCustomGame
-{
-private:
+class CCustomGame {
+  private:
 	string m_Command;
 	string m_Map;
 
-public:
-	CCustomGame( string nCommand, string nMap );
+  public:
+	CCustomGame(string nCommand, string nMap);
 
-	string GetCommand( )	{ return m_Command; }
-	string GetMap( )		{ return m_Map; }
+	string GetCommand() { return m_Command; }
+	string GetMap() { return m_Map; }
 
-	void SetCommand( )		{ m_Command = nCommand; }
-	void SetMap( )			{ m_Map = nMap; }
+	void SetCommand() { m_Command = nCommand; }
+	void SetMap() { m_Map = nMap; }
 };
 
 #endif

@@ -385,7 +385,7 @@ void CTourBNET ::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 				CONSOLE_Print("m_BanGroup.size( ) = " + UTIL_ToString(m_GHost->m_BanGroup.size()));
 				CONSOLE_Print("m_BanGroup.capacity( ) = " + UTIL_ToString(m_GHost->m_BanGroup.capacity()));
 				CONSOLE_Print("m_DotAPlayerSummary.size( ) = " + UTIL_ToString(m_GHost->m_DotAPlayerSummary.size()));
-				CONSOLE_Print("m_DotAPlayerSummary.capacity( ) = " + UTIL_ToString(m_GHost->m_DotAPlayerSummary.capacity()));
+				CONSOLE_Print("m_DotAPlayerSummary entries = " + UTIL_ToString(m_GHost->m_DotAPlayerSummary.size()));
 				CONSOLE_Print("m_Players.size( ) = " + UTIL_ToString(m_GHost->m_Players.size()));
 			}
 

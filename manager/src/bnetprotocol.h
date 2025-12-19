@@ -21,6 +21,12 @@
 #ifndef BNETPROTOCOL_H
 #define BNETPROTOCOL_H
 
+#include "typedefs.h"
+#include <cstdint>
+#include <string>
+
+using namespace std;
+
 //
 // CBNETProtocol
 //

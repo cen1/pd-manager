@@ -6,7 +6,7 @@
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	   http://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,24 +21,25 @@
 #ifndef COMMANDPACKET_H
 #define COMMANDPACKET_H
 
+#include "typedefs.h"
+
 //
 // CCommandPacket
 //
 
-class CCommandPacket
-{
-private:
+class CCommandPacket {
+  private:
 	unsigned char m_PacketType;
 	int m_ID;
 	BYTEARRAY m_Data;
 
-public:
-	CCommandPacket( unsigned char nPacketType, int nID, BYTEARRAY nData );
-	~CCommandPacket( );
+  public:
+	CCommandPacket(unsigned char nPacketType, int nID, BYTEARRAY nData);
+	~CCommandPacket();
 
-	unsigned char GetPacketType( )	{ return m_PacketType; }
-	int GetID( )					{ return m_ID; }
-	BYTEARRAY GetData( )			{ return m_Data; }
+	unsigned char GetPacketType() { return m_PacketType; }
+	int GetID() { return m_ID; }
+	BYTEARRAY GetData() { return m_Data; }
 };
 
 #endif

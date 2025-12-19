@@ -2,23 +2,23 @@
 #ifndef PSR_H
 #define PSR_H
 
-#include <vector>
-#include <utility>
+#include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 
 using std::pair;
 using std::string;
 using std::vector;
 
-typedef pair<string,double> PairedPlayerRating;
+typedef pair<string, double> PairedPlayerRating;
 
 //
 // CPSR
 //
 
-class CPSR
-{
-private:
+class CPSR {
+  private:
 	/*
 	var psf_baseKFactor = 20;
 	var psf_gammaCurveK = 18;
@@ -57,7 +57,7 @@ private:
 	double m_ConstWinGain;
 	double m_ConstLoseGain;
 
-	bool m_NeedRecalculate;				// if this is true we need to recalculate properties below before using them because they are not accurate anymore
+	bool m_NeedRecalculate; // if this is true we need to recalculate properties below before using them because they are not accurate anymore
 
 	vector<PairedPlayerRating> m_team1;
 	vector<PairedPlayerRating> m_team2;
@@ -68,26 +68,26 @@ private:
 	double m_team2winPerc;
 	vector<double> m_team1kfactors;
 	vector<double> m_team2kfactors;
-	vector< pair<double, double> > m_team1gainLose;
-	vector< pair<double, double> > m_team2gainLose;
+	vector<pair<double, double>> m_team1gainLose;
+	vector<pair<double, double>> m_team2gainLose;
 
-public:
-	CPSR( );
-	~CPSR( );
+  public:
+	CPSR();
+	~CPSR();
 
-	void SetBaseKFactor( double nBaseKFactor )					{ m_BaseKFactor = nBaseKFactor; }
+	void SetBaseKFactor(double nBaseKFactor) { m_BaseKFactor = nBaseKFactor; }
 
-	double GetTeamAvgPSR( uint32_t team );
-	double GetTeamWinPerc( uint32_t team );
-	double GetPlayerKFactor( string player );
-	pair<double, double> GetPlayerGainLoss( string player );
+	double GetTeamAvgPSR(uint32_t team);
+	double GetTeamWinPerc(uint32_t team);
+	double GetPlayerKFactor(string player);
+	pair<double, double> GetPlayerGainLoss(string player);
 
-	void CalculatePSR(vector<PairedPlayerRating> &team1, vector<PairedPlayerRating> &team2, uint32_t maxWinChanceDiffGainConstant);
+	void CalculatePSR(vector<PairedPlayerRating>& team1, vector<PairedPlayerRating>& team2, uint32_t maxWinChanceDiffGainConstant);
 	void CalculatePSR_New(vector<PairedPlayerRating>& team1, vector<PairedPlayerRating>& team2);
-	//void NeedRecalculate( vector< pair<string, double> > team1, vector< pair<string, double> > team2 );
+	// void NeedRecalculate( vector< pair<string, double> > team1, vector< pair<string, double> > team2 );
 
-	vector< pair<double, double> > getTeam1gainLose();
-	vector< pair<double, double> > getTeam2gainLose();
+	vector<pair<double, double>> getTeam1gainLose();
+	vector<pair<double, double>> getTeam2gainLose();
 };
 
 #endif
