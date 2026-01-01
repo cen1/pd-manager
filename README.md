@@ -2,19 +2,21 @@
 
 [![CI](https://github.com/cen1/pd-manager/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/cen1/pd-manager/actions/workflows/build.yml)
 
-Warcraft III hosting system based on original ghost++ project.
+Warcraft III hosting system based on the original GHost++ project.
 
 Created by myubernick and maintained by cen. This system hosted thousands of DotA and custom games on former playdota.eu/lagabuse.com since 2008, now known as dota.eurobattle.net.
 
 This repository consists of:
 
-- `pd-manager`: bot sitting in bnet channel accepting player commands to host games, check lobbies and collect game stats.
+- `pd-manager`: bot sitting in a bnet chat channel accepting player commands to host games, check open lobbies and collect game stats.
 - `pd-slave`: accepts a command from manager and hosts the game lobby. Multiple slave bots can be attached to a single manager.
 
 Copyright [2008] [Trevor Hogan]  
 Copyright [2010-2025] [myubernick, cen, luke]
 
 ## Convenience Debian repo for bncsutil
+
+BNCSUtil is one of the dependencies required for the build.
 
 ```
 curl -fsSL https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo tee /etc/apt/keyrings/debian-trixie-xpam.asc
@@ -31,6 +33,8 @@ Alternatively, you need to build and install [bncsutil](https://github.com/BNETD
 
 ## Build on Linux
 
+These are instructions to build from source on Debian Trixie.
+
 ```
 wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo apt-key add -
 sudo apt-get update
@@ -44,9 +48,9 @@ ctest --verbose -C Release
 
 ## Build on Windows
 
-Use Visual Studio CMD.
+Use Visual Studio CMD x64 to run the commands. Vcpkg and conan are supported for dependency installation, choose one according to your own preference.
 
-Using vcpkg
+### Using vcpkg
 
 ```
 cmake --preset vcpkg
@@ -55,7 +59,7 @@ cmake --build build_vcpkg --config Release
 
 Vcpkg builds everything from source so it can take a while.
 
-Using conan v2
+### Using conan v2
 
 ```
 conan install . -of build_conan -s build_type=Release -s compiler.cppstd=20 -o *:shared=True --build=missing
@@ -66,12 +70,12 @@ cmake --build build_conan --config Release
 Conan does not currently package Stormlib so the binaries are fetched by CMake.
 Bncsutil binaries are also fetched by CMake since it is not packaged in either repository.
 
-To develop in Visual Studio, you can add `-G "Visual Studio 17 2022"` to the preset commands, then open `.sln` from the build folder.
+To develop in Visual Studio, you can add `-G "Visual Studio 17 2022"` to the preset commands, then open the `.sln` from the build folder.
 
 ## Run
 
 Before you begin, you need to place `blizzard.j` and `common.j` from your W3 install into your mapcfgs directory, for example in `./data/mapcfgs`.
-You also need to prepare a W3 directory with minimal set of files:
+You also need to prepare a W3 directory with a minimal set of files:
 
 - game.dll
 - Storm.dll
@@ -82,11 +86,11 @@ For example, in `./wc3_126a`.
 
 ### Manager Binary
 
-Run with `./pd-manager-1.0.0 <name-of-your-config-file>.cfg`
+Run with `./pd-manager-1.0.1 <name-of-your-config-file>.cfg`
 
 ### Slave Binary
 
-Run with `./pd-slave-1.0.0 <name-of-your-config-file>.cfg`
+Run with `./pd-slave-1.0.1 <name-of-your-config-file>.cfg`
 
 ### Docker
 
@@ -98,9 +102,9 @@ You need to configure at a minimum these options from the example manager cfg:
 
 | Option                       | Description                                                                                                                                          |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
-| bnet_server                  | Bnet server                                                                                                                                          |
-| bnet_serveralias             | Bnet server alias name                                                                                                                               |
+| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`.                             |
+| bnet_server                  | Bnet server.                                                                                                                                         |
+| bnet_serveralias             | Bnet server alias name.                                                                                                                              |
 | bnet_username                | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
 | bnet_password                | Bnet bot username password. Use lowercase only.                                                                                                      |
 | bnet_rootadmin               | Bnet player account that will have root privileges for all commands.                                                                                 |
@@ -110,7 +114,7 @@ You need to configure at a minimum these options from the example manager cfg:
 
 Default manager config expect the game files in `./war3_126a` and all you need to provide is essentially the username and password to get started.
 
-You should also prepare `pd-slave-docker.cfg`, `slave_cfgs/s01.cfg` and `slave_cfgs/s02.cfg`. Config options set in the two subconfig files will override the common `pd-slave-docker.cfg`.
+You should also prepare `pd-slave-docker.cfg`, `slave_cfgs/s01.cfg` and `slave_cfgs/s02.cfg`. Config options set in the two subconfig files will override the ones set in common `pd-slave-docker.cfg`.
 
 You need to configure at a minimum these options from the example slave cfg:
 
@@ -127,7 +131,7 @@ You need to configure at a minimum these options from the example slave cfg:
 
 You can leave `bnet_username` and `bnet_password` blank in `pd-slave-docker.cfg` and set them in `slave_cfgs/s01.cfg` and `slave_cfgs/s02.cfg`.
 
-If you want to run a single bot or more than 2 bots, adjust your compose file accordingly. Default specifies a minimum 2 bots to be able to test common hosting scenarios.
+If you want to run a single bot or more than 2 bots, adjust your compose file accordingly. Default specifies 2 host bots.
 
 Run with `docker compose up -d`.
 
@@ -135,11 +139,11 @@ If you are behind NAT, you need to port forward 6101, 6102, 6201 and 6202 for de
 
 ### Systemd
 
-See `manager/pd-manager.service` and `ghost/pd-slave.service` for a sample service files.
+See `manager/pd-manager.service` and `ghost/pd-slave.service` for sample service files.
 
 ### IP-to-country
 
-If you want pd-slave to be able to display which country players come from, you need to fill up the `new_ip_to_country` table. A convenience script can be found at `manager/import_ip_to_country.csv` which should be adjusted for db credentials and then run
+If you want pd-slave to be able to display player's country origin, you need to fill up the `new_ip_to_country` table. A convenience script can be found at `manager/import_ip_to_country.sh` which should be adjusted for db credentials and then run
 once.
 
 Credits:
