@@ -432,6 +432,7 @@ CGHost :: CGHost( CConfig *CFG, string nCFGFile )
 	m_DotAAllowedModes.insert( "sp" );*/
 	//m_DotAAllowedModes.insert( "so" );
 	m_DotAAllowedModes.insert( "em" );
+	m_DotAAllowedModes.insert( "jp" );
 
 	m_DidYouKnowEnabled = CFG->GetInt("bot_did_you_know_enabled", 1) == 0 ? false : true;
 	m_allowLanJoinAsRealm = CFG->GetString("bot_allow_lan_join_as_realm", "");
