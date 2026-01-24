@@ -108,6 +108,7 @@ public:
 	uint32_t m_BanMethod;					// config value: ban method (ban by name/ip/both)
 	string m_IPBlackListFile;				// config value: IP blacklist file (ipblacklist.txt)
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
+	uint32_t m_InactiveHostLobbyLimitMin;	// config value: auto close the game lobby after this many minutes without any chat from the owner
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_MinLatency;					// config value: Minimum latency which can be set by game owner
 	uint32_t m_MaxLatency;					// config value: Maximum latency which can be set by game owner

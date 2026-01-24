@@ -517,8 +517,8 @@ unsigned int CBaseGame::SetFD(void* fd, void* send_fd, int* nfds)
 bool CBaseGame::Update(void* fd, void* send_fd)
 {
 	if (!m_GameLoading && !m_GameLoaded) {
-		// unhost the game if the owner is inactive for more then 10 minutes
-		if (GetTime() - m_LastOwnerActiveTime > 600)
+		// unhost the game if the owner is inactive for more than the configured limit
+		if (m_GHost->m_InactiveHostLobbyLimitMin > 0 && GetTime() - m_LastOwnerActiveTime > m_GHost->m_InactiveHostLobbyLimitMin * 60)
 			m_Exiting = true;
 
 		// don't let lobby last more than 1 hour

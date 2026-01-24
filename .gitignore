@@ -43,3 +43,11 @@ slave_cfgs/s01.cfg
 slave_cfgs/s02.cfg
 slave_cfgs/s03.cfg
 local_slave_build.sh
+CMakeCache.txt
+CMakeFiles/
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Makefile
+_deps/
+cmake_install.cmake

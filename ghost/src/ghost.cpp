@@ -1186,6 +1186,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_BanMethod = CFG->GetInt( "bot_banmethod", 1 );
 	m_IPBlackListFile = CFG->GetString( "bot_ipblacklistfile", "ipblacklist.txt" );
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
+	m_InactiveHostLobbyLimitMin = CFG->GetInt( "bot_inactive_host_lobby_limit_min", 10 );
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
 	m_MinLatency = CFG->GetInt("bot_latency_min", 80);
 	m_MaxLatency = CFG->GetInt("bot_latency_max", 120);
