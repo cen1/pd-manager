@@ -680,7 +680,7 @@ bool CDiv1DotAGame ::EventPlayerAction(CGamePlayer* player, CIncomingAction* act
 
 								if (m_CollectDotAStats) {
 									m_Winner = ValueInt;
-									// don't set m_CollectDotAStats to false here since we wan't to collect more actions, that are sent directly after "Winner" action, when someone destroys tree/throne
+									// don't set m_CollectDotAStats to false here since we want to collect more actions, that are sent directly after "Winner" action, when someone destroys tree/throne
 									// m_CollectDotAStats = false;
 									m_CollectDotAStatsOverTime = m_GameTicks / 1000;
 								}
@@ -2321,6 +2321,7 @@ void CDiv1DotAGame ::EventPlayerDeleted(CGamePlayer* player)
 			for (list<CDIV1DotAPlayer*>::iterator i = m_DotAPlayers.begin(); i != m_DotAPlayers.end(); ++i) {
 				if (player->GetPID() == (*i)->GetPID()) {
 					(*i)->SetHasLeftTheGame(true);
+					(*i)->SetLeftGameTime(m_GameTicks / 1000);
 					DotAPlayer = *i;
 				}
 
@@ -2631,7 +2632,7 @@ void CDiv1DotAGame ::SaveGameData()
 		GameLog = m_GameLog->GetGameLog();
 
 	// fix for when dota map doesn't send end game info (sometimes it doesn't send low HP ancient info as well)
-	// most often only end game data is not sent, 10% msg is skiped sometimes, 25% msg is skiped rarely
+	// most often only end game data is not sent, 10% msg is skiped sometimes, 25% msg is skipped rarely
 
 	if (!m_LadderGameOver && m_Winner == 0 && (m_TreeLowHP || m_ThroneLowHP))
 		m_Winner = (m_TreeLowHPTime > m_ThroneLowHPTime) ? 2 : 1;
@@ -2645,6 +2646,13 @@ void CDiv1DotAGame ::SaveGameData()
 	GameInfo << " " << m_CollectDotAStatsOverTime;
 	GameInfo << " " << m_Min;
 	GameInfo << " " << m_Sec;
+
+	// Throne/tree low HP time: only set if throne/tree went low HP (indicates legitimate game end)
+	// If 0, no throne/tree event occurred (e.g., whole team left) - no grace period should apply
+	// Sometimes these events are not sent by the map but in that case we won't be giving grace periods for autoban
+	uint32_t ThroneOrTreeGameEndTime = (m_ThroneLowHPTime > m_TreeLowHPTime) ? m_ThroneLowHPTime : m_TreeLowHPTime;
+	GameInfo << " " << ThroneOrTreeGameEndTime;
+
 	// GameInfo << " " << m_Mode1;
 	// GameInfo << " " << m_Mode2;
 	MASL_PROTOCOL ::SSWriteString(GameInfo, m_Mode1);
@@ -2686,6 +2694,7 @@ void CDiv1DotAGame ::SaveGameData()
 		GameInfo << " " << (uint32_t)(*i)->GetLobbyTeam();
 		GameInfo << " " << (*i)->GetBanned();
 		GameInfo << " " << (*i)->GetRecvNegativePSR();
+		GameInfo << " " << (*i)->GetLeftGameTime();
 	}
 
 	m_GHost->m_Manager->SendGameSave(m_MySQLGameID, m_LobbyDuration, LobbyLog, GameLog, m_ReplayName, m_MapPath, m_GameName, m_OwnerName, m_GameTicks / 1000, m_GameState, m_CreatorName, m_CreatorServer, m_DBGamePlayers, m_RMK, m_GameType, GameInfo.str());

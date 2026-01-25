@@ -56,6 +56,7 @@ class CDIV1DotAPlayer : public CDotAPlayer {
 	bool m_Banned;
 	bool m_RecvNegativePSR;
 	bool m_Locked;
+	uint32_t m_LeftGameTime; // game time (seconds) when player left, 0 if still in game
 
   public:
 	CDIV1DotAPlayer(CBaseGame* nGame, unsigned char nPID, string nName, uint32_t nServerID, double nRating, bool nLocked)
@@ -65,6 +66,7 @@ class CDIV1DotAPlayer : public CDotAPlayer {
 	  , m_Banned(false)
 	  , m_RecvNegativePSR(false)
 	  , m_Locked(nLocked)
+	  , m_LeftGameTime(0)
 	{
 	}
 	~CDIV1DotAPlayer() {}
@@ -74,11 +76,13 @@ class CDIV1DotAPlayer : public CDotAPlayer {
 	bool GetBanned() { return m_Banned; }
 	bool GetRecvNegativePSR() { return m_RecvNegativePSR; }
 	bool GetLocked() { return m_Locked; }
+	uint32_t GetLeftGameTime() { return m_LeftGameTime; }
 
 	void SetFFVote(bool nFFVote) { m_FFVote = nFFVote; }
 	void SetBanned(bool nBanned) { m_Banned = nBanned; }
 	void SetRecvNegativePSR(bool nRecvNegativePSR) { m_RecvNegativePSR = nRecvNegativePSR; }
 	void SetLocked(bool nLocked) { m_Locked = nLocked; }
+	void SetLeftGameTime(uint32_t nLeftGameTime) { m_LeftGameTime = nLeftGameTime; }
 };
 
 //

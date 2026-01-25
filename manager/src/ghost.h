@@ -179,6 +179,7 @@ class CGHost {
 	bool m_RPGMode;
 	bool m_UseNewPSRFormula;
 	double m_DotaAutobanPSRMultiplier;
+	uint32_t m_DotaAutobanThroneGraceLimitMin;
 
 	CGHost(CConfig* CFG, boost::asio::io_context& nIOService, boost::asio::io_context::work& nWork);
 	~CGHost();

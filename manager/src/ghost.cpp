@@ -430,6 +430,7 @@ CGHost ::CGHost(CConfig* CFG, boost::asio::io_context& nIOService, boost::asio::
 	}
 	m_DotaMaxWinChanceDiffGainConstant = DotaMaxWinChanceDiffGainConstant;
 	m_DotaAutobanPSRMultiplier = CFG->GetDouble("dota_autoban_psr_multiplier", 0.0);
+	m_DotaAutobanThroneGraceLimitMin = CFG->GetInt("dota_autoban_throne_grace_limit_min", 0);
 
 	m_Version = "7.0";
 	m_ContributorOnlyMode = CFG->GetInt("bot_contributor_only_mode", 0);

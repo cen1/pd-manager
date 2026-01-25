@@ -29,14 +29,14 @@ extern CGHost* gGHost;
 //
 
 #include <boost/thread.hpp>
-#include <unordered_map>
 #include <cstdint>
-#include <string>
+#include <list>
 #include <map>
 #include <queue>
 #include <set>
+#include <string>
+#include <unordered_map>
 #include <vector>
-#include <list>
 
 using namespace std;
 
@@ -939,9 +939,10 @@ class CDBDiv1DotAPlayer {
 	double m_NewHighestRating;
 	bool m_Banned;
 	bool m_RecvNegativePSR;
+	uint32_t m_LeftGameTime; // game time (seconds) when player left, 0 if still in game
 
   public:
-	CDBDiv1DotAPlayer(string nName, uint32_t nServerID, uint32_t nColor, uint32_t nTeam, double nRating, double nHighestRating, double nNewRating, double nNewHighestRating, bool nBanned, bool nRecvNegativePSR)
+	CDBDiv1DotAPlayer(string nName, uint32_t nServerID, uint32_t nColor, uint32_t nTeam, double nRating, double nHighestRating, double nNewRating, double nNewHighestRating, bool nBanned, bool nRecvNegativePSR, uint32_t nLeftGameTime = 0)
 	  : m_Name(nName)
 	  , m_ServerID(nServerID)
 	  , m_Color(nColor)
@@ -952,6 +953,7 @@ class CDBDiv1DotAPlayer {
 	  , m_NewHighestRating(nNewHighestRating)
 	  , m_Banned(nBanned)
 	  , m_RecvNegativePSR(nRecvNegativePSR)
+	  , m_LeftGameTime(nLeftGameTime)
 	{
 	}
 	~CDBDiv1DotAPlayer() {}
@@ -966,13 +968,25 @@ class CDBDiv1DotAPlayer {
 	double GetNewHighestRating() { return m_NewHighestRating; }
 	bool GetBanned() { return m_Banned; }
 	bool GetRecvNegativePSR() { return m_RecvNegativePSR; }
+	uint32_t GetLeftGameTime() { return m_LeftGameTime; }
 
 	// void SetColor( uint32_t nColor )						{ m_Color = nColor; }
-	void SetRating(double nRating) { m_Rating = nRating; }
+	void SetRating(double nRating)
+	{
+		m_Rating = nRating;
+		if (m_Rating < 0.0)
+			m_Rating = 0.0;
+	}
 	void SetHighestRating(double nHighestRating) { m_HighestRating = nHighestRating; }
-	void SetNewRating(double nNewRating) { m_NewRating = nNewRating; }
+	void SetNewRating(double nNewRating)
+	{
+		m_NewRating = nNewRating;
+		if (m_NewRating < 0.0)
+			m_NewRating = 0.0;
+	}
 	void SetNewHighestRating(double nNewHighestRating) { m_NewHighestRating = nNewHighestRating; }
 	void SetBanned(bool nBanned) { m_Banned = nBanned; }
+	void SetRecvNegativePSR(bool nRecvNegativePSR) { m_RecvNegativePSR = nRecvNegativePSR; }
 };
 
 //

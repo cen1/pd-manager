@@ -483,6 +483,7 @@ void CSlave ::ProcessPackets()
 						uint32_t CollectDotAStatsOverTime;
 						uint32_t Min;
 						uint32_t Sec;
+						uint32_t ThroneOrTreeGameEndTime;
 						string Mode1;
 						string Mode2;
 						uint32_t DBDotAPlayersSize;
@@ -493,6 +494,7 @@ void CSlave ::ProcessPackets()
 						SS >> CollectDotAStatsOverTime;
 						SS >> Min;
 						SS >> Sec;
+						SS >> ThroneOrTreeGameEndTime;
 						MASL_PROTOCOL ::SSReadString(SS, Mode1);
 						MASL_PROTOCOL ::SSReadString(SS, Mode2);
 						transform(Mode1.begin(), Mode1.end(), Mode1.begin(), (int (*)(int))tolower);
@@ -504,6 +506,7 @@ void CSlave ::ProcessPackets()
 						DEBUG_Print("Winner = " + UTIL_ToString(Winner));
 						DEBUG_Print("Min = " + UTIL_ToString(Min));
 						DEBUG_Print("Sec = " + UTIL_ToString(Sec));
+						DEBUG_Print("ThroneOrTreeGameEndTime = " + UTIL_ToString(ThroneOrTreeGameEndTime));
 						DEBUG_Print("Mode1 = " + Mode1);
 						DEBUG_Print("Mode2 = " + Mode2);
 						DEBUG_Print("DBDotAPlayersSize = " + UTIL_ToString(DBDotAPlayersSize));
@@ -591,6 +594,7 @@ void CSlave ::ProcessPackets()
 							uint32_t Team;
 							bool Banned;
 							bool RecvNegativePSR;
+							uint32_t LeftGameTime;
 
 							SS >> Name;
 							transform(Name.begin(), Name.end(), Name.begin(), (int (*)(int))tolower);
@@ -600,9 +604,11 @@ void CSlave ::ProcessPackets()
 							SS >> Team;
 							SS >> Banned;
 							SS >> RecvNegativePSR;
+							SS >> LeftGameTime;
 
 							DEBUG_Print("Color = " + UTIL_ToString(Color));
 							DEBUG_Print("Team = " + UTIL_ToString(Team));
+							DEBUG_Print("LeftGameTime = " + UTIL_ToString(LeftGameTime));
 
 							double Rating = MASL_PROTOCOL ::DB_DIV1_STARTING_PSR;
 							double HighestRating = MASL_PROTOCOL ::DB_DIV1_STARTING_PSR;
@@ -634,7 +640,23 @@ void CSlave ::ProcessPackets()
 
 							// new Rating and new HighestRating will get overwritten later if someone won the game
 
-							DBDiv1DotAPlayers.push_back(new CDBDiv1DotAPlayer(Name, ServerID, Color, Team, Rating, HighestRating, Rating, HighestRating, Banned, RecvNegativePSR));
+							DBDiv1DotAPlayers.push_back(new CDBDiv1DotAPlayer(Name, ServerID, Color, Team, Rating, HighestRating, Rating, HighestRating, Banned, RecvNegativePSR, LeftGameTime));
+						}
+
+						// Apply throne grace period - remove penalties for players who left within the grace window
+						if (m_GHost->m_DotaAutobanThroneGraceLimitMin > 0 && ThroneOrTreeGameEndTime > 0) {
+							uint32_t GracePeriodSeconds = m_GHost->m_DotaAutobanThroneGraceLimitMin * 60;
+							for (vector<CDBDiv1DotAPlayer*>::iterator i = DBDiv1DotAPlayers.begin(); i != DBDiv1DotAPlayers.end(); ++i) {
+								uint32_t LeftTime = (*i)->GetLeftGameTime();
+								// If player left and left within grace period before game end
+								if (LeftTime > 0 && ThroneOrTreeGameEndTime >= LeftTime && (ThroneOrTreeGameEndTime - LeftTime) <= GracePeriodSeconds) {
+									if ((*i)->GetBanned() || (*i)->GetRecvNegativePSR()) {
+										CONSOLE_Print("[GRACE] Player " + (*i)->GetName() + " left " + UTIL_ToString(ThroneOrTreeGameEndTime - LeftTime) + "s before game end, within " + UTIL_ToString(GracePeriodSeconds) + "s grace period - removing penalty");
+										(*i)->SetBanned(false);
+										(*i)->SetRecvNegativePSR(false);
+									}
+								}
+							}
 						}
 
 						// calculate players PSR

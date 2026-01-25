@@ -862,7 +862,7 @@ TEST(TestCases, GenerateMapCfg)
 	output << "map_slot" << (slots.size() + 2) << " = 0 255 1 0 12 12 32 1 100" << endl;
 
 	output << endl;
-	output << "map_observers = 3" << endl;
+	output << "map_observers = 4" << endl;
 	output << endl;
 	output << "map_speed = " << (int)m.GetMapSpeed() << endl;
 	output << "map_visibility = " << (int)m.GetMapVisibility() << endl;
