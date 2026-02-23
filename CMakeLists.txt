@@ -81,7 +81,7 @@ set(CPACK_COMPONENTS_ALL pdslave pdmanager)
 set(CPACK_COMPONENT_PDSLAVE_DESCRIPTION "pd-slave - Warcraft III game lobby host")
 set(CPACK_DEBIAN_PDSLAVE_PACKAGE_NAME "pd-slave")
 set(CPACK_DEBIAN_PDSLAVE_FILE_NAME "pd-slave-${PROJECT_VERSION}.deb")
-set(CPACK_DEBIAN_PDSLAVE_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesystem1.83-dev, libboost-system1.83-dev, libboost-chrono1.83-dev, libboost-thread1.83-dev, libboost-date-time1.83-dev, libboost-regex1.83-dev, bncsutil, stormlib")
+set(CPACK_DEBIAN_PDSLAVE_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesystem1.83-dev, libboost-system1.83-dev, libboost-chrono1.83-dev, libboost-thread1.83-dev, libboost-date-time1.83-dev, libboost-regex1.83-dev, bncsutil, libstorm-dev")
 
 # Component-specific settings for pd-manager
 set(CPACK_COMPONENT_PDMANAGER_DESCRIPTION "pd-manager - Warcraft III hosting manager bot")

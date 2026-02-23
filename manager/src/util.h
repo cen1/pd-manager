@@ -98,6 +98,5 @@ uint32_t UTIL_Factorial(uint32_t x);
 
 string UTIL_XMLSafeString(string Str);
 string UTIL_SSRead(stringstream& SS, uint32_t start, uint32_t size);
-bool UTIL_IsTDay();
 
 #endif

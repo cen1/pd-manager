@@ -671,10 +671,3 @@ string UTIL_SSRead(stringstream& SS, uint32_t start, uint32_t size)
 
 	return Str;
 }
-
-bool UTIL_IsTDay()
-{
-	time_t t = time(NULL);
-	struct tm* tm = localtime(&t);
-	return tm->tm_wday == 0;
-}

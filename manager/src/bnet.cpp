@@ -1776,15 +1776,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 								// SendChatCommand( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ), User );
 								SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 							else {
-								if (legacyMap && !UTIL_IsTDay()) {
-									SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
-								}
-								else {
-									const bool isInChannel = IsInChannel(User);
-									const std::string region = Regions::regionFromPostfix(Command);
-									const std::string mapName = legacyMap ? "l" : string();
-									m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
-								}
+								const bool isInChannel = IsInChannel(User);
+								const std::string region = Regions::regionFromPostfix(Command);
+								const std::string mapName = legacyMap ? "l" : string();
+								m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 17, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 							}
 						}
 						else
@@ -1857,15 +1852,10 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 							SendChatCommand("Unable to create game, the game name is too long (the maximum is 31 characters).", User);
 						}
 						else {
-							if (legacyMap && !UTIL_IsTDay()) {
-								SendChatCommand("DotA v6 is being phased out. It can only be played on Sundays.", User);
-							}
-							else {
-								const std::string region = Regions::regionFromPostfix(Command);
-								const bool isInChannel = IsInChannel(User);
-								const std::string mapName = legacyMap ? "l" : string();
-								m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
-							}
+							const std::string region = Regions::regionFromPostfix(Command);
+							const bool isInChannel = IsInChannel(User);
+							const std::string mapName = legacyMap ? "l" : string();
+							m_GHost->m_Manager->QueueGame(this, MASL_PROTOCOL::DB_DIV1_DOTA_GAME, 16, User, Player->GetAccessLevel(), Payload, mapName, false, isInChannel, MASL_PROTOCOL::GHOST_GROUP_DIV1DOTA, region);
 						}
 					}
 					else {
