@@ -730,8 +730,20 @@ void CManager :: ProcessPackets( )
 									// hackhack: create a config file in memory with the required information to load the map
 
 									CConfig MapCFG;
-									MapCFG.Set( "map_path", "Maps\\Download\\" + File );
-									MapCFG.Set( "map_localpath", File );
+									string MapStem = LastMatch.stem( ).string( );
+									string MapCfgFile = m_GHost->m_MapCFGPath + MapStem + ".cfg";
+
+									if( exists( path( MapCfgFile ) ) )
+									{
+										CONSOLE_Print( "[MASL] loading map config [" + MapCfgFile + "]" );
+										MapCFG.Read( MapCfgFile );
+									}
+									else
+									{
+										MapCFG.Set( "map_path", "Maps\\Download\\" + File );
+										MapCFG.Set( "map_localpath", File );
+									}
+
 									//m_GHost->m_CustomGameMap->Load( &MapCFG, File );
 									m_GHost->LoadCustomGameMap( &MapCFG, File );
 
@@ -764,161 +776,6 @@ void CManager :: ProcessPackets( )
 				}
 			}
 			break;
-
-		/*case MASL_PROTOCOL :: MTS_CREATE_DOTAGAME:
-			{
-				string CreatorServer;
-				uint32_t GameState;
-				string CreatorName;
-				uint32_t GameNameSize;
-				string GameName;
-
-				MASL_PROTOCOL :: SSReadString( SS, CreatorServer );
-				SS >> GameState;
-				MASL_PROTOCOL :: SSReadString( SS, CreatorName );
-
-				CONSOLE_Print( "CreatorServer = " + CreatorServer );
-				CONSOLE_Print( "GameState = " + UTIL_ToString( GameState ) );
-				CONSOLE_Print( "CreatorName = " + CreatorName );
-
-				SS >> GameNameSize;
-				GameName = UTIL_SSRead( SS, 1, GameNameSize );
-
-				CONSOLE_Print( "GameNameSize = " + UTIL_ToString( GameNameSize ) );
-				CONSOLE_Print( "GameName = " + GameName );
-
-				if( GameState == MASL_PROTOCOL :: GAME_PUB )
-					CONSOLE_Print( "[MASL] creating public DotA ladder game by [" + CreatorName + "] with game name [" + GameName + "]" );
-				else
-					CONSOLE_Print( "[MASL] creating private DotA ladder game by [" + CreatorName + "] with game name [" + GameName + "]" );
-
-				m_GHost->CreateGame( m_GHost->m_Map, GameState, false, GameName, CreatorName, CreatorName, CreatorServer, true );
-			}
-			break;*/
-
-		/*case MASL_PROTOCOL :: MTS_CREATE_RPGGAME:
-			{
-				string CreatorServer;
-				uint32_t GameState;
-				string CreatorName;
-				uint32_t GameNameSize;
-				string GameName;
-				uint32_t MapNameSize;
-				string MapName;
-
-				MASL_PROTOCOL :: SSReadString( SS, CreatorServer );
-				SS >> GameState;
-				MASL_PROTOCOL :: SSReadString( SS, CreatorName );
-
-				CONSOLE_Print( "CreatorServer = " + CreatorServer );
-				CONSOLE_Print( "GameState = " + UTIL_ToString( GameState ) );
-				CONSOLE_Print( "CreatorName = " + CreatorName );
-
-				SS >> GameNameSize;
-				GameName = UTIL_SSRead( SS, 1, GameNameSize );
-
-				CONSOLE_Print( "GameNameSize = " + UTIL_ToString( GameNameSize ) );
-				CONSOLE_Print( "GameName = " + GameName );
-
-				SS >> MapNameSize;
-				MapName = UTIL_SSRead( SS, 1, MapNameSize );
-
-				CONSOLE_Print( "MapNameSize = " + UTIL_ToString( MapNameSize ) );
-				CONSOLE_Print( "MapName = " + MapName );
-
-				CBNET *Server = NULL;
-
-				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
-				{
-					if( (*i)->GetServer( ) == CreatorServer )
-					{
-						Server = *i;
-						break;
-					}
-				}
-
-				string FoundMaps;
-
-				try
-				{
-					path MapPath( m_GHost->m_MapPath );
-					string Pattern = MapName;
-					transform( Pattern.begin( ), Pattern.end( ), Pattern.begin( ), (int(*)(int))tolower );
-
-					if( !exists( MapPath ) )
-					{
-						CONSOLE_Print( "[MASL] error listing maps - map path doesn't exist" );
-						Server->SendChatCommand( m_GHost->m_Language->ErrorListingMaps( ), CreatorName );
-					}
-					else
-					{
-						directory_iterator EndIterator;
-						path LastMatch;
-						uint32_t Matches = 0;
-
-						for( directory_iterator i( MapPath ); i != EndIterator; i++ )
-						{
-							string FileName = i->filename( );
-							string Stem = i->path( ).stem( );
-							transform( FileName.begin( ), FileName.end( ), FileName.begin( ), (int(*)(int))tolower );
-							transform( Stem.begin( ), Stem.end( ), Stem.begin( ), (int(*)(int))tolower );
-
-							if( !is_directory( i->status( ) ) && FileName.find( Pattern ) != string :: npos )
-							{
-								LastMatch = i->path( );
-								Matches++;
-
-								if( FoundMaps.empty( ) )
-									FoundMaps = i->filename( );
-								else
-									FoundMaps += ", " + i->filename( );
-
-								// if the pattern matches the filename exactly, with or without extension, stop any further matching
-
-								if( FileName == Pattern || Stem == Pattern )
-								{
-									Matches = 1;
-									break;
-								}
-							}
-						}
-
-						if( Matches == 0 )
-							Server->SendChatCommand( m_GHost->m_Language->NoMapsFound( ), CreatorName );
-						else if( Matches == 1 )
-						{
-							string File = LastMatch.filename( );
-							Server->SendChatCommand( m_GHost->m_Language->LoadingConfigFile( File ), CreatorName );
-
-							// hackhack: create a config file in memory with the required information to load the map
-
-							CConfig MapCFG;
-							MapCFG.Set( "map_path", "Maps\\Download\\" + File );
-							MapCFG.Set( "map_localpath", File );
-							m_GHost->m_CustomGameMap->Load( &MapCFG, File );
-
-							//CONSOLE_Print( "[MASL : " + GameName + "] creating custom game with owner [" + OwnerName + "] and game state " + UTIL_ToString( GameState ) );
-							//CONSOLE_Print( "[MASL : map] " + m_GHost->m_RpgMap->GetCFGFile( ) );
-
-							if( GameState == MASL_PROTOCOL :: GAME_PUB )
-								CONSOLE_Print( "[MASL] creating public custom game by [" + CreatorName + "] with game name [" + GameName + "], using map [" + File + "]" );
-							else
-								CONSOLE_Print( "[MASL] creating private custom game by [" + CreatorName + "] with game name [" + GameName + "], using map [" + File + "]" );
-
-							m_GHost->CreateGame( m_GHost->m_CustomGameMap, GameState, false, GameName, CreatorName, CreatorName, CreatorServer, true );
-						}
-						else
-							Server->SendChatCommand( m_GHost->m_Language->FoundMaps( FoundMaps ), CreatorName );
-					}
-				}
-				catch( const exception &ex )
-				{
-					// CONSOLE_Print( "[MASL] error listing maps - caught exception [" + ex.what( ) + "]" );
-					CONSOLE_Print( "[MASL] error listing maps - caught exception [ex.what( )]" );
-					Server->SendChatCommand( m_GHost->m_Language->ErrorListingMaps( ), CreatorName );
-				}
-			}
-			break;*/
 		}
 
 		delete Packet;

@@ -1001,8 +1001,17 @@ void CBNET ::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 									// hackhack: create a config file in memory with the required information to load the map
 
 									CConfig MapCFG;
-									MapCFG.Set("map_path", "Maps\\Download\\" + File);
-									MapCFG.Set("map_localpath", File);
+									string MapStem = LastMatch.stem().string();
+									string MapCfgFile = m_GHost->m_MapCFGPath + MapStem + ".cfg";
+
+									if (exists(path(MapCfgFile))) {
+										CONSOLE_Print("[BNET: " + m_ServerAlias + "] loading map config [" + MapCfgFile + "]");
+										MapCFG.Read(MapCfgFile);
+									} else {
+										MapCFG.Set("map_path", "Maps\\Download\\" + File);
+										MapCFG.Set("map_localpath", File);
+									}
+
 									m_GHost->m_Map->Load(&MapCFG, File);
 
 									CConfig DotALadderMapObsCFG;
