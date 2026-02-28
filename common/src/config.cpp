@@ -29,11 +29,11 @@
 // CConfig
 //
 
-CConfig ::CConfig() = default;
+CConfig::CConfig() = default;
 
-CConfig ::~CConfig() = default;
+CConfig::~CConfig() = default;
 
-void CConfig ::Read(const std::string& file)
+void CConfig::Read(const std::string& file)
 {
 	std::ifstream in;
 	in.open(file.c_str());
@@ -74,12 +74,12 @@ void CConfig ::Read(const std::string& file)
 	}
 }
 
-bool CConfig ::Exists(const std::string& key)
+bool CConfig::Exists(const std::string& key)
 {
 	return m_CFG.contains(key);
 }
 
-int CConfig ::GetInt(const std::string& key, int x)
+int CConfig::GetInt(const std::string& key, int x)
 {
 	if (!m_CFG.contains(key))
 		return x;
@@ -87,7 +87,7 @@ int CConfig ::GetInt(const std::string& key, int x)
 	return std::stoi(m_CFG[key]);
 }
 
-bool CConfig ::GetBool(const std::string& key, bool x)
+bool CConfig::GetBool(const std::string& key, bool x)
 {
 	if (!m_CFG.contains(key))
 		return x;
@@ -95,7 +95,7 @@ bool CConfig ::GetBool(const std::string& key, bool x)
 	return GetInt(key, 0) == 1;
 }
 
-double CConfig ::GetDouble(const std::string& key, double x)
+double CConfig::GetDouble(const std::string& key, double x)
 {
 	if (!m_CFG.contains(key))
 		return x;
@@ -103,7 +103,7 @@ double CConfig ::GetDouble(const std::string& key, double x)
 	return std::stod(m_CFG[key]);
 }
 
-string CConfig ::GetString(const std::string& key, string x)
+string CConfig::GetString(const std::string& key, string x)
 {
 	if (!m_CFG.contains(key))
 		return x;
@@ -111,7 +111,18 @@ string CConfig ::GetString(const std::string& key, string x)
 	return m_CFG[key];
 }
 
-void CConfig ::Set(const std::string& key, string x)
+void CConfig::Set(const std::string& key, string x)
 {
 	m_CFG[key] = x;
+}
+
+std::map<std::string, std::string> CConfig::GetAllWithPrefix(const std::string& prefix)
+{
+	std::map<std::string, std::string> result;
+
+	for (auto& kv : m_CFG)
+		if (kv.first.substr(0, prefix.size()) == prefix)
+			result[kv.first.substr(prefix.size())] = kv.second;
+
+	return result;
 }

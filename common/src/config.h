@@ -44,6 +44,7 @@ public:
 	double GetDouble( const std::string& key, double x );
 	std::string GetString( const std::string& key, std::string x );
 	void Set( const std::string& key, std::string x );
+	std::map<std::string, std::string> GetAllWithPrefix( const std::string& prefix );
 };
 
 #endif

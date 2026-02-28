@@ -138,6 +138,7 @@ class CGHost {
 	string m_BindAddress;							 // config value: the address to host games on
 	string m_IPBlackListFile;						 // config value: IP blacklist file (ipblacklist.txt)
 	string m_MapPath;								 // config value: map path
+	map<string, string> m_Aliases;				 	 // config value: command aliases
 	unsigned char m_LANWar3Version;					 // config value: LAN warcraft 3 version
 	bool m_TCPNoDelay;								 // config value: use Nagle's algorithm or not
 	uint32_t m_DotaMaxWinChanceDiffGainConstant = 0; // config value: if win chance diff is more than this, disabled +1/-1 constant gain

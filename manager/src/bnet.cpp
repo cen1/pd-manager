@@ -1068,6 +1068,26 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 					// SendChatCommand( "Hosting commands must be whispered to the bot from now on (/w playdota.eu !gopub zzz), we aim to make channel more chat friendly without !gopub spam", User );
 					SendChatCommand("You have to whisper the bot (/w " + m_UserName + " .map)", User);
 			}
+			// alias commands defined in config, e.g.: alias_myrpg = .map Twilight | .priv $payload
+			// usage: .myrpg mygame  ->  .map Twilight  then  .priv mygame
+			else if (m_GHost->m_Aliases.count(Command)) {
+				string AliasValue = m_GHost->m_Aliases[Command];
+				vector<string> Parts = UTIL_Tokenize(AliasValue, '|');
+
+				for (auto& Part : Parts) {
+					string Cmd = Part;
+					// trim leading/trailing spaces around the '|' separator, then substitute $payload
+					const string::size_type CmdStart = Cmd.find_first_not_of(' ');
+					const string::size_type CmdEnd = Cmd.find_last_not_of(' ');
+					Cmd = (CmdStart == string::npos) ? string() : Cmd.substr(CmdStart, CmdEnd - CmdStart + 1);
+					UTIL_Replace(Cmd, "$payload", Payload);
+
+					if (!Cmd.empty() && Cmd[0] == '.') {
+						CIncomingChatEvent FakeEvent(CBNETProtocol::EID_WHISPER, 0, User, Cmd);
+						ProcessChatEvent(&FakeEvent);
+					}
+				}
+			}
 		}
 		else if (!Message.empty() && Message[0] == m_CommandTrigger) {
 			// extract the command trigger, the command, and the payload
@@ -2112,6 +2132,26 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 
 			else if (Command == "where" && !Payload.empty())
 				m_GHost->m_Manager->SendPlayerWhereDescription(this, User, Payload);
+			// alias commands defined in config, e.g.: alias_myrpg = .map Twilight | .priv $payload
+			// usage: .myrpg mygame  ->  .map Twilight  then  .priv mygame
+			else if (m_GHost->m_Aliases.count(Command)) {
+				string AliasValue = m_GHost->m_Aliases[Command];
+				vector<string> Parts = UTIL_Tokenize(AliasValue, '|');
+
+				for (auto& Part : Parts) {
+					string Cmd = Part;
+					// trim leading/trailing spaces around the '|' separator, then substitute $payload
+					const string::size_type CmdStart = Cmd.find_first_not_of(' ');
+					const string::size_type CmdEnd = Cmd.find_last_not_of(' ');
+					Cmd = (CmdStart == string::npos) ? string() : Cmd.substr(CmdStart, CmdEnd - CmdStart + 1);
+					UTIL_Replace(Cmd, "$payload", Payload);
+
+					if (!Cmd.empty() && Cmd[0] == '.') {
+						CIncomingChatEvent FakeEvent(CBNETProtocol::EID_WHISPER, 0, User, Cmd);
+						ProcessChatEvent(&FakeEvent);
+					}
+				}
+			}
 		}
 
 		// delete Player if it's a fake temporary object

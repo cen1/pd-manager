@@ -17,6 +17,8 @@ set(SOURCES
         src/bnetprotocol.h
         src/commandpacket.cpp
         src/commandpacket.h
+        ../common/src/common_util.cpp
+        ../common/src/common_util.h
         ../common/src/config.cpp
         ../common/src/config.h
         src/configuration.h

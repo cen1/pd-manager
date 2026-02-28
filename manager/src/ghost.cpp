@@ -405,6 +405,8 @@ CGHost ::CGHost(CConfig* CFG, boost::asio::io_context& nIOService, boost::asio::
 	m_BindAddress = CFG->GetString("bot_bindaddress", string());
 	m_IPBlackListFile = CFG->GetString("bot_ipblacklistfile", "ipblacklist.txt");
 	m_MapPath = UTIL_AddPathSeperator(CFG->GetString("bot_mappath", string()));
+	m_Aliases = CFG->GetAllWithPrefix("alias_");
+	CONSOLE_Print("[GHOST] loaded " + UTIL_ToString(m_Aliases.size()) + " aliases");
 	// patch
 	m_RPGMode = CFG->GetInt("rpg_mode", 0) ? true : false;
 	m_DisabledMessage = string();
