@@ -5681,7 +5681,7 @@ void CBaseGame::StartCountDown(bool force)
 					SendAllChat("Game is starting, game mode is set to [" + m_HCLCommandString + "].");
 
 				m_CountDownStarted = true;
-				m_CountDownCounter = 10;
+				m_CountDownCounter = m_GHost->m_CountDown;
 			}
 		}
 		else {
@@ -5717,7 +5717,7 @@ void CBaseGame::StartCountDown(bool force)
 					SendAllChat("Game is starting, game mode is set to [" + m_HCLCommandString + "].");
 
 				m_CountDownStarted = true;
-				m_CountDownCounter = 10;
+				m_CountDownCounter = m_GHost->m_CountDown;
 			}
 		}
 	}
@@ -5852,7 +5852,7 @@ void CBaseGame::StartCountDownAuto(bool requireSpoofChecks)
 
 		if (StillDownloading.empty() && NotSpoofChecked.empty() && NotPinged.empty()) {
 			m_CountDownStarted = true;
-			m_CountDownCounter = 10;
+			m_CountDownCounter = m_GHost->m_CountDown;
 		}
 
 		// Print current slot state

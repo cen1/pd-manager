@@ -1191,6 +1191,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
 	m_MinLatency = CFG->GetInt("bot_latency_min", 80);
 	m_MaxLatency = CFG->GetInt("bot_latency_max", 120);
+	m_CountDown = CFG->GetInt( "bot_countdown", 10 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 150 );
 	m_MinSyncLimit = CFG->GetInt("bot_synclimit_min", 50);
 	m_MaxSyncLimit = CFG->GetInt("bot_synclimit_max", 300);
