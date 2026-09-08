@@ -113,6 +113,7 @@ public:
 	uint32_t m_MinLatency;					// config value: Minimum latency which can be set by game owner
 	uint32_t m_MaxLatency;					// config value: Maximum latency which can be set by game owner
 	uint32_t m_CountDown;					// config value: countdown timer before game starts
+	uint32_t m_GameOverTimerPlayers;		// config value: start gameover timer when this many players are left (0 or 1)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
 	uint32_t m_MinSyncLimit;				// config value: Minimum synclimit value which can be set by game owner
 	uint32_t m_MaxSyncLimit;				// config value: Maximum synclimit value which can be set by game owner

@@ -1113,10 +1113,11 @@ bool CBaseGame::Update(void* fd, void* send_fd)
 		m_VoteRemakeStartedTime = 0;
 	}
 
-	// start the gameover timer if there's only one player left
-
-	if (m_Players.size() == 1 && m_FakePlayerPID == 255 && m_GameOverTime == 0 && (m_GameLoading || m_GameLoaded)) {
-		CONSOLE_Print("[GAME: " + m_GameName + "] gameover timer started (one player left)");
+	// start the gameover timer when player count drops to the configured threshold
+	// bot_gameover_timer_players=1 (default): timer starts when 1 player remains (DotA etc)
+	// bot_gameover_timer_players=0 timer only starts when 0 players remain (solo RPG/custom maps..)
+	if (m_Players.size() <= m_GHost->m_GameOverTimerPlayers && m_FakePlayerPID == 255 && m_GameOverTime == 0 && (m_GameLoading || m_GameLoaded)) {
+		CONSOLE_Print("[GAME: " + m_GameName + "] gameover timer started (" + UTIL_ToString(m_Players.size()) + " player(s) left)");
 		m_GameOverTime = GetTime();
 	}
 
@@ -2751,7 +2752,9 @@ void CBaseGame::EventPlayerChatToHost(CGamePlayer* player, CIncomingChatPlayer* 
 						vToPIDs.push_back(ToPIDs[i]);
 					}
 				}
-				Send(ToPIDs, m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), vToPIDs, chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetChatMessage()));
+
+				if (!vToPIDs.empty())
+					Send(vToPIDs, m_Protocol->SEND_W3GS_CHAT_FROM_HOST(chatPlayer->GetFromPID(), vToPIDs, chatPlayer->GetFlag(), chatPlayer->GetExtraFlags(), chatPlayer->GetChatMessage()));
 			}
 		}
 		else if (chatPlayer->GetType() == CIncomingChatPlayer ::CTH_TEAMCHANGE && !m_CountDownStarted)
