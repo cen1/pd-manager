@@ -136,8 +136,8 @@ bool CCustomDotAGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction 
 								string VictimColourString = KeyString.substr( 4 );
 								uint32_t VictimColour = UTIL_ToUInt32( VictimColourString );
 
-								// ValueInt can be more than 11 in some cases (ValueInt is 12 when player gets killed by neutral creeps)
-								// if the game is with observers, observer player could have color 12 and GetPlayerFromColour could return observer player
+								// ValueInt can be more than MAX_SLOTS-1 in some cases (ValueInt is MAX_SLOTS when player gets killed by neutral creeps)
+								// if the game is with observers, observer player could have color MAX_SLOTS and GetPlayerFromColour could return observer player
 								// observer can't be a killer
 
 								CDotAPlayer *Killer = GetDotAPlayerFromLobbyColor( ValueInt );
@@ -166,7 +166,7 @@ bool CCustomDotAGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction 
 										m_GameLog->AddMessage( "The Scourge killed " + Victim->GetName( ) );
 									}
 								}
-								else if( ValueInt == 12 )
+								else if( ValueInt == MAX_SLOTS )
 								{
 									// Neutral creeps have killed a player
 
@@ -329,7 +329,7 @@ bool CCustomDotAGame :: EventPlayerAction( CGamePlayer *player, CIncomingAction 
 										m_GameLog->AddMessage( "The Scourge killed " + Victim->GetName( ) + "'s courier" );
 									}
 								}
-								else if( ValueInt == 12 )
+								else if( ValueInt == MAX_SLOTS )
 								{
 									if( Victim )
 									{
@@ -1281,7 +1281,7 @@ void CCustomDotAGame :: EventGameStarted( )
 			Color = m_Slots[SID].GetColour( );
 		}
 
-		if( Team == 12 )
+		if( Team == MAX_SLOTS )
 		{
 			// don't waste space with observers, no DotA stats is collected for them in custom DotA games
 

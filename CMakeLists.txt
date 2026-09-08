@@ -77,10 +77,18 @@ SET(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_ALL pdslave pdmanager)
 
+# Check if GHOST_24_SLOTS is enabled via CXX_FLAGS
+string(FIND "${CMAKE_CXX_FLAGS}" "GHOST_24_SLOTS" _ghost_24_slots_pos)
+if (NOT _ghost_24_slots_pos EQUAL -1)
+    set(PD_SLAVE_SUFFIX "-129")
+else ()
+    set(PD_SLAVE_SUFFIX "")
+endif ()
+
 # Component-specific settings for pd-slave
-set(CPACK_COMPONENT_PDSLAVE_DESCRIPTION "pd-slave - Warcraft III game lobby host")
-set(CPACK_DEBIAN_PDSLAVE_PACKAGE_NAME "pd-slave")
-set(CPACK_DEBIAN_PDSLAVE_FILE_NAME "pd-slave-${PROJECT_VERSION}.deb")
+set(CPACK_COMPONENT_PDSLAVE_DESCRIPTION "pd-slave${PD_SLAVE_SUFFIX} - Warcraft III game lobby host")
+set(CPACK_DEBIAN_PDSLAVE_PACKAGE_NAME "pd-slave${PD_SLAVE_SUFFIX}")
+set(CPACK_DEBIAN_PDSLAVE_FILE_NAME "pd-slave${PD_SLAVE_SUFFIX}-${PROJECT_VERSION}.deb")
 set(CPACK_DEBIAN_PDSLAVE_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesystem1.83-dev, libboost-system1.83-dev, libboost-chrono1.83-dev, libboost-thread1.83-dev, libboost-date-time1.83-dev, libboost-regex1.83-dev, bncsutil, libstorm-dev")
 
 # Component-specific settings for pd-manager

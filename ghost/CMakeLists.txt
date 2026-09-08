@@ -6,6 +6,14 @@ cmake_minimum_required(VERSION 3.14)
 
 project(pd-slave VERSION 1.0.1)
 
+# Check if GHOST_24_SLOTS is enabled via CXX_FLAGS
+string(FIND "${CMAKE_CXX_FLAGS}" "GHOST_24_SLOTS" _ghost_24_slots_pos)
+if (NOT _ghost_24_slots_pos EQUAL -1)
+    set(PD_SLAVE_SUFFIX "-129")
+else ()
+    set(PD_SLAVE_SUFFIX "")
+endif ()
+
 add_executable(pd-slave)
 
 set(SOURCES
@@ -84,7 +92,7 @@ OPTION(ENABLE_TESTS "Enable unit tests" ON)
 
 target_compile_definitions(pd-slave PRIVATE -DBOOST_ALL_DYN_LINK -DBOOST_BIND_GLOBAL_PLACEHOLDERS -DGHOST_MYSQL)
 
-set_target_properties(pd-slave PROPERTIES OUTPUT_NAME pd-slave)
+set_target_properties(pd-slave PROPERTIES OUTPUT_NAME pd-slave${PD_SLAVE_SUFFIX})
 
 set_target_properties(pd-slave PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(pd-slave PROPERTIES SOVERSION 1)
