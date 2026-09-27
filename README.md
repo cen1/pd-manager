@@ -46,6 +46,19 @@ cd build
 ctest --verbose -C Release
 ```
 
+### Building for Warcraft III 1.29 (24 players)
+
+By default, the bot is built for W3 1.26/1.28 with a maximum of 12 player slots. To build for W3 1.29 with 24 player slot support, pass the `GHOST_24_SLOTS` compile definition:
+
+```
+cmake -B build_129 -DCMAKE_CXX_FLAGS="-DGHOST_24_SLOTS"
+cmake --build build_129 --config Release
+```
+
+The 1.29 build supports maps with up to 24 player slots, the updated executable layout (`Warcraft III.exe`, `War3x.mpq`), and w3i map format versions 28/31. Maps made with an editor version older than build 6060 (pre-1.29) are automatically capped at 12 slots.
+
+Note: the 24-slot and 12-slot builds are **not interchangeable**. Run the correct binary for your W3 server version.
+
 ## Build on Windows
 
 Use Visual Studio CMD x64 to run the commands. Vcpkg and conan are supported for dependency installation, choose one according to your own preference.
@@ -77,10 +90,15 @@ To develop in Visual Studio, you can add `-G "Visual Studio 17 2022"` to the pre
 Before you begin, you need to place `blizzard.j` and `common.j` from your W3 install into your mapcfgs directory, for example in `./data/mapcfgs`.
 You also need to prepare a W3 directory with a minimal set of files:
 
-- game.dll
-- Storm.dll
-- war3.exe
-- War3Patch.mpq
+For W3 1.26/1.28:
+- `game.dll`
+- `Storm.dll`
+- `war3.exe`
+- `War3Patch.mpq`
+
+For W3 1.29:
+- `Warcraft III.exe`
+- `War3x.mpq`
 
 For example, in `./wc3_126a`.
 
@@ -102,13 +120,13 @@ You need to configure at a minimum these options from the example manager cfg:
 
 | Option                       | Description                                                                                                                                          |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`.                             |
+| bot_war3path                 | Path to your Warcraft III game. See W3 file requirements above.                                                                                      |
 | bnet_server                  | Bnet server.                                                                                                                                         |
 | bnet_serveralias             | Bnet server alias name.                                                                                                                              |
 | bnet_username                | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
 | bnet_password                | Bnet bot username password. Use lowercase only.                                                                                                      |
 | bnet_rootadmin               | Bnet player account that will have root privileges for all commands.                                                                                 |
-| bnet_custom_war3version      | Set to minor W3 version, `26` or `28`.                                                                                                               |
+| bnet_custom_war3version      | Set to minor W3 version, `26`, `28` or `29`+.                                                                                                       |
 | bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                                   |
 | db_mysql_*                   | Connection options to your MySQL database.																												                                                                               |
 
@@ -120,13 +138,13 @@ You need to configure at a minimum these options from the example slave cfg:
 
 | Option                       | Description                                                                                                                                          |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bot_war3path                 | Path to your Warcraft III game. Directory must include at least `game.dll`, `Storm.dll`, `war3.exe` and `War3Patch.mpq`                              |
+| bot_war3path                 | Path to your Warcraft III game. See W3 file requirements above.                                                                                      |
 | bnet_server                  | Bnet server                                                                                                                                          |
 | bnet_serveralias             | Bnet server                                                                                                                                          |
 | bnet_username                | Bnet bot username. If it is a new account, login with your game first to verify it's working. You need a dedicated account, not your player account. |
 | bnet_password                | Bnet bot username password. Use lowercase only.                                                                                                      |
 | bnet_rootadmin               | Bnet player account that will have root privileges for all commands.                                                                                 |
-| bnet_custom_war3version      | Set to minor W3 version, `26` or `28`.                                                                                                               |
+| bnet_custom_war3version      | Set to minor W3 version, `26`, `28` or `29`+.                                                                                                       |
 | bnet_custom_passwordhashtype | Set to a value of `pvpgn` if you are connecting to a pvpgn server.                                                                                   |
 
 You can leave `bnet_username` and `bnet_password` blank in `pd-slave-docker.cfg` and set them in `slave_cfgs/s01.cfg` and `slave_cfgs/s02.cfg`.

@@ -1192,6 +1192,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MinLatency = CFG->GetInt("bot_latency_min", 80);
 	m_MaxLatency = CFG->GetInt("bot_latency_max", 120);
 	m_CountDown = CFG->GetInt( "bot_countdown", 10 );
+	m_AutoPubInterval = std::max( (uint32_t)CFG->GetInt( "bot_autopub_interval", 30 ), (uint32_t)5 );
 	m_GameOverTimerPlayers = std::min( (uint32_t)CFG->GetInt( "bot_gameover_timer_players", 1 ), (uint32_t)1 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 150 );
 	m_MinSyncLimit = CFG->GetInt("bot_synclimit_min", 50);
@@ -1246,7 +1247,10 @@ void CGHost :: SetConfigs( CConfig *CFG )
 
 void CGHost :: ExtractScripts( )
 {
-	string PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
+	string PatchMPQFileName = m_Warcraft3Path + "War3x.mpq";
+
+	if( !UTIL_FileExists( PatchMPQFileName ) )
+		PatchMPQFileName = m_Warcraft3Path + "War3Patch.mpq";
 	HANDLE PatchMPQ;
 
 	if( SFileOpenArchive( PatchMPQFileName.c_str( ), 0, MPQ_OPEN_FORCE_MPQ_V1, &PatchMPQ ) )

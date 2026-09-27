@@ -35,6 +35,7 @@ Command trigger is usually `!` or `.` depending on the config.
 | `!sd [name]` | Alias to `!statsdota`. |
 | `!statsdota [name]` | Displays your ladder DotA stats, optionally add `[name]` to display stats for another player. |
 | `!unqueue` | Removes your game from the queue (leaving the channel has the same effect as using `!unqueue`). |
+| `!unhost` | Unhosts the game you own that is currently in the lobby, without having to join it. Doesn't work once the game countdown has started. If your game is still in the queue, use `!unqueue` instead. |
 | `!users` | Displays how many users are currently using lagabuse.com. |
 | `!version` | Displays version information. |
 | `!where <name>` | Checks if player `<name>` is playing on the lagabuse.com bot. |
@@ -95,6 +96,7 @@ Command trigger is usually `!` or `.` depending on the config.
 | `!ping [max ping]` | Shows everyone's ping, optionally add `[max ping]` to kick players with ping above `[max ping]`. |
 | `!priv [game name]` | Rehosts as a private game `[game name]`. If used without `[game name]`, the bot will automatically make a new game name. |
 | `!pub [game name]` | Rehosts as a public game `[game name]`. If used without `[game name]`, the bot will automatically make a new game name. |
+| `!autopub [game name]` | Rehosts as a public game `[game name] [N/10] #1`, where `N` is the number of players in the lobby, and keeps rehosting every `bot_autopub_interval` seconds (default 30). If the number of players stays the same the `#` counter goes up from `#1` to `#9` and then starts again at `#1`, if it changes the counter resets to `#1`. Rehosting pauses while the lobby is full and stops when the game starts, when the game owner leaves or when `!pub`/`!priv` is used. If used without `[game name]`, the current game name is used. Max 20 characters. |
 | `!sp` | Shuffles players. |
 | `!start [force]` | Starts the game, optionally add `force` to skip checks. |
 | `!swap <n1> <n2>` | Swaps slots. |

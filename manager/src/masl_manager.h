@@ -183,6 +183,7 @@ class CManager {
 	bool HasQueuedGame(CBNET* creatorServer, string creatorName);
 	uint32_t HasQueuedGameFromNamePartial(CBNET* creatorServer, string creatorName, CQueuedGame** game);
 	void UnqueueGame(CBNET* creatorServer, string creatorName);
+	CRemoteGame* UnhostGame(CBNET* server, string ownerName);
 	void DeleteQueue();
 	void QueueGame(CBNET* creatorServer, uint32_t gameType, uint32_t gameState, string creatorName, uint32_t accessLevel, string gameName, string map, bool observers, bool queue, uint32_t ghostGroup, string region);
 	void EchoPushPlayer(CBNET* server, string pusher, string player, int32_t howMuch);

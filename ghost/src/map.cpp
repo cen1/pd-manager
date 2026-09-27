@@ -463,6 +463,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	// try to calculate map_width, map_height, map_slot<x>, map_numplayers, map_numteams
 
+	uint32_t EditorVersion; // used to determine maximum slots when adding observers
 	uint32_t MapOptions = 0;
 	BYTEARRAY MapWidth;
 	BYTEARRAY MapHeight;
@@ -470,6 +471,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 	uint32_t MapNumTeams = 0;
 	uint32_t MapFilterType = MAPFILTER_TYPE_SCENARIO;
 	vector<CGameSlot> Slots;
+    uint32_t HiddenSlots = 0;
 
 	if( !m_MapData.empty( ) )
 	{
@@ -502,196 +504,209 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 						ISS.read( (char *)&FileFormat, 4 );				// file format (18 = ROC, 25 = TFT)
 
-						if( FileFormat == 18 || FileFormat == 25 )
-						{
-							ISS.seekg( 4, ios :: cur );					// number of saves
-							ISS.seekg( 4, ios :: cur );					// editor version
-							getline( ISS, GarbageString, '\0' );		// map name
-							getline( ISS, GarbageString, '\0' );		// map author
-							getline( ISS, GarbageString, '\0' );		// map description
-							getline( ISS, GarbageString, '\0' );		// players recommended
-							ISS.seekg( 32, ios :: cur );				// camera bounds
-							ISS.seekg( 16, ios :: cur );				// camera bounds complements
-							ISS.read( (char *)&RawMapWidth, 4 );		// map width
-							ISS.read( (char *)&RawMapHeight, 4 );		// map height
-							ISS.read( (char *)&RawMapFlags, 4 );		// flags
-							ISS.seekg( 1, ios :: cur );					// map main ground type
+                        if (FileFormat == 18 || FileFormat == 25 || FileFormat == 28 || FileFormat == 31)
+                        {
+                            ISS.seekg(4, ios::cur);					// number of saves
+                            ISS.read((char*)&EditorVersion, 4);		// editor version
+                            if (FileFormat >= 28) {
+                                ISS.seekg(4, ios::cur);					// game version major
+                                ISS.seekg(4, ios::cur);					// game version minor
+                                ISS.seekg(4, ios::cur);					// game version patch
+                                ISS.seekg(4, ios::cur);					// game version build
+                            }
+                            getline(ISS, GarbageString, '\0');		// map name
+                            getline(ISS, GarbageString, '\0');		// map author
+                            getline(ISS, GarbageString, '\0');		// map description
+                            getline(ISS, GarbageString, '\0');		// players recommended
+                            ISS.seekg(32, ios::cur);				// camera bounds
+                            ISS.seekg(16, ios::cur);				// camera bounds complements
+                            ISS.read((char*)&RawMapWidth, 4);		// map width
+                            ISS.read((char*)&RawMapHeight, 4);		// map height
+                            ISS.read((char*)&RawMapFlags, 4);		// flags
+                            ISS.seekg(1, ios::cur);					// map main ground type
+                            ISS.seekg(4, ios::cur);					// loading screen number
 
-							if( FileFormat == 18 )
-								ISS.seekg( 4, ios :: cur );				// campaign background number
-							else if( FileFormat == 25 )
-							{
-								ISS.seekg( 4, ios :: cur );				// loading screen background number
-								getline( ISS, GarbageString, '\0' );	// path of custom loading screen model
-							}
+                            if (FileFormat >= 25)
+                                getline(ISS, GarbageString, '\0');	// path of custom loading screen model
 
-							getline( ISS, GarbageString, '\0' );		// map loading screen text
-							getline( ISS, GarbageString, '\0' );		// map loading screen title
-							getline( ISS, GarbageString, '\0' );		// map loading screen subtitle
+                            getline(ISS, GarbageString, '\0');		// map loading screen text
+                            getline(ISS, GarbageString, '\0');		// map loading screen title
+                            getline(ISS, GarbageString, '\0');		// map loading screen subtitle
 
-							if( FileFormat == 18 )
-								ISS.seekg( 4, ios :: cur );				// map loading screen number
-							else if( FileFormat == 25 )
-							{
-								ISS.seekg( 4, ios :: cur );				// used game data set
-								getline( ISS, GarbageString, '\0' );	// prologue screen path
-							}
+                            if (FileFormat == 18)
+                                ISS.seekg(4, ios::cur);					// map loading screen number
+                            else if (FileFormat >= 25)
+                            {
+                                ISS.seekg(4, ios::cur);				// used game data set
+                                getline(ISS, GarbageString, '\0');	// prologue screen path
+                            }
 
-							getline( ISS, GarbageString, '\0' );		// prologue screen text
-							getline( ISS, GarbageString, '\0' );		// prologue screen title
-							getline( ISS, GarbageString, '\0' );		// prologue screen subtitle
+                            getline(ISS, GarbageString, '\0');		// prologue screen text
+                            getline(ISS, GarbageString, '\0');		// prologue screen title
+                            getline(ISS, GarbageString, '\0');		// prologue screen subtitle
 
-							if( FileFormat == 25 )
-							{
-								ISS.seekg( 4, ios :: cur );				// uses terrain fog
-								ISS.seekg( 4, ios :: cur );				// fog start z height
-								ISS.seekg( 4, ios :: cur );				// fog end z height
-								ISS.seekg( 4, ios :: cur );				// fog density
-								ISS.seekg( 1, ios :: cur );				// fog red value
-								ISS.seekg( 1, ios :: cur );				// fog green value
-								ISS.seekg( 1, ios :: cur );				// fog blue value
-								ISS.seekg( 1, ios :: cur );				// fog alpha value
-								ISS.seekg( 4, ios :: cur );				// global weather id
-								getline( ISS, GarbageString, '\0' );	// custom sound environment
-								ISS.seekg( 1, ios :: cur );				// tileset id of the used custom light environment
-								ISS.seekg( 1, ios :: cur );				// custom water tinting red value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting green value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting blue value
-								ISS.seekg( 1, ios :: cur );				// custom water tinting alpha value
-							}
+                            if (FileFormat >= 25) {
+                                ISS.seekg(4, ios::cur);				// uses terrain fog
+                                ISS.seekg(4, ios::cur);				// fog start z height
+                                ISS.seekg(4, ios::cur);				// fog end z height
+                                ISS.seekg(4, ios::cur);				// fog density
+                                ISS.seekg(1, ios::cur);				// fog red value
+                                ISS.seekg(1, ios::cur);				// fog green value
+                                ISS.seekg(1, ios::cur);				// fog blue value
+                                ISS.seekg(1, ios::cur);				// fog alpha value
+                                ISS.seekg(4, ios::cur);				// global weather id
+                                getline(ISS, GarbageString, '\0');	// custom sound environment
+                                ISS.seekg(1, ios::cur);				// tileset id of the used custom light environment
+                                ISS.seekg(1, ios::cur);				// custom water tinting red value
+                                ISS.seekg(1, ios::cur);				// custom water tinting green value
+                                ISS.seekg(1, ios::cur);				// custom water tinting blue value
+                                ISS.seekg(1, ios::cur);				// custom water tinting alpha value
 
-							ISS.read( (char *)&RawMapNumPlayers, 4 );	// number of players
-							uint32_t ClosedSlots = 0;
+                                if (FileFormat >= 28) {
+                                    ISS.seekg(4, ios::cur);					// 0 = JASS, 1 = LUA
 
-							for( uint32_t i = 0; i < RawMapNumPlayers; ++i )
-							{
-								CGameSlot Slot( 0, 255, SLOTSTATUS_OPEN, 0, 0, 1, SLOTRACE_RANDOM );
-								uint32_t Colour;
-								uint32_t Status;
-								uint32_t Race;
+                                    if (FileFormat >= 31) {
+                                        ISS.seekg(4, ios::cur);					// supported modes
+                                        ISS.seekg(4, ios::cur);					// game data version
+                                    }
+                                }
+                            }
 
-								ISS.read( (char *)&Colour, 4 );			// colour
-								Slot.SetColour( Colour );
-								ISS.read( (char *)&Status, 4 );			// status
+                            ISS.read((char*)&RawMapNumPlayers, 4);	// number of players
 
-								if( Status == 1 )
-									Slot.SetSlotStatus( SLOTSTATUS_OPEN );
-								else if( Status == 2 )
-								{
-									Slot.SetSlotStatus( SLOTSTATUS_OCCUPIED );
-									Slot.SetComputer( 1 );
-									Slot.SetComputerType( SLOTCOMP_NORMAL );
-								}
-								else
-								{
-									Slot.SetSlotStatus( SLOTSTATUS_CLOSED );
-                                                                        ++ClosedSlots;
-								}
+                            for (uint32_t i = 0; i < RawMapNumPlayers; ++i)
+                            {
+                                CGameSlot Slot(0, 255, SLOTSTATUS_OPEN, 0, 0, 1, SLOTRACE_RANDOM);
+                                uint32_t Colour;
+                                uint32_t Status;
+                                uint32_t Race;
 
-								ISS.read( (char *)&Race, 4 );			// race
+                                ISS.read((char*)&Colour, 4);			// colour
+                                Slot.SetColour(Colour);
+                                ISS.read((char*)&Status, 4);			// status
 
-								if( Race == 1 )
-									Slot.SetRace( SLOTRACE_HUMAN );
-								else if( Race == 2 )
-									Slot.SetRace( SLOTRACE_ORC );
-								else if( Race == 3 )
-									Slot.SetRace( SLOTRACE_UNDEAD );
-								else if( Race == 4 )
-									Slot.SetRace( SLOTRACE_NIGHTELF );
-								else
-									Slot.SetRace( SLOTRACE_RANDOM );
+                                if (Status == 1)
+                                    Slot.SetSlotStatus(SLOTSTATUS_OPEN);
+                                else if (Status == 2)
+                                {
+                                    Slot.SetSlotStatus(SLOTSTATUS_OCCUPIED);
+                                    Slot.SetComputer(1);
+                                    Slot.SetComputerType(SLOTCOMP_NORMAL);
+                                }
+                                else
+                                {
+                                    Slot.SetSlotStatus(SLOTSTATUS_CLOSED);
+                                    ++HiddenSlots;
+                                }
 
-								ISS.seekg( 4, ios :: cur );				// fixed start position
-								getline( ISS, GarbageString, '\0' );	// player name
-								ISS.seekg( 4, ios :: cur );				// start position x
-								ISS.seekg( 4, ios :: cur );				// start position y
-								ISS.seekg( 4, ios :: cur );				// ally low priorities
-								ISS.seekg( 4, ios :: cur );				// ally high priorities
+                                ISS.read((char*)&Race, 4);			// race
 
-								if( Slot.GetSlotStatus( ) != SLOTSTATUS_CLOSED )
-									Slots.push_back( Slot );
-							}
+                                if (Race == 1)
+                                    Slot.SetRace(SLOTRACE_HUMAN);
+                                else if (Race == 2)
+                                    Slot.SetRace(SLOTRACE_ORC);
+                                else if (Race == 3)
+                                    Slot.SetRace(SLOTRACE_UNDEAD);
+                                else if (Race == 4)
+                                    Slot.SetRace(SLOTRACE_NIGHTELF);
+                                else
+                                    Slot.SetRace(SLOTRACE_RANDOM);
 
-							ISS.read( (char *)&RawMapNumTeams, 4 );		// number of teams
+                                ISS.seekg(4, ios::cur);				// fixed start position
+                                getline(ISS, GarbageString, '\0');	// player name
+                                ISS.seekg(4, ios::cur);				// start position x
+                                ISS.seekg(4, ios::cur);				// start position y
+                                ISS.seekg(4, ios::cur);				// ally low priorities
+                                ISS.seekg(4, ios::cur);				// ally high priorities
+                                if (FileFormat >= 31) {
+                                    ISS.seekg(4, ios::cur);				// enemy low priorities
+                                    ISS.seekg(4, ios::cur);				// enemy high priorities
+                                }
 
-							for( uint32_t i = 0; i < RawMapNumTeams; ++i )
-							{
-								uint32_t Flags;
-								uint32_t PlayerMask;
+                                if (Slot.GetSlotStatus() != SLOTSTATUS_CLOSED)
+                                    Slots.push_back(Slot);
+                            }
 
-								ISS.read( (char *)&Flags, 4 );			// flags
-								ISS.read( (char *)&PlayerMask, 4 );		// player mask
+                            ISS.read((char*)&RawMapNumTeams, 4);		// number of teams
 
-								for( unsigned char j = 0; j < 12; ++j )
-								{
-									if( PlayerMask & 1 )
-									{
-										for( vector<CGameSlot> :: iterator k = Slots.begin( ); k != Slots.end( ); ++k )
-										{
-											if( (*k).GetColour( ) == j )
-												(*k).SetTeam( i );
-										}
-									}
+                            for (uint32_t i = 0; i < RawMapNumTeams; ++i)
+                            {
+                                uint32_t Flags;
+                                uint32_t PlayerMask;
 
-									PlayerMask >>= 1;
-								}
+                                ISS.read((char*)&Flags, 4);			// flags
+                                ISS.read((char*)&PlayerMask, 4);		// player mask
 
-								getline( ISS, GarbageString, '\0' );	// team name
-							}
+                                for (unsigned char j = 0; j < MAX_SLOTS; ++j)
+                                {
+                                    if (PlayerMask & 1)
+                                    {
+                                        for (vector<CGameSlot> ::iterator k = Slots.begin(); k != Slots.end(); ++k)
+                                        {
+                                            if ((*k).GetColour() == j)
+                                                (*k).SetTeam(i);
+                                        }
+                                    }
 
-							// the bot only cares about the following options: melee, fixed player settings, custom forces
-							// let's not confuse the user by displaying erroneous map options so zero them out now
+                                    PlayerMask >>= 1;
+                                }
 
-							MapOptions = RawMapFlags & ( MAPOPT_MELEE | MAPOPT_FIXEDPLAYERSETTINGS | MAPOPT_CUSTOMFORCES );
-							CONSOLE_Print( "[MAP] calculated map_options = " + UTIL_ToString( MapOptions ) );
-							MapWidth = UTIL_CreateByteArray( (uint16_t)RawMapWidth, false );
-							CONSOLE_Print( "[MAP] calculated map_width = " + UTIL_ByteArrayToDecString( MapWidth ) );
-							MapHeight = UTIL_CreateByteArray( (uint16_t)RawMapHeight, false );
-							CONSOLE_Print( "[MAP] calculated map_height = " + UTIL_ByteArrayToDecString( MapHeight ) );
-							MapNumPlayers = RawMapNumPlayers - ClosedSlots;
-							CONSOLE_Print( "[MAP] calculated map_numplayers = " + UTIL_ToString( MapNumPlayers ) );
-							MapNumTeams = RawMapNumTeams;
-							CONSOLE_Print( "[MAP] calculated map_numteams = " + UTIL_ToString( MapNumTeams ) );
+                                getline(ISS, GarbageString, '\0');	// team name
+                            }
 
-							uint32_t SlotNum = 1;
+                            // the bot only cares about the following options: melee, fixed player settings, custom forces
+                            // let's not confuse the user by displaying erroneous map options so zero them out now
 
-							for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
-							{
-								CONSOLE_Print( "[MAP] calculated map_slot" + UTIL_ToString( SlotNum ) + " = " + UTIL_ByteArrayToDecString( (*i).GetByteArray( ) ) );
-								++SlotNum;
-							}
+                            MapOptions = RawMapFlags & (MAPOPT_MELEE | MAPOPT_FIXEDPLAYERSETTINGS | MAPOPT_CUSTOMFORCES);
+                            CONSOLE_Print("[MAP] calculated map_options = " + UTIL_ToString(MapOptions));
+                            MapWidth = UTIL_CreateByteArray((uint16_t)RawMapWidth, false);
+                            CONSOLE_Print("[MAP] calculated map_width = " + UTIL_ByteArrayToDecString(MapWidth));
+                            MapHeight = UTIL_CreateByteArray((uint16_t)RawMapHeight, false);
+                            CONSOLE_Print("[MAP] calculated map_height = " + UTIL_ByteArrayToDecString(MapHeight));
+                            MapNumPlayers = RawMapNumPlayers - HiddenSlots;
+                            CONSOLE_Print("[MAP] calculated map_numplayers = " + UTIL_ToString(MapNumPlayers) + " + " + UTIL_ToString(HiddenSlots));
+                            MapNumTeams = RawMapNumTeams;
+                            CONSOLE_Print("[MAP] calculated map_numteams = " + UTIL_ToString(MapNumTeams));
 
-							if( MapOptions & MAPOPT_MELEE )
-							{
-								CONSOLE_Print( "[MAP] found melee map, initializing slots" );
+                            uint32_t SlotNum = 1;
 
-								// give each slot a different team and set the race to random
+                            for (vector<CGameSlot> ::iterator i = Slots.begin(); i != Slots.end(); ++i)
+                            {
+                                CONSOLE_Print("[MAP] calculated map_slot" + UTIL_ToString(SlotNum) + " = " + UTIL_ByteArrayToDecString((*i).GetByteArray()));
+                                ++SlotNum;
+                            }
 
-								unsigned char Team = 0;
+                            if (MapOptions & MAPOPT_MELEE)
+                            {
+                                CONSOLE_Print("[MAP] found melee map, initializing slots");
 
-								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
-								{
-									(*i).SetTeam( Team++ );
-									(*i).SetRace( SLOTRACE_RANDOM );
-								}
+                                // give each slot a different team and set the race to random
 
-								MapFilterType = MAPFILTER_TYPE_MELEE;
-							}
+                                unsigned char Team = 0;
 
-							if( !( MapOptions & MAPOPT_FIXEDPLAYERSETTINGS ) )
-							{
-								// make races selectable
+                                for (vector<CGameSlot> ::iterator i = Slots.begin(); i != Slots.end(); ++i)
+                                {
+                                    (*i).SetTeam(Team++);
+                                    (*i).SetRace(SLOTRACE_RANDOM);
+                                }
 
-								for( vector<CGameSlot> :: iterator i = Slots.begin( ); i != Slots.end( ); ++i )
-									(*i).SetRace( (*i).GetRace( ) | SLOTRACE_SELECTABLE );
-							}
-						}
-						else
-						{
-							m_MapIncompatible = true;
-							CONSOLE_Print( "[MAP] incompatible map format detected - this map requires Warcraft 3 version 1.29 or higher (map format version " + UTIL_ToString( FileFormat ) + ")" );
-							CONSOLE_Print( "[MAP] this bot only supports Warcraft 3 1.28 and lower (map format versions 18 and 25)" );
-						}
+                                MapFilterType = MAPFILTER_TYPE_MELEE;
+                            }
+
+                            if (!(MapOptions & MAPOPT_FIXEDPLAYERSETTINGS))
+                            {
+                                // make races selectable
+
+                                for (vector<CGameSlot> ::iterator i = Slots.begin(); i != Slots.end(); ++i)
+                                    (*i).SetRace((*i).GetRace() | SLOTRACE_SELECTABLE);
+                            }
+                            if ((MapOptions & MAPOPT_FIXEDPLAYERSETTINGS) && (MapOptions & MAPOPT_CUSTOMFORCES))
+                                for (vector<CGameSlot> ::iterator i = Slots.begin(); i != Slots.end(); ++i)
+                                    if ((*i).GetRace() == SLOTRACE_RANDOM)
+                                        (*i).SetRace((*i).GetRace() | SLOTRACE_SELECTABLE);
+                        }
+                        else
+                            CONSOLE_Print("[MAP] unable to calculate map_options, map_width, map_height, map_slot<x>, map_numplayers, map_numteams - unsupported war3map.w3i format version");
 					}
 					else
 						CONSOLE_Print( "[MAP] unable to calculate map_options, map_width, map_height, map_slot<x>, map_numplayers, map_numteams - unable to extract war3map.w3i from MPQ file" );
@@ -833,7 +848,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( Slots.empty( ) )
 	{
-		for( uint32_t Slot = 1; Slot <= 12; ++Slot )
+		for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -849,7 +864,7 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 		CONSOLE_Print( "[MAP] overriding slots" );
 		Slots.clear( );
 
-		for( uint32_t Slot = 1; Slot <= 12; ++Slot )
+		for( uint32_t Slot = 1; Slot <= MAX_SLOTS; ++Slot )
 		{
 			string SlotString = CFG->GetString( "map_slot" + UTIL_ToString( Slot ), string( ) );
 
@@ -877,10 +892,13 @@ void CMap :: Load( CConfig *CFG, string nCFGFile )
 
 	if( m_MapObservers == MAPOBS_ALLOWED || m_MapObservers == MAPOBS_REFEREES )
 	{
-		CONSOLE_Print( "[MAP] adding " + UTIL_ToString( 12 - m_Slots.size( ) ) + " observer slots" );
+		uint32_t EditorMaxSlots = MAX_SLOTS;
+		if( EditorVersion < 6060 )
+            EditorMaxSlots = 12;
+        CONSOLE_Print("[MAP] adding " + UTIL_ToString(EditorMaxSlots - HiddenSlots - m_Slots.size()) + " observer slots");
 
-		while( m_Slots.size( ) < 12 )
-			m_Slots.push_back( CGameSlot( 0, 255, SLOTSTATUS_OPEN, 0, 12, 12, SLOTRACE_RANDOM ) );
+        while (m_Slots.size() < EditorMaxSlots - HiddenSlots)
+            m_Slots.push_back(CGameSlot(0, 255, SLOTSTATUS_OPEN, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM));
 	}
 
 	CheckValid( );
@@ -963,19 +981,19 @@ void CMap :: CheckValid( )
 		CONSOLE_Print( "[MAP] invalid map_height detected" );
 	}
 
-	if( m_MapNumPlayers == 0 || m_MapNumPlayers > 12 )
+	if( m_MapNumPlayers == 0 || m_MapNumPlayers > MAX_SLOTS )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numplayers detected" );
 	}
 
-	if( m_MapNumTeams == 0 || m_MapNumTeams > 12 )
+	if( m_MapNumTeams == 0 || m_MapNumTeams > MAX_SLOTS )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_numteams detected" );
 	}
 
-	if( m_Slots.empty( ) || m_Slots.size( ) > 12 )
+	if( m_Slots.empty( ) || m_Slots.size( ) > MAX_SLOTS )
 	{
 		m_Valid = false;
 		CONSOLE_Print( "[MAP] invalid map_slot<x> detected" );

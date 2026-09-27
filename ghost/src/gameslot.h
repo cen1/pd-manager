@@ -36,6 +36,12 @@
 #define SLOTCOMP_NORMAL 1
 #define SLOTCOMP_HARD 2
 
+#ifdef GHOST_24_SLOTS
+const int MAX_SLOTS = 24;
+#else
+const int MAX_SLOTS = 12;
+#endif
+
 #include "includes.h"
 
 //

@@ -9,8 +9,8 @@ project(pd-manager VERSION 1.0.1)
 add_executable(pd-manager)
 
 set(SOURCES
-        src/bncsutilinterface.cpp
-        src/bncsutilinterface.h
+        ../common/src/bncsutilinterface.cpp
+        ../common/src/bncsutilinterface.h
         src/bnet.cpp
         src/bnet.h
         src/bnet_tour.cpp
@@ -107,7 +107,7 @@ else ()
     endif ()
 endif ()
 
-target_include_directories(pd-manager PRIVATE ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src)
+target_include_directories(pd-manager PRIVATE ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pd-manager PRIVATE ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-manager

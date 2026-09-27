@@ -196,8 +196,8 @@ bool CDiv1DotAGame ::EventPlayerAction(CGamePlayer* player, CIncomingAction* act
 								string VictimColourString = KeyString.substr(4);
 								uint32_t VictimColour = UTIL_ToUInt32(VictimColourString);
 
-								// ValueInt can be more than 11 in some cases (ValueInt is 12 when player gets killed by neutral creeps)
-								// if the game is with observers, observer player could have color 12 and GetPlayerFromColour could return observer player
+								// ValueInt can be more than MAX_SLOTS-1 in some cases (ValueInt is MAX_SLOTS when player gets killed by neutral creeps)
+								// if the game is with observers, observer player could have color MAX_SLOTS and GetPlayerFromColour could return observer player
 								// observer can't be a killer
 
 								CDIV1DotAPlayer* Killer = GetDIV1DotAPlayerFromLobbyColor(ValueInt);
@@ -223,7 +223,7 @@ bool CDiv1DotAGame ::EventPlayerAction(CGamePlayer* player, CIncomingAction* act
 										m_GameLog->AddMessage(player, "The Scourge killed " + Victim->GetName());
 									}
 								}
-								else if (ValueInt == 12) {
+								else if (ValueInt == MAX_SLOTS) {
 									// Neutral creeps have killed a player
 
 									if (Victim) {
@@ -368,7 +368,7 @@ bool CDiv1DotAGame ::EventPlayerAction(CGamePlayer* player, CIncomingAction* act
 										m_GameLog->AddMessage(player, "The Scourge killed " + Victim->GetName() + "'s courier");
 									}
 								}
-								else if (ValueInt == 12) {
+								else if (ValueInt == MAX_SLOTS) {
 									if (Victim) {
 										CONSOLE_Print(player, "[STATSDOTA: " + GetGameName() + "] Neutral creeps killed a courier owned by player [" + Victim->GetName() + "]");
 										m_GameLog->AddMessage(player, "Neutral creeps killed " + Victim->GetName() + "'s courier");
@@ -1305,42 +1305,16 @@ void CDiv1DotAGame ::EventPlayerBotCommand2(CGamePlayer* player, string command,
 
 			if (Payload.size() <= 31) {
 				if (Payload.empty()) {
-					if (m_GameNameRehostCounter)
-						Payload = m_GameName.substr(0, m_GameName.length() - (2 + UTIL_ToString(m_GameNameRehostCounter).size()));
-					else
-						Payload = m_GameName;
-
+					Payload = GetRehostBaseName();
 					++m_GameNameRehostCounter;
 					Payload += " #" + UTIL_ToString(m_GameNameRehostCounter);
 				}
 				else
 					m_GameNameRehostCounter = 0;
 
-				m_GHost->m_Manager->SendGameNameChanged(m_GameID, 16, Payload);
+				m_AutoPub = false;
 
-				CONSOLE_Print("[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]");
-				SendAllChat(m_GHost->m_Language->TryingToRehostAsPublicGame(Payload));
-				m_GameState = GAME_PUBLIC;
-				m_LastGameName = m_GameName;
-				m_GameName = Payload;
-				m_HostCounter = m_GHost->m_HostCounter++;
-				m_RefreshError = false;
-				m_RefreshRehosted = true;
-
-				for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); i++) {
-					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-					// we assume this won't happen very often since the only downside is a potential false positive
-
-					(*i)->UnqueueGameRefreshes();
-					(*i)->QueueGameUncreate();
-					(*i)->QueueEnterChat();
-
-					// the game creation message will be sent on the next refresh
-				}
-
-				m_CreationTime = GetTime();
-				m_LastRefreshTime = GetTime();
+				RehostAsPublic(Payload, true);
 			}
 			else {
 				SendAllChat("Unable to rehost game, the game name is too long.");
@@ -2532,7 +2506,7 @@ void CDiv1DotAGame ::EventGameStarted()
 					Color = m_Slots[SID].GetColour();
 				}
 
-				if (Team == 12) {
+				if (Team == MAX_SLOTS) {
 					// don't waste space with observers, no DotA stats is collected for them in DIV1 DotA games
 
 					delete *j;

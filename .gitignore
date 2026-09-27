@@ -26,6 +26,7 @@ data/mapcfgs/common.j
 /build_release/
 build_vcpkg/
 build_conan/
+build_129/
 depends/
 cmake-build-*/
 googletest/

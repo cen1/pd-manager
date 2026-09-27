@@ -157,6 +157,11 @@ class CBaseGame {
 	bool m_RefreshMessages;					// if we should display "game refreshed..." messages or not
 	bool m_RefreshError;					// if there was an error refreshing the game
 	bool m_RefreshRehosted;					// if we just rehosted and are waiting for confirmation that it was successful
+	bool m_AutoPub;							// if !autopub is active and the game is being rehosted periodically
+	string m_AutoPubBaseName;				// game name used by !autopub, the [N/M] #X suffix is appended to it
+	uint32_t m_AutoPubCounter;				// !autopub #X suffix, cycles 1-9 while the number of players stays the same
+	uint32_t m_AutoPubLastPlayers;			// number of players at the last !autopub rehost
+	uint32_t m_LastAutoPubTime;				// GetTime when the last !autopub rehost happened
 	bool m_MuteAll;							// if we should stop forwarding ingame chat messages targeted for all players or not
 	bool m_MuteLobby;						// if we should stop forwarding lobby chat messages
 	bool m_CountDownStarted;				// if the game start countdown has started or not
@@ -259,6 +264,11 @@ class CBaseGame {
 	virtual unsigned int SetFD(void* fd, void* send_fd, int* nfds);
 	virtual bool Update(void* fd, void* send_fd);
 	virtual void UpdatePost(void* send_fd);
+
+	// rehosting
+	virtual void RehostAsPublic(string gameName, bool announce);
+	virtual void AutoPubRehost();
+	virtual string GetRehostBaseName();
 
 	// generic functions to send packets to players
 	virtual void Send(CGamePlayer* player, BYTEARRAY data);

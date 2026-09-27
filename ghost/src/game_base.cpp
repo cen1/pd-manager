@@ -253,6 +253,10 @@ CBaseGame::CBaseGame(CGHost* nGHost, CMap* nMap, CSaveGame* nSaveGame, uint16_t 
 	m_RefreshMessages = m_GHost->m_RefreshMessages;
 	m_RefreshError = false;
 	m_RefreshRehosted = false;
+	m_AutoPub = false;
+	m_AutoPubCounter = 0;
+	m_AutoPubLastPlayers = 0;
+	m_LastAutoPubTime = 0;
 	m_MuteAll = false;
 	m_MuteLobby = false;
 	m_CountDownStarted = false;
@@ -597,7 +601,7 @@ bool CBaseGame::Update(void* fd, void* send_fd)
 
 	// create the virtual host player
 
-	if (!m_GameLoading && !m_GameLoaded && GetNumPlayers() < 12)
+	if (!m_GameLoading && !m_GameLoaded && GetNumPlayers() < MAX_SLOTS)
 		CreateVirtualHost();
 
 	// unlock the game
@@ -634,14 +638,14 @@ bool CBaseGame::Update(void* fd, void* send_fd)
 
 			uint32_t FixedHostCounter = m_HostCounter & 0x0FFFFFFF;
 
-			// we send 12 for SlotsTotal because this determines how many PID's Warcraft 3 allocates
-			// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most 12 PID's
-			// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the 12th person joins)
-			// however, we can't send 13 for SlotsTotal because this causes Warcraft 3 to crash when sharing control of units
-			// nor can we send SlotsTotal because then Warcraft 3 crashes when playing maps with less than 12 PID's (because of the virtual host player taking an extra PID)
-			// we also send 12 for SlotsOpen because Warcraft 3 assumes there's always at least one player in the game (the host)
+			// we send MAX_SLOTS for SlotsTotal because this determines how many PID's Warcraft 3 allocates
+			// we need to make sure Warcraft 3 allocates at least SlotsTotal + 1 but at most MAX_SLOTS PID's
+			// this is because we need an extra PID for the virtual host player (but we always delete the virtual host player when the MAX_SLOTS'th person joins)
+			// however, we can't send MAX_SLOTS+1 for SlotsTotal because this causes Warcraft 3 to crash when sharing control of units
+			// nor can we send SlotsTotal because then Warcraft 3 crashes when playing maps with less than MAX_SLOTS PID's (because of the virtual host player taking an extra PID)
+			// we also send MAX_SLOTS for SlotsOpen because Warcraft 3 assumes there's always at least one player in the game (the host)
 			// so if we try to send accurate numbers it'll always be off by one and results in Warcraft 3 assuming the game is full when it still needs one more player
-			// the easiest solution is to simply send 12 for both so the game will always show up as (1/12) players
+			// the easiest solution is to simply send MAX_SLOTS for both so the game will always show up as (1/MAX_SLOTS) players
 
 			if (m_SaveGame) {
 				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
@@ -653,14 +657,14 @@ bool CBaseGame::Update(void* fd, void* send_fd)
 				BYTEARRAY MapHeight;
 				MapHeight.push_back(0);
 				MapHeight.push_back(0);
-				m_GHost->m_UDPSocket->Broadcast(6112, m_Protocol->SEND_W3GS_GAMEINFO(m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray(MapGameType, false), m_Map->GetMapGameFlags(), MapWidth, MapHeight, m_GameName, "Varlock", GetTime() - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath(), m_SaveGame->GetMagicNumber(), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey));
+				m_GHost->m_UDPSocket->Broadcast(6112, m_Protocol->SEND_W3GS_GAMEINFO(m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray(MapGameType, false), m_Map->GetMapGameFlags(), MapWidth, MapHeight, m_GameName, "Varlock", GetTime() - m_CreationTime, "Save\\Multiplayer\\" + m_SaveGame->GetFileNameNoPath(), m_SaveGame->GetMagicNumber(), MAX_SLOTS, MAX_SLOTS, m_HostPort, FixedHostCounter, m_EntryKey));
 			}
 			else {
 				// note: the PrivateGame flag is not set when broadcasting to LAN (as you might expect)
 				// note: we do not use m_Map->GetMapGameType because none of the filters are set when broadcasting to LAN (also as you might expect)
 
 				uint32_t MapGameType = MAPGAMETYPE_UNKNOWN0;
-				m_GHost->m_UDPSocket->Broadcast(6112, m_Protocol->SEND_W3GS_GAMEINFO(m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray(MapGameType, false), m_Map->GetMapGameFlags(), m_Map->GetMapWidth(), m_Map->GetMapHeight(), m_GameName, "Varlock", GetTime() - m_CreationTime, m_Map->GetMapPath(), m_Map->GetMapCRC(), 12, 12, m_HostPort, FixedHostCounter, m_EntryKey));
+				m_GHost->m_UDPSocket->Broadcast(6112, m_Protocol->SEND_W3GS_GAMEINFO(m_GHost->m_TFT, m_GHost->m_LANWar3Version, UTIL_CreateByteArray(MapGameType, false), m_Map->GetMapGameFlags(), m_Map->GetMapWidth(), m_Map->GetMapHeight(), m_GameName, "Varlock", GetTime() - m_CreationTime, m_Map->GetMapPath(), m_Map->GetMapCRC(), MAX_SLOTS, MAX_SLOTS, m_HostPort, FixedHostCounter, m_EntryKey));
 			}
 		}
 
@@ -693,6 +697,18 @@ bool CBaseGame::Update(void* fd, void* send_fd)
 		m_CreationTime = GetTime( );
 		m_LastRefreshTime = GetTime( );
 	}*/
+
+	// !autopub: periodically rehost with a new game name so the game shows up at the top of the game list
+
+	if (m_AutoPub && !m_CountDownStarted && !m_GameLoading && !m_GameLoaded && GetTime() - m_LastAutoPubTime >= m_GHost->m_AutoPubInterval) {
+		if (m_GameState == GAME_PUBLIC && GetSlotsOpen() > 0)
+			AutoPubRehost();
+		else {
+			// the lobby is full so there's no point in rehosting, only check again after another interval
+			// this means that when a slot opens up the next rehost can be delayed by up to one interval
+			m_LastAutoPubTime = GetTime();
+		}
+	}
 
 	// refresh every 3 seconds
 
@@ -1610,6 +1626,13 @@ void CBaseGame::EventPlayerDeleted(CGamePlayer* player)
 	else {
 		m_GHost->m_Manager->SendGamePlayerLeftLobby(m_GameID, player->GetName());
 		m_LobbyLog->AddMessage(player->GetName() + " has left the game.");
+
+		// stop !autopub, nobody would be left to start the game
+
+		if (m_AutoPub && IsOwner(player->GetName())) {
+			m_AutoPub = false;
+			SendAllChat("Auto rehost stopped because the game owner left.");
+		}
 	}
 
 	CONSOLE_Print("[GAME: " + m_GameName + "] deleting player [" + player->GetName() + "]: " + player->GetLeftReason());
@@ -2201,7 +2224,7 @@ void CBaseGame::EventPlayerJoinedWithInfo(CPotentialPlayer* potential, CIncoming
 	// we have a slot for the new player
 	// make room for them by deleting the virtual host player if we have to
 
-	if (GetNumPlayers() >= 11 || EnforcePID == m_VirtualHostPID)
+	if (GetNumPlayers() >= MAX_SLOTS - 1 || EnforcePID == m_VirtualHostPID)
 		DeleteVirtualHost();
 
 	string JoinedRealm = playerInfo->GetServer();
@@ -2232,9 +2255,9 @@ void CBaseGame::EventPlayerJoinedWithInfo(CPotentialPlayer* potential, CIncoming
 			m_Slots[SID] = CGameSlot(Player->GetPID(), 255, SLOTSTATUS_OCCUPIED, 0, m_Slots[SID].GetTeam(), m_Slots[SID].GetColour(), m_Slots[SID].GetRace());
 		else {
 			if (m_Map->GetMapFlags() & MAPFLAG_RANDOMRACES)
-				m_Slots[SID] = CGameSlot(Player->GetPID(), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM);
+				m_Slots[SID] = CGameSlot(Player->GetPID(), 255, SLOTSTATUS_OCCUPIED, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM);
 			else
-				m_Slots[SID] = CGameSlot(Player->GetPID(), 255, SLOTSTATUS_OCCUPIED, 0, 12, 12, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE);
+				m_Slots[SID] = CGameSlot(Player->GetPID(), 255, SLOTSTATUS_OCCUPIED, 0, MAX_SLOTS, MAX_SLOTS, SLOTRACE_RANDOM | SLOTRACE_SELECTABLE);
 
 			// try to pick a team and colour
 			// make sure there aren't too many other players already
@@ -2242,7 +2265,7 @@ void CBaseGame::EventPlayerJoinedWithInfo(CPotentialPlayer* potential, CIncoming
 			unsigned char NumOtherPlayers = 0;
 
 			for (unsigned char i = 0; i < m_Slots.size(); ++i) {
-				if (m_Slots[i].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam() != 12)
+				if (m_Slots[i].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam() != MAX_SLOTS)
 					NumOtherPlayers++;
 			}
 
@@ -2961,7 +2984,7 @@ void CBaseGame::EventPlayerBotCommand2(CGamePlayer* player, string command, stri
 					else {
 						unsigned char SID = (unsigned char)(Slot - 1);
 
-						if (!(m_Map->GetMapOptions() & MAPOPT_FIXEDPLAYERSETTINGS) && Colour < 12 && SID < m_Slots.size()) {
+						if (!(m_Map->GetMapOptions() & MAPOPT_FIXEDPLAYERSETTINGS) && Colour < MAX_SLOTS && SID < m_Slots.size()) {
 							if (m_Slots[SID].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer() == 1)
 								ColourSlot(SID, Colour);
 						}
@@ -3094,7 +3117,7 @@ void CBaseGame::EventPlayerBotCommand2(CGamePlayer* player, string command, stri
 					else {
 						unsigned char SID = (unsigned char)(Slot - 1);
 
-						if (!(m_Map->GetMapOptions() & MAPOPT_FIXEDPLAYERSETTINGS) && Team < 12 && SID < m_Slots.size()) {
+						if (!(m_Map->GetMapOptions() & MAPOPT_FIXEDPLAYERSETTINGS) && Team < MAX_SLOTS && SID < m_Slots.size()) {
 							if (m_Slots[SID].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[SID].GetComputer() == 1) {
 								m_Slots[SID].SetTeam((unsigned char)(Team - 1));
 								SendAllSlotInfo();
@@ -3362,16 +3385,14 @@ void CBaseGame::EventPlayerBotCommand2(CGamePlayer* player, string command, stri
 		else if ((Command == "gopriv" || Command == "priv") && !m_CountDownStarted && !m_SaveGame) {
 			if (Payload.size() <= 31) {
 				if (Payload.empty()) {
-					if (m_GameNameRehostCounter)
-						Payload = m_GameName.substr(0, m_GameName.length() - (2 + UTIL_ToString(m_GameNameRehostCounter).size()));
-					else
-						Payload = m_GameName;
-
+					Payload = GetRehostBaseName();
 					++m_GameNameRehostCounter;
 					Payload += " #" + UTIL_ToString(m_GameNameRehostCounter);
 				}
 				else
 					m_GameNameRehostCounter = 0;
+
+				m_AutoPub = false;
 
 				m_GHost->m_Manager->SendGameNameChanged(m_GameID, 17, Payload);
 
@@ -3416,45 +3437,51 @@ void CBaseGame::EventPlayerBotCommand2(CGamePlayer* player, string command, stri
 		else if ((Command == "gopub" || Command == "pub") && !m_CountDownStarted && !m_SaveGame) {
 			if (Payload.size() <= 31) {
 				if (Payload.empty()) {
-					if (m_GameNameRehostCounter)
-						Payload = m_GameName.substr(0, m_GameName.length() - (2 + UTIL_ToString(m_GameNameRehostCounter).size()));
-					else
-						Payload = m_GameName;
-
+					Payload = GetRehostBaseName();
 					++m_GameNameRehostCounter;
 					Payload += " #" + UTIL_ToString(m_GameNameRehostCounter);
 				}
 				else
 					m_GameNameRehostCounter = 0;
 
-				m_GHost->m_Manager->SendGameNameChanged(m_GameID, 16, Payload);
+				m_AutoPub = false;
 
-				CONSOLE_Print("[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]");
-				SendAllChat(m_GHost->m_Language->TryingToRehostAsPublicGame(Payload));
-				m_GameState = GAME_PUBLIC;
-				m_LastGameName = m_GameName;
-				m_GameName = Payload;
-				m_HostCounter = m_GHost->m_HostCounter++;
-				m_RefreshError = false;
-				m_RefreshRehosted = true;
-
-				for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); i++) {
-					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-					// we assume this won't happen very often since the only downside is a potential false positive
-
-					(*i)->UnqueueGameRefreshes();
-					(*i)->QueueGameUncreate();
-					(*i)->QueueEnterChat();
-
-					// the game creation message will be sent on the next refresh
-				}
-
-				m_CreationTime = GetTime();
-				m_LastRefreshTime = GetTime();
+				RehostAsPublic(Payload, true);
 			}
 			else
 				SendAllChat("Unable to rehost game, the game name is too long.");
+		}
+
+		//
+		// !AUTOPUB (rehost as public game periodically, the game name shows the number of players)
+		//
+
+		else if (Command == "autopub" && !m_CountDownStarted && !m_SaveGame) {
+			// leave room for the " [NN/NN] #N" suffix within the 31 character game name limit
+			const string::size_type MaxBaseNameLength = 20;
+
+			if (Payload.size() <= MaxBaseNameLength) {
+				string BaseName = Payload.empty() ? GetRehostBaseName() : Payload;
+
+				if (BaseName.size() > MaxBaseNameLength)
+					BaseName = BaseName.substr(0, MaxBaseNameLength);
+
+				string Trigger(1, m_GameCommandTrigger);
+
+				if (!m_AutoPub) {
+					SendAllChat("Auto rehost enabled: the game will be rehosted as public game [" + BaseName + " [players/slots] #1-9] every " + UTIL_ToString(m_GHost->m_AutoPubInterval) + " seconds until the game is full.");
+					SendAllChat("Auto rehosts are not announced in the lobby to avoid spam. Use " + Trigger + "pub or " + Trigger + "priv to stop auto rehosting.");
+				}
+				else
+					SendAllChat("Auto rehost game name changed to [" + BaseName + "].");
+
+				m_AutoPub = true;
+				m_AutoPubBaseName = BaseName;
+				m_AutoPubCounter = 0;
+				AutoPubRehost();
+			}
+			else
+				SendAllChat("Unable to rehost game, the game name is too long (max " + UTIL_ToString(MaxBaseNameLength) + " characters for " + string(1, m_GameCommandTrigger) + "autopub).");
 		}
 
 		//
@@ -4331,10 +4358,10 @@ void CBaseGame::EventPlayerChangeTeam(CGamePlayer* player, unsigned char team)
 		SwapSlots(oldSID, newSID);
 	}
 	else {
-		if (team > 12)
+		if (team > MAX_SLOTS)
 			return;
 
-		if (team == 12) {
+		if (team == MAX_SLOTS) {
 			if (m_Map->GetMapObservers() != MAPOBS_ALLOWED && m_Map->GetMapObservers() != MAPOBS_REFEREES)
 				return;
 		}
@@ -4347,7 +4374,7 @@ void CBaseGame::EventPlayerChangeTeam(CGamePlayer* player, unsigned char team)
 			unsigned char NumOtherPlayers = 0;
 
 			for (unsigned char i = 0; i < m_Slots.size(); ++i) {
-				if (m_Slots[i].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam() != 12 && m_Slots[i].GetPID() != player->GetPID())
+				if (m_Slots[i].GetSlotStatus() == SLOTSTATUS_OCCUPIED && m_Slots[i].GetTeam() != MAX_SLOTS && m_Slots[i].GetPID() != player->GetPID())
 					++NumOtherPlayers;
 			}
 
@@ -4360,12 +4387,12 @@ void CBaseGame::EventPlayerChangeTeam(CGamePlayer* player, unsigned char team)
 		if (SID < m_Slots.size()) {
 			m_Slots[SID].SetTeam(team);
 
-			if (team == 12) {
+			if (team == MAX_SLOTS) {
 				// if they're joining the observer team give them the observer colour
 
-				m_Slots[SID].SetColour(12);
+				m_Slots[SID].SetColour(MAX_SLOTS);
 			}
-			else if (m_Slots[SID].GetColour() == 12) {
+			else if (m_Slots[SID].GetColour() == MAX_SLOTS) {
 				// if they're joining a regular team give them an unused colour
 
 				m_Slots[SID].SetColour(GetNewColour());
@@ -4394,7 +4421,7 @@ void CBaseGame::EventPlayerChangeColour(CGamePlayer* player, unsigned char colou
 	if (SID < m_Slots.size()) {
 		// make sure the player isn't an observer
 
-		if (m_Slots[SID].GetTeam() == 12)
+		if (m_Slots[SID].GetTeam() == MAX_SLOTS)
 			return;
 
 		ColourSlot(SID, colour);
@@ -4611,6 +4638,69 @@ void CBaseGame::EventPlayerPongToHost(CGamePlayer* player, uint32_t pong)
 			}
 		}
 	}
+}
+
+void CBaseGame::RehostAsPublic(string gameName, bool announce)
+{
+	m_GHost->m_Manager->SendGameNameChanged(m_GameID, 16, gameName);
+
+	CONSOLE_Print("[GAME: " + m_GameName + "] trying to rehost as public game [" + gameName + "]");
+
+	if (announce)
+		SendAllChat(m_GHost->m_Language->TryingToRehostAsPublicGame(gameName));
+
+	m_GameState = GAME_PUBLIC;
+	m_LastGameName = m_GameName;
+	m_GameName = gameName;
+	m_HostCounter = m_GHost->m_HostCounter++;
+	m_RefreshError = false;
+	m_RefreshRehosted = announce;
+
+	for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); i++) {
+		// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+		// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+		// we assume this won't happen very often since the only downside is a potential false positive
+
+		(*i)->UnqueueGameRefreshes();
+		(*i)->QueueGameUncreate();
+		(*i)->QueueEnterChat();
+
+		// the game creation message will be sent on the next refresh
+	}
+
+	m_CreationTime = GetTime();
+	m_LastRefreshTime = GetTime();
+}
+
+void CBaseGame::AutoPubRehost()
+{
+	// the #N suffix cycles 1-9 while the number of players stays the same, any change in the number of players starts again from #1
+
+	uint32_t NumPlayers = GetNumHumanPlayers();
+
+	if (m_AutoPubCounter > 0 && NumPlayers == m_AutoPubLastPlayers)
+		m_AutoPubCounter = m_AutoPubCounter % 9 + 1;
+	else
+		m_AutoPubCounter = 1;
+
+	m_AutoPubLastPlayers = NumPlayers;
+	m_LastAutoPubTime = GetTime();
+	m_GameNameRehostCounter = 0;
+
+	RehostAsPublic(m_AutoPubBaseName + " [" + UTIL_ToString(NumPlayers) + "/" + UTIL_ToString(m_Map->GetMapNumPlayers()) + "] #" + UTIL_ToString(m_AutoPubCounter), false);
+}
+
+string CBaseGame::GetRehostBaseName()
+{
+	// strip the suffix added by previous rehosts so the game name doesn't keep growing
+
+	if (m_AutoPub)
+		return m_AutoPubBaseName;
+
+	if (m_GameNameRehostCounter)
+		return m_GameName.substr(0, m_GameName.length() - (2 + UTIL_ToString(m_GameNameRehostCounter).size()));
+
+	return m_GameName;
 }
 
 void CBaseGame::EventGameRefreshed(string server)
@@ -5009,7 +5099,7 @@ unsigned char CBaseGame::GetNewColour()
 {
 	// find an unused colour for a player to use
 
-	for (unsigned char TestColour = 0; TestColour < 12; ++TestColour) {
+	for (unsigned char TestColour = 0; TestColour < MAX_SLOTS; ++TestColour) {
 		bool InUse = false;
 
 		for (unsigned char i = 0; i < m_Slots.size(); ++i) {
@@ -5025,7 +5115,7 @@ unsigned char CBaseGame::GetNewColour()
 
 	// this should never happen
 
-	return 12;
+	return MAX_SLOTS;
 }
 
 BYTEARRAY CBaseGame::GetPIDs()
@@ -5290,7 +5380,7 @@ void CBaseGame::ComputerSlot(unsigned char SID, unsigned char skill, bool kick)
 
 void CBaseGame::ColourSlot(unsigned char SID, unsigned char colour)
 {
-	if (SID < m_Slots.size() && colour < 12) {
+	if (SID < m_Slots.size() && colour < MAX_SLOTS) {
 		// make sure the requested colour isn't already taken
 
 		bool Taken = false;
@@ -5362,7 +5452,7 @@ void CBaseGame::ShuffleSlots()
 	static std::mt19937 rng(std::random_device{}());
 
 	for (vector<CGameSlot>::iterator i = m_Slots.begin(); i != m_Slots.end(); ++i) {
-		if ((*i).GetSlotStatus() == SLOTSTATUS_OCCUPIED && (*i).GetComputer() == 0 && (*i).GetTeam() != 12)
+		if ((*i).GetSlotStatus() == SLOTSTATUS_OCCUPIED && (*i).GetComputer() == 0 && (*i).GetTeam() != MAX_SLOTS)
 			PlayerSlots.push_back(*i);
 	}
 
@@ -5405,7 +5495,7 @@ void CBaseGame::ShuffleSlots()
 	vector<CGameSlot> Slots;
 
 	for (vector<CGameSlot>::iterator i = m_Slots.begin(); i != m_Slots.end(); ++i) {
-		if ((*i).GetSlotStatus() == SLOTSTATUS_OCCUPIED && (*i).GetComputer() == 0 && (*i).GetTeam() != 12) {
+		if ((*i).GetSlotStatus() == SLOTSTATUS_OCCUPIED && (*i).GetComputer() == 0 && (*i).GetTeam() != MAX_SLOTS) {
 			Slots.push_back(*CurrentPlayer);
 			++CurrentPlayer;
 		}
@@ -5432,7 +5522,7 @@ vector<unsigned char> CBaseGame::BalanceSlotsRecursive(vector<unsigned char> Pla
 	vector<unsigned char> BestOrdering = PlayerIDs;
 	double BestDifference = -1.0;
 
-	for (unsigned char i = StartTeam; i < 12; ++i) {
+	for (unsigned char i = StartTeam; i < MAX_SLOTS; ++i) {
 		if (TeamSizes[i] > 0) {
 			unsigned char Mid = TeamSizes[i];
 
@@ -5456,9 +5546,9 @@ vector<unsigned char> CBaseGame::BalanceSlotsRecursive(vector<unsigned char> Pla
 				// now calculate the team scores for all the teams that we know about (e.g. on subsequent recursion steps this will NOT be every possible team)
 
 				vector<unsigned char>::iterator CurrentPID = TestOrdering.begin();
-				double TeamScores[12];
+				double TeamScores[MAX_SLOTS];
 
-				for (unsigned char j = StartTeam; j < 12; ++j) {
+				for (unsigned char j = StartTeam; j < MAX_SLOTS; ++j) {
 					TeamScores[j] = 0.0;
 
 					for (unsigned char k = 0; k < TeamSizes[j]; ++k) {
@@ -5471,9 +5561,9 @@ vector<unsigned char> CBaseGame::BalanceSlotsRecursive(vector<unsigned char> Pla
 
 				double LargestDifference = 0.0;
 
-				for (unsigned char j = StartTeam; j < 12; ++j) {
+				for (unsigned char j = StartTeam; j < MAX_SLOTS; ++j) {
 					if (TeamSizes[j] > 0) {
-						for (unsigned char k = j + 1; k < 12; ++k) {
+						for (unsigned char k = j + 1; k < MAX_SLOTS; ++k) {
 							if (TeamSizes[k] > 0) {
 								double Difference = abs(TeamScores[j] - TeamScores[k]);
 
@@ -5972,7 +6062,7 @@ void CBaseGame::CreateFakePlayer()
 	unsigned char SID = GetEmptySlot(false);
 
 	if (SID < m_Slots.size()) {
-		if (GetNumPlayers() >= 11)
+		if (GetNumPlayers() >= MAX_SLOTS - 1)
 			DeleteVirtualHost();
 
 		m_FakePlayerPID = GetNewPID();

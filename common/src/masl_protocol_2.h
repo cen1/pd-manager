@@ -88,6 +88,7 @@ namespace MASL_PROTOCOL
 	const int MTS_CREATE_LEAGUEDOTAGAME						= 2506;		// sent to slave to create league dota game
 
 	const int MTS_CREATE_GAME								= 2510;		// sent to slave to create a game
+	const int MTS_UNHOST_GAME								= 2520;		// sent to slave to unhost a game in lobby, from !unhost command on master
 
 	const int MTS_USER_WASBANNED							= 2600;		// sent to slave when user gets banned on master
 	const int MTS_USER_WASUNBANNED							= 2601;		// sent to slave when user gets unbanned on master
@@ -381,6 +382,10 @@ inline string MASL_PROTOCOL :: FlagToString( int flag )
 
 	case MTS_CREATE_GAME:
 		return "MTS_CREATE_GAME";
+		break;
+
+	case MTS_UNHOST_GAME:
+		return "MTS_UNHOST_GAME";
 		break;
 
 	case MTS_USER_WASBANNED:
