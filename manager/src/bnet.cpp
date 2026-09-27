@@ -2109,6 +2109,21 @@ void CBNET::ProcessChatEvent(CIncomingChatEvent* chatEvent)
 			}
 
 			//
+			// !UNHOST
+			//
+
+			else if (Command == "unhost") {
+				CRemoteGame* Game = m_GHost->m_Manager->UnhostGame(this, User);
+
+				if (Game)
+					SendChatCommand("Unhosting game [" + Game->GetGameName() + "].", User);
+				else if (m_GHost->m_Manager->HasQueuedGame(this, User))
+					SendChatCommand("Your game is still in the queue and not hosted yet, use " + string(1, m_CommandTrigger) + "unqueue to remove it.", User);
+				else
+					SendChatCommand("You don't own any game in lobby.", User);
+			}
+
+			//
 			// !USERS
 			//
 

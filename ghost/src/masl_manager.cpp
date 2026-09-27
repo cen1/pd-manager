@@ -583,6 +583,27 @@ void CManager :: ProcessPackets( )
 			}
 			break;
 
+		case MASL_PROTOCOL :: MTS_UNHOST_GAME:
+			{
+				uint32_t GameID;
+				string User;
+
+				SS >> GameID;
+				SS >> User;
+
+				// the game could have started or been unhosted while this packet was on its way, same rules as the lobby !unhost
+
+				if( m_GHost->m_CurrentGame && m_GHost->m_CurrentGame->GetGameID( ) == GameID && !m_GHost->m_CurrentGame->GetCountDownStarted( ) )
+				{
+					CONSOLE_Print( "[MASL] unhosting game [" + m_GHost->m_CurrentGame->GetGameName( ) + "] on request from [" + User + "]" );
+					m_GHost->m_CurrentGame->SendAllChat( "Game unhosted by " + User + " through the manager." );
+					m_GHost->m_CurrentGame->SetExiting( true );
+				}
+				else
+					CONSOLE_Print( "[MASL] ignoring unhost request from [" + User + "] for game ID " + UTIL_ToString( GameID ) + ", game is not in lobby" );
+			}
+			break;
+
 		case MASL_PROTOCOL :: MTS_CREATE_GAME:
 			{
 				string CreatorServer;

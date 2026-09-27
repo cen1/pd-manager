@@ -1870,6 +1870,27 @@ void CManager ::UnqueueGame(CBNET* creatorServer, string creatorName)
 	}
 }
 
+CRemoteGame* CManager ::UnhostGame(CBNET* server, string ownerName)
+{
+	// owner name is lowercased when the game is hosted but not when the owner changes so compare both lowercased
+
+	transform(ownerName.begin(), ownerName.end(), ownerName.begin(), (int (*)(int))tolower);
+
+	for (list<CRemoteGame*>::iterator i = m_RemoteGamesInLobby.begin(); i != m_RemoteGamesInLobby.end(); ++i) {
+		string GameOwner = (*i)->GetOwnerName();
+		transform(GameOwner.begin(), GameOwner.end(), GameOwner.begin(), (int (*)(int))tolower);
+
+		if (GameOwner == ownerName && (*i)->GetCreatorServerID() == server->GetServerID()) {
+			// the slave will send STM_GAME_UNHOSTED when the game is actually unhosted which removes it from m_RemoteGamesInLobby
+
+			SendTo((*i)->GetBotID(), MASL_PROTOCOL::MTS_UNHOST_GAME, UTIL_ToString((*i)->GetGameID()) + " " + ownerName);
+			return *i;
+		}
+	}
+
+	return NULL;
+}
+
 void CManager ::DeleteQueue()
 {
 	m_QueuedGames.clear();

@@ -35,6 +35,7 @@ Command trigger is usually `!` or `.` depending on the config.
 | `!sd [name]` | Alias to `!statsdota`. |
 | `!statsdota [name]` | Displays your ladder DotA stats, optionally add `[name]` to display stats for another player. |
 | `!unqueue` | Removes your game from the queue (leaving the channel has the same effect as using `!unqueue`). |
+| `!unhost` | Unhosts the game you own that is currently in the lobby, without having to join it. Doesn't work once the game countdown has started. If your game is still in the queue, use `!unqueue` instead. |
 | `!users` | Displays how many users are currently using lagabuse.com. |
 | `!version` | Displays version information. |
 | `!where <name>` | Checks if player `<name>` is playing on the lagabuse.com bot. |
