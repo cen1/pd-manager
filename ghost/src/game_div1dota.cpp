@@ -1305,42 +1305,16 @@ void CDiv1DotAGame ::EventPlayerBotCommand2(CGamePlayer* player, string command,
 
 			if (Payload.size() <= 31) {
 				if (Payload.empty()) {
-					if (m_GameNameRehostCounter)
-						Payload = m_GameName.substr(0, m_GameName.length() - (2 + UTIL_ToString(m_GameNameRehostCounter).size()));
-					else
-						Payload = m_GameName;
-
+					Payload = GetRehostBaseName();
 					++m_GameNameRehostCounter;
 					Payload += " #" + UTIL_ToString(m_GameNameRehostCounter);
 				}
 				else
 					m_GameNameRehostCounter = 0;
 
-				m_GHost->m_Manager->SendGameNameChanged(m_GameID, 16, Payload);
+				m_AutoPub = false;
 
-				CONSOLE_Print("[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]");
-				SendAllChat(m_GHost->m_Language->TryingToRehostAsPublicGame(Payload));
-				m_GameState = GAME_PUBLIC;
-				m_LastGameName = m_GameName;
-				m_GameName = Payload;
-				m_HostCounter = m_GHost->m_HostCounter++;
-				m_RefreshError = false;
-				m_RefreshRehosted = true;
-
-				for (vector<CBNET*>::iterator i = m_GHost->m_BNETs.begin(); i != m_GHost->m_BNETs.end(); i++) {
-					// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-					// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-					// we assume this won't happen very often since the only downside is a potential false positive
-
-					(*i)->UnqueueGameRefreshes();
-					(*i)->QueueGameUncreate();
-					(*i)->QueueEnterChat();
-
-					// the game creation message will be sent on the next refresh
-				}
-
-				m_CreationTime = GetTime();
-				m_LastRefreshTime = GetTime();
+				RehostAsPublic(Payload, true);
 			}
 			else {
 				SendAllChat("Unable to rehost game, the game name is too long.");

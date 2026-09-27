@@ -21,6 +21,14 @@
 #ifndef BNCSUTIL_INTERFACE_H
 #define BNCSUTIL_INTERFACE_H
 
+#include <string>
+#include <cstdint>
+#include <vector>
+
+typedef std::vector<unsigned char> BYTEARRAY;
+
+using namespace std;
+
 //
 // CBNCSUtilInterface
 //

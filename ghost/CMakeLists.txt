@@ -17,8 +17,8 @@ endif ()
 add_executable(pd-slave)
 
 set(SOURCES
-        src/bncsutilinterface.cpp
-        src/bncsutilinterface.h
+        ../common/src/bncsutilinterface.cpp
+        ../common/src/bncsutilinterface.h
         src/bnet.cpp
         src/bnet.h
         src/bnetprotocol.cpp
@@ -142,7 +142,7 @@ endif ()
 
 find_package(STORMLIB REQUIRED)
 
-target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src)
+target_include_directories(pd-slave PRIVATE ${STORMLIB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ../common/src ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pd-slave PRIVATE ${STORMLIB_LIBRARIES} ${ZLIB_LIBRARIES} ${MYSQL_LIBRARIES} bncsutil::bncsutil Boost::thread Boost::system Boost::filesystem Boost::chrono Boost::date_time Boost::regex)
 
 install(TARGETS pd-slave

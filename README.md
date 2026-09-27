@@ -51,8 +51,8 @@ ctest --verbose -C Release
 By default, the bot is built for W3 1.26/1.28 with a maximum of 12 player slots. To build for W3 1.29 with 24 player slot support, pass the `GHOST_24_SLOTS` compile definition:
 
 ```
-cmake -B build -DCMAKE_CXX_FLAGS="-DGHOST_24_SLOTS"
-cmake --build build --config Release
+cmake -B build_129 -DCMAKE_CXX_FLAGS="-DGHOST_24_SLOTS"
+cmake --build build_129 --config Release
 ```
 
 The 1.29 build supports maps with up to 24 player slots, the updated executable layout (`Warcraft III.exe`, `War3x.mpq`), and w3i map format versions 28/31. Maps made with an editor version older than build 6060 (pre-1.29) are automatically capped at 12 slots.

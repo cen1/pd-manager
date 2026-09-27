@@ -1192,6 +1192,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MinLatency = CFG->GetInt("bot_latency_min", 80);
 	m_MaxLatency = CFG->GetInt("bot_latency_max", 120);
 	m_CountDown = CFG->GetInt( "bot_countdown", 10 );
+	m_AutoPubInterval = std::max( (uint32_t)CFG->GetInt( "bot_autopub_interval", 30 ), (uint32_t)5 );
 	m_GameOverTimerPlayers = std::min( (uint32_t)CFG->GetInt( "bot_gameover_timer_players", 1 ), (uint32_t)1 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 150 );
 	m_MinSyncLimit = CFG->GetInt("bot_synclimit_min", 50);

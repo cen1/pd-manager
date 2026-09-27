@@ -95,6 +95,7 @@ Command trigger is usually `!` or `.` depending on the config.
 | `!ping [max ping]` | Shows everyone's ping, optionally add `[max ping]` to kick players with ping above `[max ping]`. |
 | `!priv [game name]` | Rehosts as a private game `[game name]`. If used without `[game name]`, the bot will automatically make a new game name. |
 | `!pub [game name]` | Rehosts as a public game `[game name]`. If used without `[game name]`, the bot will automatically make a new game name. |
+| `!autopub [game name]` | Rehosts as a public game `[game name] [N/10] #1`, where `N` is the number of players in the lobby, and keeps rehosting every `bot_autopub_interval` seconds (default 30). If the number of players stays the same the `#` counter goes up from `#1` to `#9` and then starts again at `#1`, if it changes the counter resets to `#1`. Rehosting pauses while the lobby is full and stops when the game starts, when the game owner leaves or when `!pub`/`!priv` is used. If used without `[game name]`, the current game name is used. Max 20 characters. |
 | `!sp` | Shuffles players. |
 | `!start [force]` | Starts the game, optionally add `force` to skip checks. |
 | `!swap <n1> <n2>` | Swaps slots. |
