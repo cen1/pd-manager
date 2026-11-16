@@ -6,6 +6,7 @@ RUN apt-get -y update && apt-get install -y \
     git cmake build-essential libmariadb-dev-compat \
     libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
     libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev \
+    libyyjson-dev \
     curl gnupg ca-certificates
 
 # Add xpam repository for bncsutil
@@ -38,6 +39,7 @@ RUN apt-get update && apt-get install -y \
     libmysqlcppconn7t64 \
     libboost-filesystem1.83 libboost-system1.83 libboost-chrono1.83 \
     libboost-thread1.83 libboost-date-time1.83 libboost-regex1.83 \
+    libyyjson0 \
     bncsutil \
     && rm -rf /var/lib/apt/lists/*
 

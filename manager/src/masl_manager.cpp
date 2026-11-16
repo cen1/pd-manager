@@ -12,6 +12,10 @@
 #include "util.h"
 
 #include <map>
+#include <ctime>
+#include <filesystem>
+
+#include <yyjson.h>
 
 //
 // sorting classes
@@ -1724,64 +1728,86 @@ void CManager ::Update()
 		}
 	}
 
-	// create a game list file
+	// create a game list file (JSON), for the web site:
+	//
+	//   {"updated": <unix time>,
+	//    "lobbies": [{"id": "<bot id>_<game id>", "hash": "52d68", "bot_id": 1, "game_id": 2,
+	//                 "name": "...", "owner": "...", "variant": "v7", "used_slots": 2, "max_slots": 10,
+	//                 "players": ["..."]}],
+	//    "games":   [{"id": ..., "hash": ..., "bot_id": ..., "game_id": ..., "name": ..., "owner": ...,
+	//                 "variant": ..., "started": <unix time>, "players": ["..."]}]}
+	//
+	// "hash" is the id !lobbies shows. "players" of a game in progress are the ones who have not left.
 
 	if (!m_GameListFile.empty() && (GetTime() - m_GameListLastRefreshTime) > m_GameListRefreshInterval) {
-		string Players;
-		string Games;
+		// the bot keeps times as seconds since it started, not as unix time
+		uint64_t Now = static_cast<uint64_t>(time(NULL));
 
-		for (list<CRemoteGame*>::iterator i = m_RemoteGames.begin(); i != m_RemoteGames.end(); ++i) {
-			CRemoteGamePlayer* Player = NULL;
+		yyjson_mut_doc* Doc = yyjson_mut_doc_new(NULL);
+		yyjson_mut_val* Root = yyjson_mut_obj(Doc);
+		yyjson_mut_doc_set_root(Doc, Root);
 
-			for (uint32_t j = 1; j < 12; ++j) {
-				Player = (*i)->GetGamePlayer(j);
+		// strncpy variants copy the string into the document, the sources are temporaries
+		auto AddStr = [Doc](yyjson_mut_val* obj, const char* key, const string& val) {
+			yyjson_mut_obj_add_strncpy(Doc, obj, key, val.c_str(), val.size());
+		};
+		auto AddGame = [Doc, &AddStr](yyjson_mut_val* arr, CRemoteGame* game) {
+			yyjson_mut_val* Obj = yyjson_mut_arr_add_obj(Doc, arr);
+			AddStr(Obj, "id", UTIL_ToString(game->GetBotID()) + "_" + UTIL_ToString(game->GetGameID()));
+			AddStr(Obj, "hash", game->GetHash());
+			yyjson_mut_obj_add_uint(Doc, Obj, "bot_id", game->GetBotID());
+			yyjson_mut_obj_add_uint(Doc, Obj, "game_id", game->GetGameID());
+			AddStr(Obj, "name", game->GetGameName());
+			AddStr(Obj, "owner", game->GetOwnerName());
+			AddStr(Obj, "variant", game->GetVariant());
+			return Obj;
+		};
+		auto AddPlayers = [Doc](yyjson_mut_val* obj, CRemoteGame* game) {
+			yyjson_mut_val* Players = yyjson_mut_obj_add_arr(Doc, obj, "players");
 
-				if (Player && Player->GetLeftTime() == 0)
-					Players += ",\"" + Player->GetName() + "\":{\"bot_id\":" + UTIL_ToString((*i)->GetBotID()) + ",\"game_id\":" + UTIL_ToString((*i)->GetGameID()) + "}";
+			// slots are numbered 1 to 12
+			for (uint32_t j = 1; j <= 12; ++j) {
+				CRemoteGamePlayer* Player = game->GetGamePlayer(j);
+
+				if (Player && Player->GetLeftTime() == 0) {
+					string Name = Player->GetName();
+					yyjson_mut_arr_add_strncpy(Doc, Players, Name.c_str(), Name.size());
+				}
 			}
+		};
 
-			string GameName = (*i)->GetGameName();
-			UTIL_Replace(GameName, "\"", "\\\"");
+		yyjson_mut_obj_add_uint(Doc, Root, "updated", Now);
 
-			Games += ",\"" + UTIL_ToString((*i)->GetBotID()) + "_" + UTIL_ToString((*i)->GetGameID()) + "\":{\"in_lobby\":0,\"game_name\":\"" + GameName + "\"}";
+		yyjson_mut_val* Lobbies = yyjson_mut_obj_add_arr(Doc, Root, "lobbies");
+
+		for (CRemoteGame* Game : m_RemoteGamesInLobby) {
+			yyjson_mut_val* Obj = AddGame(Lobbies, Game);
+			yyjson_mut_obj_add_uint(Doc, Obj, "used_slots", Game->GetNumPlayers());
+			yyjson_mut_obj_add_uint(Doc, Obj, "max_slots", Game->GetNumStartPlayers());
+			AddPlayers(Obj, Game);
 		}
 
-		for (list<CRemoteGame*>::iterator i = m_RemoteGamesInLobby.begin(); i != m_RemoteGamesInLobby.end(); ++i) {
-			CRemoteGamePlayer* Player = NULL;
+		yyjson_mut_val* Games = yyjson_mut_obj_add_arr(Doc, Root, "games");
 
-			for (uint32_t j = 1; j < 12; ++j) {
-				Player = (*i)->GetGamePlayer(j);
-
-				if (Player)
-					Players += ",\"" + Player->GetName() + "\":{\"bot_id\":" + UTIL_ToString((*i)->GetBotID()) + ",\"game_id\":" + UTIL_ToString((*i)->GetGameID()) + "}";
-			}
-
-			string GameName = (*i)->GetGameName();
-			UTIL_Replace(GameName, "\"", "\\\"");
-
-			Games += ",\"" + UTIL_ToString((*i)->GetBotID()) + "_" + UTIL_ToString((*i)->GetGameID()) + "\":{\"in_lobby\":1,\"game_name\":\"" + (*i)->GetGameName() + "\"}";
+		for (CRemoteGame* Game : m_RemoteGames) {
+			yyjson_mut_val* Obj = AddGame(Games, Game);
+			yyjson_mut_obj_add_uint(Doc, Obj, "started", Now - Game->GetDurationInSeconds());
+			AddPlayers(Obj, Game);
 		}
 
-		// remove the first comma
+		// write a temporary file and rename it, so readers never see a half written file;
+		// names that are not valid UTF-8 are written as they are rather than failing the whole list
+		// (std::filesystem::rename replaces an existing file on Windows too, unlike std::rename)
+		string TmpFile = m_GameListFile + ".tmp";
+		yyjson_write_err Err;
+		std::error_code EC;
 
-		if (!Players.empty())
-			Players.erase(0, 1);
+		if (!yyjson_mut_write_file(TmpFile.c_str(), Doc, YYJSON_WRITE_ALLOW_INVALID_UNICODE, NULL, &Err))
+			CONSOLE_Print("[MANAGER] could not write the game list file [" + TmpFile + "]: " + Err.msg);
+		else if (std::filesystem::rename(TmpFile, m_GameListFile, EC); EC)
+			CONSOLE_Print("[MANAGER] could not rename [" + TmpFile + "] to [" + m_GameListFile + "]: " + EC.message());
 
-		Players = "GL_players={" + Players + "};";
-
-		if (!Games.empty())
-			Games.erase(0, 1);
-
-		Games = "GL_games={" + Games + "}";
-
-		ofstream GameList;
-		GameList.open(m_GameListFile.c_str(), ios::trunc);
-
-		if (!GameList.fail()) {
-			GameList << Players;
-			GameList << Games;
-			GameList.close();
-		}
+		yyjson_mut_doc_free(Doc);
 
 		m_GameListLastRefreshTime = GetTime();
 	}

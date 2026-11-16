@@ -10,7 +10,8 @@
 		"boost-regex",
 		"boost-asio",
 		"libmysql",
-		"stormlib"
+		"stormlib",
+		"yyjson"
 	],
 	"vcpkg-configuration": {
 		"default-registry": {

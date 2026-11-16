@@ -95,6 +95,6 @@ set(CPACK_DEBIAN_PDSLAVE_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesy
 set(CPACK_COMPONENT_PDMANAGER_DESCRIPTION "pd-manager - Warcraft III hosting manager bot")
 set(CPACK_DEBIAN_PDMANAGER_PACKAGE_NAME "pd-manager")
 set(CPACK_DEBIAN_PDMANAGER_FILE_NAME "pd-manager-${PROJECT_VERSION}.deb")
-set(CPACK_DEBIAN_PDMANAGER_PACKAGE_DEPENDS "libmariadb-dev-compat, libboost-filesystem1.83-dev, libboost-system1.83-dev, libboost-chrono1.83-dev, libboost-thread1.83-dev, libboost-date-time1.83-dev, libboost-regex1.83-dev, bncsutil")
+set(CPACK_DEBIAN_PDMANAGER_PACKAGE_DEPENDS "libmariadb-dev-compat, libyyjson0, libboost-filesystem1.83-dev, libboost-system1.83-dev, libboost-chrono1.83-dev, libboost-thread1.83-dev, libboost-date-time1.83-dev, libboost-regex1.83-dev, bncsutil")
 
 include(CPack)

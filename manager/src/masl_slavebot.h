@@ -163,6 +163,8 @@ class CRemoteGame {
 	CRemoteGamePlayer* GetGamePlayer(uint32_t slot);
 	CRemoteGamePlayer* GetGamePlayer(string lowercasename);
 	string GetNames();
+	string GetHash() { return hash().substr(0, 5); } // short id of the game, as shown by !lobbies
+	string GetVariant() { return m_CFGFile.find("map_legacy") != string::npos ? "v6" : "v7"; }
 
 	void SetGameState(uint32_t nGameState) { m_GameState = nGameState; }
 	// void SetCurrentPlayers( uint32_t nCurrentPlayers )							{ m_CurrentPlayers = nCurrentPlayers; }
