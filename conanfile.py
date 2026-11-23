@@ -11,6 +11,7 @@ class Pdm(ConanFile):
 		"libmysqlclient/8.1.0",
 		"boost/1.86.0",
 		"zlib/1.3.1",
+		"yyjson/0.10.0",
 	)
 
 	def configure(self):

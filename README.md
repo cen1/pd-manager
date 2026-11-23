@@ -39,7 +39,7 @@ These are instructions to build from source on Debian Trixie.
 wget -qO - https://repo.xpam.pl/repository/repokeys/public/debian-trixie-xpam.asc | sudo apt-key add -
 sudo apt-get update
 sudo apt install libmariadb-dev-compat libboost-filesystem1.83-dev libboost-system1.83-dev libboost-chrono1.83-dev \
-libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil libstorm-dev
+libboost-thread1.83-dev libboost-date-time1.83-dev libboost-regex1.83-dev bncsutil libstorm-dev libyyjson-dev
 cmake -B build
 cmake --build build --config Release
 cd build
